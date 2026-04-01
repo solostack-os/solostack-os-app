@@ -132,9 +132,11 @@ function Hero() {
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <ShinyButton>Join the Waitlist</ShinyButton>
+          <a href="#waitlist">
+            <ShinyButton>Join the Waitlist</ShinyButton>
+          </a>
           <a
-            href="#how-it-works"
+            href="#demo"
             className="px-7 py-3 text-sm font-medium border transition-colors hover:border-white/30"
             style={{ color: textMuted, borderColor: "rgba(148,163,184,0.3)", borderRadius: 8 }}
           >
@@ -165,7 +167,7 @@ function SocialProof() {
    ════════════════════════════════════════════════════════════ */
 function DemoSection() {
   return (
-    <section className="py-20 px-6">
+    <section id="demo" className="py-20 px-6">
       <div className="max-w-2xl mx-auto text-center mb-10">
         <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
           See it in action
