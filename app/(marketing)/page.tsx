@@ -157,7 +157,7 @@ function DemoSection() {
         </p>
       </div>
       <WorkflowDemo />
-      <p className="text-center text-xs mt-6" style={{ color: textMuted }}>
+      <p className="text-center text-sm mt-6" style={{ color: accent }}>
         Set your context once, choose a workflow, and get a ready-to-use output in seconds&nbsp;&mdash; not minutes.
       </p>
     </section>
