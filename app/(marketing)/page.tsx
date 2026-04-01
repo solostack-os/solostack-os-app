@@ -94,7 +94,7 @@ function Hero() {
 
         {/* Headline */}
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight tracking-tight text-white mb-6">
-          Run your business with AI workflows&nbsp;&mdash; not random prompts.
+          Run your business with AI workflows.
         </h1>
 
         {/* Subheadline */}
@@ -158,7 +158,7 @@ function DemoSection() {
       </div>
       <WorkflowDemo />
       <p className="text-center text-sm mt-6" style={{ color: accent }}>
-        Set your context once, choose a workflow, and get a ready-to-use output in seconds&nbsp;&mdash; not minutes.
+        Set your context once, choose a workflow, and get a ready-to-use output in seconds&nbsp;&mdash; not hours.
       </p>
     </section>
   );
