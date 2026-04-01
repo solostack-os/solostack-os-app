@@ -17,7 +17,6 @@ const GlowCard: React.FC<GlowCardProps> = ({
   children,
   className = '',
   glowColor = 'blue',
-  customSize = true
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
