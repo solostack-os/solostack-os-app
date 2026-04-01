@@ -119,7 +119,7 @@ function Hero() {
         </div>
 
         {/* Trust line */}
-        <p className="mt-8 text-xs tracking-wide" style={{ color: textMuted }}>
+        <p className="mt-8 text-sm tracking-wide" style={{ color: accent }}>
           Built for solopreneurs, consultants, and small service teams.
         </p>
       </div>
