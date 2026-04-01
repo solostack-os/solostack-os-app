@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { Resend } from "resend";
 import dns from "dns";
 import { promisify } from "util";
 
@@ -9,6 +10,8 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -109,6 +112,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "duplicate" });
     }
     return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+  }
+
+  // Send confirmation email (non-blocking)
+  try {
+    await resend.emails.send({
+      from: "SoloStack <onboarding@resend.dev>",
+      to: email,
+      subject: "You're on the SoloStack waitlist! \ud83c\udf89",
+      html: `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#0a0f1e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <div style="max-width:520px;margin:0 auto;padding:48px 24px;">
+    <h1 style="color:#ffffff;font-size:24px;font-weight:700;margin:0 0 8px;">SoloStack OS</h1>
+    <p style="color:#6c8cff;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 32px;">Beta Waitlist</p>
+    <h2 style="color:#ffffff;font-size:20px;font-weight:600;margin:0 0 16px;">You're on the list!</h2>
+    <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 24px;">
+      Thanks for joining the SoloStack OS waitlist. You're one of the first to get access to the AI workspace built for freelancers, consultants, and small service teams.
+    </p>
+    <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 24px;">
+      We'll reach out when it's your turn to get early access and founding member pricing.
+    </p>
+    <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;margin-top:32px;">
+      <p style="color:#475569;font-size:13px;margin:0;">&copy; 2026 SoloStack OS. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`,
+    });
+  } catch (emailErr) {
+    console.error("Failed to send waitlist confirmation email:", emailErr);
   }
 
   return NextResponse.json({ message: "success" });
