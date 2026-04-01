@@ -34,15 +34,15 @@ function Navbar() {
       }`}
       style={{ backgroundColor: scrolled ? "rgba(10,15,30,0.85)" : "transparent", backdropFilter: scrolled ? "blur(12px)" : "none" }}
     >
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-8 py-7 flex items-center justify-between">
         {/* Logo */}
-        <a href="#" className="flex items-center gap-2">
-          <img src="/logo.png" alt="SoloStack OS" className="h-8 w-8 object-contain" />
-          <span className="text-lg font-semibold text-white tracking-tight">
+        <a href="#" className="flex items-center gap-3">
+          <img src="/logo.png" alt="SoloStack OS" className="h-16 w-16 object-contain" />
+          <span className="text-2xl font-bold text-white tracking-tight">
             SoloStack OS
           </span>
           <span
-            className="text-[10px] font-medium uppercase tracking-widest px-1.5 py-0.5 rounded"
+            className="text-xs font-medium uppercase tracking-widest px-2 py-0.5 rounded"
             style={{ backgroundColor: accent, color: bg }}
           >
             Beta
