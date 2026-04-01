@@ -5,7 +5,6 @@ import { ShinyButton } from "@/components/ui/shiny-button";
 import { HeroBackground } from "@/components/ui/hero-background";
 import { GlowCard } from "@/components/ui/glow-card";
 import { WorkflowDemo } from "@/components/ui/workflow-demo";
-import { IoGridOutline, IoCashOutline } from "react-icons/io5";
 
 /* ─── Design Tokens ─── */
 const bg = "#0a0f1e";
@@ -42,7 +41,7 @@ function Navbar() {
             SoloStack OS
           </span>
           <span
-            className="text-xs font-medium uppercase tracking-widest px-2 py-0.5 rounded"
+            className="hidden sm:inline-flex text-xs font-medium uppercase tracking-widest px-2 py-0.5 rounded"
             style={{ backgroundColor: accent, color: bg }}
           >
             Beta
@@ -51,34 +50,11 @@ function Navbar() {
 
         {/* Links */}
         <div className="flex items-center gap-8">
-          <a
-            href="#features"
-            style={{ "--gradient-from": "#6c8cff", "--gradient-to": "#5eead4" } as React.CSSProperties}
-            className="relative w-[48px] h-[48px] bg-white/10 rounded-full hidden sm:flex items-center justify-center transition-all duration-500 hover:w-[160px] group cursor-pointer overflow-hidden"
-          >
-            <span className="absolute inset-0 rounded-full bg-[linear-gradient(45deg,var(--gradient-from),var(--gradient-to))] opacity-0 transition-all duration-500 group-hover:opacity-100"></span>
-            <span className="absolute top-[6px] inset-x-0 h-full rounded-full bg-[linear-gradient(45deg,var(--gradient-from),var(--gradient-to))] blur-[15px] opacity-0 -z-10 transition-all duration-500 group-hover:opacity-40"></span>
-            <span className="relative z-10 transition-all duration-500 group-hover:scale-0">
-              <IoGridOutline className="text-xl text-slate-300" />
-            </span>
-            <span className="absolute text-white uppercase tracking-wide text-xs font-medium transition-all duration-500 scale-0 group-hover:scale-100">
-              Features
-            </span>
-          </a>
-          <a
-            href="#pricing"
-            style={{ "--gradient-from": "#a955ff", "--gradient-to": "#ea51ff" } as React.CSSProperties}
-            className="relative w-[48px] h-[48px] bg-white/10 rounded-full hidden sm:flex items-center justify-center transition-all duration-500 hover:w-[160px] group cursor-pointer overflow-hidden"
-          >
-            <span className="absolute inset-0 rounded-full bg-[linear-gradient(45deg,var(--gradient-from),var(--gradient-to))] opacity-0 transition-all duration-500 group-hover:opacity-100"></span>
-            <span className="absolute top-[6px] inset-x-0 h-full rounded-full bg-[linear-gradient(45deg,var(--gradient-from),var(--gradient-to))] blur-[15px] opacity-0 -z-10 transition-all duration-500 group-hover:opacity-40"></span>
-            <span className="relative z-10 transition-all duration-500 group-hover:scale-0">
-              <IoCashOutline className="text-xl text-slate-300" />
-            </span>
-            <span className="absolute text-white uppercase tracking-wide text-xs font-medium transition-all duration-500 scale-0 group-hover:scale-100">
-              Pricing
-            </span>
-          </a>
+          <div className="hidden md:flex items-center gap-8">
+            <a href="#features" className="text-sm text-slate-300 hover:text-white transition">Features</a>
+            <a href="#how-it-works" className="text-sm text-slate-300 hover:text-white transition">How it works</a>
+            <a href="#pricing" className="text-sm text-slate-300 hover:text-white transition">Pricing</a>
+          </div>
           <a
             href="#waitlist"
             className="text-sm font-medium px-4 py-2 transition-opacity hover:opacity-90"
@@ -113,21 +89,19 @@ function Hero() {
           className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full mb-6"
           style={{ color: accentTeal, border: `1px solid ${accentTeal}33` }}
         >
-          AI Operating System for Service Businesses
+          AI Workflows for Service Businesses
         </span>
 
         {/* Headline */}
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight tracking-tight text-white mb-6">
-          Stop juggling tools.
-          <br />
-          Start running your business.
+          Run your business with AI workflows&nbsp;&mdash; not random prompts.
         </h1>
 
         {/* Subheadline */}
         <p className="max-w-xl mx-auto text-base sm:text-lg mb-10 leading-relaxed" style={{ color: textMuted }}>
-          SoloStack OS gives freelancers, consultants, and agencies a persistent
-          AI workspace — for marketing, outreach, and operations. One context.
-          Three modules. Real outputs.
+          SoloStack OS helps freelancers, consultants, and small agencies create
+          marketing content, outreach messages, and operations docs faster using
+          saved business context.
         </p>
 
         {/* CTAs */}
@@ -143,20 +117,24 @@ function Hero() {
             See how it works&nbsp;&rarr;
           </a>
         </div>
+
+        {/* Trust line */}
+        <p className="mt-8 text-xs tracking-wide" style={{ color: textMuted }}>
+          Built for solopreneurs, consultants, and small service teams.
+        </p>
       </div>
     </section>
   );
 }
 
 /* ════════════════════════════════════════════════════════════
-   SECTION 3 — SOCIAL PROOF BAR
+   SECTION 3 — CLARIFIER BAR
    ════════════════════════════════════════════════════════════ */
 function SocialProof() {
   return (
     <section className="py-6 text-center border-y" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
       <p className="text-xs sm:text-sm tracking-wide" style={{ color: textMuted }}>
-        Built for solopreneurs, consultants &amp; small agencies&ensp;·&ensp;Launching
-        soon&ensp;·&ensp;Join 200+ on the waitlist
+        One business context.&ensp;&middot;&ensp;Three focused modules.&ensp;&middot;&ensp;Ready-to-use outputs.
       </p>
     </section>
   );
@@ -173,14 +151,14 @@ function DemoSection() {
           See it in action
         </h2>
         <p className="text-xl sm:text-2xl font-semibold leading-snug" style={{ color: "#6c8cff" }}>
-          ChatGPT asks 10 questions before writing an ad.
+          ChatGPT asks the same questions every time.
           <br />
-          <span className="text-white">SoloStack already knows the answers.</span>
+          <span className="text-white">SoloStack already knows your business.</span>
         </p>
       </div>
       <WorkflowDemo />
       <p className="text-center text-xs mt-6" style={{ color: textMuted }}>
-        Type what you need. Get what you want. 5 seconds.
+        Set your context once, choose a workflow, and get a ready-to-use output in seconds&nbsp;&mdash; not minutes.
       </p>
     </section>
   );
@@ -191,16 +169,16 @@ function DemoSection() {
    ════════════════════════════════════════════════════════════ */
 function IsIsNot() {
   const isItems = [
-    "Your AI that knows your business",
-    "A workspace that generates real outputs",
-    "Marketing copy, outreach emails, SOPs — ready to export",
-    "Built for people who work alone or in small teams",
+    "An AI workspace that remembers your business.",
+    "A faster way to create content, outreach, and SOPs.",
+    "A structured workflow system, not a blank chat.",
+    "Built for solo founders and small service teams.",
   ];
   const isNotItems = [
-    "Another chatbot you start from scratch",
-    "A prompt library or template pack",
-    "An agency tool with seat licenses",
-    "Something that requires setup or training",
+    "Another chatbot you start from scratch.",
+    "A generic prompt pack or template library.",
+    "A CRM or automation platform.",
+    "A tool that takes weeks to set up.",
   ];
 
   return (
@@ -252,7 +230,7 @@ const modules = [
       </svg>
     ),
     description:
-      "Generate landing pages, ad copy, social posts, and email campaigns — with AI that already knows your brand, offer, and audience.",
+      "Create ad copy, landing page sections, social posts, email campaigns, and content briefs with your offer and audience already built in.",
   },
   {
     title: "Outreach OS",
@@ -262,7 +240,7 @@ const modules = [
       </svg>
     ),
     description:
-      "Write cold outreach sequences, follow-ups, and proposals — personalized to each prospect, consistent with your voice.",
+      "Draft cold emails, follow-ups, proposals, and discovery prep personalized to your service, audience, and tone.",
   },
   {
     title: "Operations OS",
@@ -272,18 +250,21 @@ const modules = [
       </svg>
     ),
     description:
-      "Create SOPs, onboarding docs, client briefs, and internal workflows — structured and ready to export.",
+      "Generate SOPs, weekly plans, onboarding docs, and process notes that are structured and ready to export.",
   },
 ];
 
 function Modules() {
   return (
     <section className="py-20 px-6">
-      <div className="max-w-5xl mx-auto text-center mb-12">
+      <div className="max-w-5xl mx-auto text-center mb-4">
         <h2 className="text-2xl sm:text-3xl font-bold text-white">
-          Three modules. One workspace.
+          Three modules. <span style={{ color: accent }}>One workspace.</span>
         </h2>
       </div>
+      <p className="text-center text-sm mb-12" style={{ color: textMuted }}>
+        Focused on the three jobs small service businesses repeat every week.
+      </p>
       <div className="max-w-5xl mx-auto grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {modules.map((m) => (
           <GlowCard key={m.title} className="p-6">
@@ -315,28 +296,31 @@ const steps = [
   {
     num: "01",
     title: "Set your context",
-    text: "Tell SoloStack OS about your business once. It remembers your offer, audience, tone, and goals — so you never repeat yourself.",
+    text: "Tell SoloStack what you sell, who you serve, and how you want to sound. It remembers your offer, audience, tone, and goals so you do not repeat yourself.",
   },
   {
     num: "02",
     title: "Choose a workflow",
-    text: "Pick a task — write ad copy, draft a proposal, build an SOP. The AI knows what to do and what to ask.",
+    text: "Pick the task you need right now: create content, write outreach, or document a process. SoloStack opens the right workflow based on your goal.",
   },
   {
     num: "03",
-    title: "Export and use",
-    text: "Get clean, formatted outputs ready for Google Docs, email, or PDF. No copy-paste chaos.",
+    title: "Edit, export, and use",
+    text: "Get a clean output you can refine and export for docs, email, or PDF. Your results stay reusable, so the next task starts faster.",
   },
 ];
 
 function HowItWorks() {
   return (
     <section id="how-it-works" className="py-20 px-6">
-      <div className="max-w-5xl mx-auto text-center mb-12">
+      <div className="max-w-5xl mx-auto text-center mb-4">
         <h2 className="text-2xl sm:text-3xl font-bold text-white">
-          How it works
+          How <span style={{ color: accent }}>it works</span>
         </h2>
       </div>
+      <p className="text-center text-sm mb-12" style={{ color: textMuted }}>
+        Get to your first useful output fast.
+      </p>
       <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
         {steps.map((s) => (
           <div key={s.num} className="flex flex-col gap-3">
@@ -367,9 +351,9 @@ const plans = [
     period: "",
     features: [
       "7-day free trial",
-      "20 AI runs included",
+      "20 runs included",
       "All 3 modules",
-      "Export to PDF",
+      "Basic exports",
     ],
     cta: "Start Free Trial",
     highlighted: false,
@@ -379,10 +363,10 @@ const plans = [
     price: "$19",
     period: "/mo",
     features: [
-      "Unlimited runs",
+      "1 workspace",
       "All 3 modules",
-      "PDF + Doc exports",
-      "Priority support",
+      "Standard usage",
+      "Basic exports",
     ],
     cta: "Join Waitlist",
     highlighted: true,
@@ -392,10 +376,10 @@ const plans = [
     price: "$39",
     period: "/mo",
     features: [
-      "Everything in Starter",
-      "Custom AI instructions",
-      "Advanced export formats",
-      "Early access to new modules",
+      "All core modules",
+      "Fuller exports",
+      "More workflow depth",
+      "Persistent AI context",
     ],
     cta: "Join Waitlist",
     highlighted: false,
@@ -407,11 +391,11 @@ function Pricing() {
     <section id="pricing" className="py-20 px-6">
       <div className="max-w-5xl mx-auto text-center mb-4">
         <h2 className="text-2xl sm:text-3xl font-bold text-white">
-          Simple, transparent pricing
+          Simple, transparent <span style={{ color: accent }}>pricing</span>
         </h2>
       </div>
       <p className="text-center text-sm mb-12" style={{ color: textMuted }}>
-        Start free. Upgrade when you&rsquo;re ready.
+        <span style={{ color: accent }}>Start free.</span> Upgrade when SoloStack becomes part of your weekly workflow.
       </p>
       <div className="max-w-5xl mx-auto grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.map((p) => (
@@ -479,10 +463,10 @@ function WaitlistCTA() {
       <HeroBackground color="rgba(108, 140, 255, 0.10)" scale={35} speed={65} />
       <div className="relative z-10 max-w-xl mx-auto">
         <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-          Be first. Shape what gets built.
+          Get early access to the <span style={{ color: accent }}>AI workspace</span> for service businesses
         </h2>
         <p className="text-sm mb-8 leading-relaxed" style={{ color: textMuted }}>
-          Join the waitlist and get early access + founding member pricing.
+          Join the waitlist to try SoloStack early and get founding member pricing.
         </p>
 
         <form
@@ -505,8 +489,8 @@ function WaitlistCTA() {
           <ShinyButton>Join Waitlist</ShinyButton>
         </form>
 
-        <p className="mt-4 text-xs" style={{ color: textMuted }}>
-          No spam. No fluff. Just SoloStack.
+        <p className="mt-4 text-sm" style={{ color: accent }}>
+          No spam. Just early access, product updates, and launch invites.
         </p>
       </div>
     </section>
