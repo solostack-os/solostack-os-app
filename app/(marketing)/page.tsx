@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { HeroBackground } from "@/components/ui/hero-background";
+import { GlowCard } from "@/components/ui/glow-card";
+import { WorkflowDemo } from "@/components/ui/workflow-demo";
+import { IoGridOutline, IoCashOutline } from "react-icons/io5";
 
 /* ─── Design Tokens ─── */
 const bg = "#0a0f1e";
@@ -48,11 +51,33 @@ function Navbar() {
 
         {/* Links */}
         <div className="flex items-center gap-8">
-          <a href="#features" className="text-sm hidden sm:inline-block" style={{ color: textMuted }} >
-            Features
+          <a
+            href="#features"
+            style={{ "--gradient-from": "#6c8cff", "--gradient-to": "#5eead4" } as React.CSSProperties}
+            className="relative w-[48px] h-[48px] bg-white/10 rounded-full hidden sm:flex items-center justify-center transition-all duration-500 hover:w-[160px] group cursor-pointer overflow-hidden"
+          >
+            <span className="absolute inset-0 rounded-full bg-[linear-gradient(45deg,var(--gradient-from),var(--gradient-to))] opacity-0 transition-all duration-500 group-hover:opacity-100"></span>
+            <span className="absolute top-[6px] inset-x-0 h-full rounded-full bg-[linear-gradient(45deg,var(--gradient-from),var(--gradient-to))] blur-[15px] opacity-0 -z-10 transition-all duration-500 group-hover:opacity-40"></span>
+            <span className="relative z-10 transition-all duration-500 group-hover:scale-0">
+              <IoGridOutline className="text-xl text-slate-300" />
+            </span>
+            <span className="absolute text-white uppercase tracking-wide text-xs font-medium transition-all duration-500 scale-0 group-hover:scale-100">
+              Features
+            </span>
           </a>
-          <a href="#pricing" className="text-sm hidden sm:inline-block" style={{ color: textMuted }} >
-            Pricing
+          <a
+            href="#pricing"
+            style={{ "--gradient-from": "#a955ff", "--gradient-to": "#ea51ff" } as React.CSSProperties}
+            className="relative w-[48px] h-[48px] bg-white/10 rounded-full hidden sm:flex items-center justify-center transition-all duration-500 hover:w-[160px] group cursor-pointer overflow-hidden"
+          >
+            <span className="absolute inset-0 rounded-full bg-[linear-gradient(45deg,var(--gradient-from),var(--gradient-to))] opacity-0 transition-all duration-500 group-hover:opacity-100"></span>
+            <span className="absolute top-[6px] inset-x-0 h-full rounded-full bg-[linear-gradient(45deg,var(--gradient-from),var(--gradient-to))] blur-[15px] opacity-0 -z-10 transition-all duration-500 group-hover:opacity-40"></span>
+            <span className="relative z-10 transition-all duration-500 group-hover:scale-0">
+              <IoCashOutline className="text-xl text-slate-300" />
+            </span>
+            <span className="absolute text-white uppercase tracking-wide text-xs font-medium transition-all duration-500 scale-0 group-hover:scale-100">
+              Pricing
+            </span>
           </a>
           <a
             href="#waitlist"
@@ -136,6 +161,30 @@ function SocialProof() {
 }
 
 /* ════════════════════════════════════════════════════════════
+   SECTION 3.5 — WORKFLOW DEMO
+   ════════════════════════════════════════════════════════════ */
+function DemoSection() {
+  return (
+    <section className="py-20 px-6">
+      <div className="max-w-2xl mx-auto text-center mb-10">
+        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
+          See it in action
+        </h2>
+        <p className="text-xl sm:text-2xl font-semibold leading-snug" style={{ color: "#6c8cff" }}>
+          ChatGPT asks 10 questions before writing an ad.
+          <br />
+          <span className="text-white">SoloStack already knows the answers.</span>
+        </p>
+      </div>
+      <WorkflowDemo />
+      <p className="text-center text-xs mt-6" style={{ color: textMuted }}>
+        Type what you need. Get what you want. 5 seconds.
+      </p>
+    </section>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════
    SECTION 4 — IS / IS NOT
    ════════════════════════════════════════════════════════════ */
 function IsIsNot() {
@@ -156,15 +205,7 @@ function IsIsNot() {
     <section id="features" className="py-20 px-6">
       <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-6">
         {/* IS card */}
-        <div
-          className="p-6 sm:p-8"
-          style={{
-            backgroundColor: surface,
-            border: "1px solid rgba(255,255,255,0.06)",
-            borderLeft: `3px solid ${accentTeal}`,
-            borderRadius: 12,
-          }}
-        >
+        <GlowCard className="p-6 sm:p-8">
           <h3 className="text-lg font-semibold text-white mb-5">
             SoloStack OS <span style={{ color: accentTeal }}>IS:</span>
           </h3>
@@ -176,18 +217,10 @@ function IsIsNot() {
               </li>
             ))}
           </ul>
-        </div>
+        </GlowCard>
 
         {/* IS NOT card */}
-        <div
-          className="p-6 sm:p-8"
-          style={{
-            backgroundColor: surface,
-            border: "1px solid rgba(255,255,255,0.06)",
-            borderLeft: `3px solid ${accent}`,
-            borderRadius: 12,
-          }}
-        >
+        <GlowCard className="p-6 sm:p-8">
           <h3 className="text-lg font-semibold text-white mb-5">
             SoloStack OS is <span style={{ color: accent }}>NOT:</span>
           </h3>
@@ -199,7 +232,7 @@ function IsIsNot() {
               </li>
             ))}
           </ul>
-        </div>
+        </GlowCard>
       </div>
     </section>
   );
@@ -251,15 +284,7 @@ function Modules() {
       </div>
       <div className="max-w-5xl mx-auto grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {modules.map((m) => (
-          <div
-            key={m.title}
-            className="p-6 flex flex-col gap-4 relative overflow-hidden"
-            style={{
-              backgroundColor: surface,
-              border: "1px solid rgba(255,255,255,0.06)",
-              borderRadius: 12,
-            }}
-          >
+          <GlowCard key={m.title} className="p-6">
             {/* Gradient top border */}
             <div
               className="absolute top-0 left-0 right-0 h-[2px]"
@@ -267,12 +292,14 @@ function Modules() {
                 background: `linear-gradient(90deg, ${accent}, ${accentTeal})`,
               }}
             />
-            <div style={{ color: accent }}>{m.icon}</div>
-            <h3 className="text-base font-semibold text-white">{m.title}</h3>
-            <p className="text-sm leading-relaxed" style={{ color: textMuted }}>
-              {m.description}
-            </p>
-          </div>
+            <div className="flex flex-col gap-4">
+              <div style={{ color: accent }}>{m.icon}</div>
+              <h3 className="text-base font-semibold text-white">{m.title}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: textMuted }}>
+                {m.description}
+              </p>
+            </div>
+          </GlowCard>
         ))}
       </div>
     </section>
@@ -386,20 +413,10 @@ function Pricing() {
       </p>
       <div className="max-w-5xl mx-auto grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.map((p) => (
-          <div
-            key={p.name}
-            className="relative p-6 flex flex-col gap-5"
-            style={{
-              backgroundColor: surface,
-              border: p.highlighted
-                ? `2px solid ${accent}`
-                : "1px solid rgba(255,255,255,0.06)",
-              borderRadius: 12,
-            }}
-          >
+          <GlowCard key={p.name} className="p-6 flex flex-col gap-5">
             {p.highlighted && (
               <span
-                className="absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-semibold uppercase tracking-wider px-3 py-0.5 rounded-full"
+                className="absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-semibold uppercase tracking-wider px-3 py-0.5 rounded-full z-10"
                 style={{ backgroundColor: accent, color: bg }}
               >
                 Most Popular
@@ -436,7 +453,7 @@ function Pricing() {
             >
               {p.cta}
             </a>
-          </div>
+          </GlowCard>
         ))}
       </div>
     </section>
@@ -534,6 +551,7 @@ export default function MarketingPage() {
       <Navbar />
       <Hero />
       <SocialProof />
+      <DemoSection />
       <IsIsNot />
       <Modules />
       <HowItWorks />
