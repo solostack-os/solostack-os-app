@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { HeroBackground } from "@/components/ui/hero-background";
 import { GlowCard } from "@/components/ui/glow-card";
@@ -451,6 +451,46 @@ function Pricing() {
    ════════════════════════════════════════════════════════════ */
 function WaitlistCTA() {
   const [email, setEmail] = useState("");
+  const [honeypot, setHoneypot] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "duplicate" | "invalid" | "ratelimit" | "error">("idle");
+  const [cooldown, setCooldown] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (document.querySelector('script[src*="turnstile"]')) return;
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (cooldown) return;
+
+    const turnstileInput = formRef.current?.querySelector<HTMLInputElement>('[name="cf-turnstile-response"]');
+    const turnstileToken = turnstileInput?.value ?? "";
+
+    setStatus("loading");
+    const res = await fetch("/api/waitlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, website: honeypot, turnstileToken }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (res.status === 429) { setStatus("ratelimit"); }
+      else if (res.status === 400) { setStatus("invalid"); }
+      else { setStatus("error"); }
+    } else {
+      setStatus(data.message === "duplicate" ? "duplicate" : "success");
+      setCooldown(true);
+      setTimeout(() => setCooldown(false), 30000);
+    }
+    setEmail("");
+  }
 
   return (
     <section
@@ -469,25 +509,66 @@ function WaitlistCTA() {
           Join the waitlist to try SoloStack early and get founding member pricing.
         </p>
 
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          className="flex flex-col sm:flex-row items-center gap-3 max-w-md mx-auto"
-        >
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            className="flex-1 w-full sm:w-auto px-4 py-2.5 text-sm rounded-lg outline-none placeholder:text-slate-500"
-            style={{
-              backgroundColor: surface,
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: textPrimary,
-              borderRadius: 8,
-            }}
-          />
-          <ShinyButton>Join Waitlist</ShinyButton>
-        </form>
+        {status === "success" || status === "duplicate" ? (
+          <p className="text-sm font-medium" style={{ color: accentTeal }}>
+            {status === "duplicate"
+              ? "You\u2019re already on the waitlist!"
+              : "You\u2019re on the list! We\u2019ll be in touch."}
+          </p>
+        ) : (
+          <form
+            ref={formRef}
+            onSubmit={handleSubmit}
+            className="flex flex-col items-center gap-3 max-w-md mx-auto"
+          >
+            {/* Honeypot — hidden from real users */}
+            <input
+              type="text"
+              name="website"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+              style={{ position: "absolute", left: "-9999px" }}
+              tabIndex={-1}
+              autoComplete="off"
+            />
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                className="flex-1 w-full sm:w-auto px-4 py-2.5 text-sm rounded-lg outline-none placeholder:text-slate-500"
+                style={{
+                  backgroundColor: surface,
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: textPrimary,
+                  borderRadius: 8,
+                }}
+              />
+              <ShinyButton>{status === "loading" ? "Joining..." : "Join Waitlist"}</ShinyButton>
+            </div>
+            <div className="cf-turnstile" data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} data-theme="dark"></div>
+          </form>
+        )}
+
+        {status === "invalid" && (
+          <p className="mt-3 text-sm" style={{ color: "#f87171" }}>
+            Please use a valid email address.
+          </p>
+        )}
+
+        {status === "ratelimit" && (
+          <p className="mt-3 text-sm" style={{ color: "#f87171" }}>
+            Too many requests. Please try again later.
+          </p>
+        )}
+
+        {status === "error" && (
+          <p className="mt-3 text-sm" style={{ color: "#f87171" }}>
+            Something went wrong. Please try again.
+          </p>
+        )}
 
         <p className="mt-4 text-sm" style={{ color: accent }}>
           No spam. Just early access, product updates, and launch invites.
