@@ -11,11 +11,11 @@ export interface SocialPostsInput {
 
 const platformGuidance: Record<SocialPostsInput["platform"], string> = {
   instagram:
-    "Write for Instagram. Use short punchy paragraphs, line breaks for readability, and suggest 3-5 relevant hashtags at the end of each post. Keep it visual and engaging.",
+    "Write for Instagram. Max 150 words per post. Use short, punchy paragraphs with line breaks for readability. Conversational and engaging tone. End each post with 3-5 relevant hashtags (never more than 5).",
   linkedin:
-    "Write for LinkedIn. Use a professional but human tone, open with a hook, include line breaks between paragraphs, and end with a thought-provoking question or call to action. No hashtags unless they add clear value.",
+    "Write for LinkedIn. Max 250 words per post. Professional but human tone. Open with a strong hook, use line breaks between paragraphs, structure the post clearly, and end with a thought-provoking question or call to action. Use no more than 3 hashtags — omit them entirely if they don't add clear value.",
   facebook:
-    "Write for Facebook. Keep it conversational, relatable, and easy to engage with. Moderate length. End with a question or CTA to drive comments.",
+    "Write for Facebook. Max 100 words per post. Warm, conversational, and engaging tone. Keep it relatable and easy to interact with. End with a question or CTA to drive comments. Use 1-2 hashtags at most.",
 };
 
 export async function runSocialPosts(

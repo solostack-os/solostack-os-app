@@ -88,6 +88,7 @@ export default function MarketingPage() {
   }
 
   function handleTopicChange(value: string) {
+    if (value.length > 200) return;
     setTopic(value);
     if (suggestions.length > 0) setSuggestions([]);
   }
@@ -112,13 +113,6 @@ export default function MarketingPage() {
       <div className="max-w-2xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="mb-8">
-          <a
-            href="/app/dashboard"
-            className="text-xs font-medium mb-4 inline-block hover:underline"
-            style={{ color: textMuted }}
-          >
-            &larr; Dashboard
-          </a>
           <h1 className="text-2xl font-bold text-white tracking-tight">
             Create social media posts
           </h1>
@@ -166,6 +160,7 @@ export default function MarketingPage() {
                 type="text"
                 value={topic}
                 onChange={(e) => handleTopicChange(e.target.value)}
+                maxLength={200}
                 placeholder="e.g. Why small businesses need a content strategy"
                 className="w-full px-4 py-3 pr-11 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#6c8cff]/50"
                 style={{
@@ -194,6 +189,11 @@ export default function MarketingPage() {
                   </svg>
                 )}
               </button>
+            </div>
+            <div className="flex justify-end mt-1.5">
+              <span className="text-[11px] tabular-nums" style={{ color: topic.length >= 180 ? "#f87171" : textMuted }}>
+                {topic.length}/200
+              </span>
             </div>
 
             {/* Suggestion chips */}
