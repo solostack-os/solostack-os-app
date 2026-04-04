@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { runSocialPosts, type SocialPostsInput } from "@/lib/workflows/marketing/social-posts";
+import { runTopicSuggestions, type TopicSuggestionsInput } from "@/lib/workflows/marketing/topic-suggestions";
 
 export async function POST(request: Request) {
   // 1. Authenticate
@@ -38,7 +39,29 @@ export async function POST(request: Request) {
     .eq("workspace_id", workspace.id)
     .single();
 
-  // 3. Usage gate — count runs vs plan cap
+  // 3. Parse request body
+  const body = await request.json();
+  const { module_key, workflow_key, input_json } = body as {
+    module_key: string;
+    workflow_key: string;
+    input_json: SocialPostsInput;
+  };
+
+  // 3a. Helper workflows bypass usage gate and run tracking
+  if (module_key === "marketing" && workflow_key === "topic_suggestions") {
+    try {
+      const result = await runTopicSuggestions(
+        context ?? {},
+        input_json as unknown as TopicSuggestionsInput
+      );
+      return NextResponse.json({ output_markdown: result.text });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
+  }
+
+  // 4. Usage gate — count runs vs plan cap
   const { data: subscription } = await supabase
     .from("subscriptions")
     .select("plan_key")
@@ -67,14 +90,6 @@ export async function POST(request: Request) {
     }
   }
 
-  // 4. Parse request body
-  const body = await request.json();
-  const { module_key, workflow_key, input_json } = body as {
-    module_key: string;
-    workflow_key: string;
-    input_json: SocialPostsInput;
-  };
-
   // 5. Create run record (status: running)
   const { data: run, error: runError } = await admin
     .from("runs")
@@ -87,7 +102,7 @@ export async function POST(request: Request) {
       input_json,
       context_snapshot_json: context ?? {},
       model_provider: "anthropic",
-      model_name: "claude-3-5-sonnet-20241022",
+      model_name: "claude-haiku-4-5-20251001",
       started_at: new Date().toISOString(),
     })
     .select("id")

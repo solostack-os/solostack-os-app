@@ -26,6 +26,8 @@ export default function MarketingPage() {
   const [output, setOutput] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   async function handleGenerate() {
     if (!topic.trim()) return;
@@ -53,6 +55,46 @@ export default function MarketingPage() {
 
     setOutput(data.output_markdown);
     setLoading(false);
+  }
+
+  async function handleSuggest() {
+    setLoadingSuggestions(true);
+    setSuggestions([]);
+    try {
+      const res = await fetch("/api/runs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          module_key: "marketing",
+          workflow_key: "topic_suggestions",
+          input_json: { platform },
+        }),
+      });
+      const data = await res.json();
+      console.log("[topic_suggestions]", { status: res.status, data });
+      if (res.ok && data.output_markdown) {
+        const cleaned = data.output_markdown
+          .replace(/^```(?:json)?\s*/i, "")
+          .replace(/\s*```\s*$/, "")
+          .trim();
+        const parsed = JSON.parse(cleaned);
+        if (Array.isArray(parsed)) setSuggestions(parsed);
+      }
+    } catch (err) {
+      console.error("[topic_suggestions] error:", err);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  }
+
+  function handleTopicChange(value: string) {
+    setTopic(value);
+    if (suggestions.length > 0) setSuggestions([]);
+  }
+
+  function handlePickSuggestion(s: string) {
+    setTopic(s);
+    setSuggestions([]);
   }
 
   const handleCopyPost = useCallback(async (text: string, idx: number) => {
@@ -119,18 +161,56 @@ export default function MarketingPage() {
             <label className="block text-sm font-medium mb-2" style={{ color: textPrimary }}>
               What should the posts be about?
             </label>
-            <input
-              type="text"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder="e.g. Why small businesses need a content strategy"
-              className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#6c8cff]/50"
-              style={{
-                backgroundColor: bg,
-                border: `1px solid ${border}`,
-                color: textPrimary,
-              }}
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={topic}
+                onChange={(e) => handleTopicChange(e.target.value)}
+                placeholder="e.g. Why small businesses need a content strategy"
+                className="w-full px-4 py-3 pr-11 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#6c8cff]/50"
+                style={{
+                  backgroundColor: bg,
+                  border: `1px solid ${border}`,
+                  color: textPrimary,
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleSuggest}
+                disabled={loadingSuggestions}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors hover:bg-white/10 disabled:opacity-40"
+                aria-label="Suggest topics"
+                title="Get AI topic ideas"
+              >
+                {loadingSuggestions ? (
+                  <div
+                    className="h-4 w-4 rounded-full border-2 border-t-transparent animate-spin"
+                    style={{ borderColor: accent, borderTopColor: "transparent" }}
+                  />
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
+                    <path d="M20 16l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            {/* Suggestion chips */}
+            {suggestions.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {suggestions.map((s, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handlePickSuggestion(s)}
+                    className="px-3 py-1.5 text-xs rounded-full border transition-all hover:border-[#6c8cff]/60 hover:bg-[#6c8cff]/10"
+                    style={{ color: textPrimary, borderColor: border }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Number of posts */}
