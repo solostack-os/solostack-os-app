@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -25,7 +25,7 @@ export default function MarketingPage() {
   const [loading, setLoading] = useState(false);
   const [output, setOutput] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
   async function handleGenerate() {
     if (!topic.trim()) return;
@@ -55,12 +55,15 @@ export default function MarketingPage() {
     setLoading(false);
   }
 
-  async function handleCopy() {
-    if (!output) return;
-    await navigator.clipboard.writeText(output);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
+  const handleCopyPost = useCallback(async (text: string, idx: number) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
+  }, []);
+
+  const posts = output
+    ? output.split(/\n---\n/).map((p) => p.trim()).filter(Boolean)
+    : [];
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: bg }}>
@@ -195,38 +198,54 @@ export default function MarketingPage() {
         )}
 
         {/* Output */}
-        {output && !loading && (
-          <div
-            className="rounded-xl border overflow-hidden"
-            style={{ backgroundColor: surface, borderColor: border }}
-          >
-            {/* Output header */}
-            <div
-              className="flex items-center justify-between px-6 py-3 border-b"
-              style={{ borderColor: border }}
-            >
-              <span className="text-xs font-medium uppercase tracking-wider" style={{ color: textMuted }}>
-                Output
-              </span>
-              <button
-                onClick={handleCopy}
-                className="text-xs font-medium px-3 py-1 rounded border transition-colors hover:border-white/20"
-                style={{
-                  color: copied ? "#5eead4" : textMuted,
-                  borderColor: copied ? "rgba(94,234,212,0.3)" : border,
-                }}
-              >
-                {copied ? "Copied!" : "Copy"}
-              </button>
-            </div>
+        {posts.length > 0 && !loading && (
+          <div className="space-y-4">
+            <span className="text-xs font-medium uppercase tracking-wider" style={{ color: textMuted }}>
+              Output
+            </span>
+            {posts.map((post, idx) => {
+              const isCopied = copiedIdx === idx;
+              return (
+                <div
+                  key={idx}
+                  className="relative rounded-xl border overflow-hidden group"
+                  style={{ backgroundColor: surface, borderColor: border }}
+                >
+                  {/* Copy button */}
+                  <button
+                    onClick={() => handleCopyPost(post, idx)}
+                    className="absolute top-3 right-3 flex flex-col items-center gap-1 rounded-md px-2 py-1.5 transition-all opacity-60 hover:opacity-100"
+                    style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                    aria-label="Copy post"
+                  >
+                    {isCopied ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5eead4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                    )}
+                    <span
+                      className="text-[10px] leading-none transition-opacity opacity-0 group-hover:opacity-100"
+                      style={{ color: isCopied ? "#5eead4" : textMuted }}
+                    >
+                      {isCopied ? "Done" : "Copy"}
+                    </span>
+                  </button>
 
-            {/* Markdown output — rendered as pre-formatted with whitespace preserved */}
-            <div
-              className="px-6 py-5 text-sm leading-relaxed whitespace-pre-wrap"
-              style={{ color: textPrimary }}
-            >
-              {output}
-            </div>
+                  {/* Post content */}
+                  <div
+                    className="px-6 py-5 pr-16 text-sm leading-relaxed whitespace-pre-wrap"
+                    style={{ color: textPrimary }}
+                  >
+                    {post}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
