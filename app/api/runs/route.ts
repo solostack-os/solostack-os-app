@@ -1,0 +1,162 @@
+import { createClient } from "@/lib/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
+import { runSocialPosts, type SocialPostsInput } from "@/lib/workflows/marketing/social-posts";
+
+export async function POST(request: Request) {
+  // 1. Authenticate
+  const supabase = createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Service-role client for inserts/updates that lack RLS policies
+  const admin = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  // 2. Get workspace + context
+  const { data: workspace } = await supabase
+    .from("workspaces")
+    .select("id")
+    .eq("owner_user_id", user.id)
+    .single();
+
+  if (!workspace) {
+    return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
+  }
+
+  const { data: context } = await supabase
+    .from("workspace_context")
+    .select("main_goal, business_type, offer, target_audience, tone, brand_notes")
+    .eq("workspace_id", workspace.id)
+    .single();
+
+  // 3. Usage gate — count runs vs plan cap
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("plan_key")
+    .eq("workspace_id", workspace.id)
+    .single();
+
+  if (subscription) {
+    const { data: plan } = await admin
+      .from("plans")
+      .select("run_cap")
+      .eq("key", subscription.plan_key)
+      .single();
+
+    if (plan?.run_cap !== null && plan?.run_cap !== undefined) {
+      const { count } = await admin
+        .from("runs")
+        .select("id", { count: "exact", head: true })
+        .eq("workspace_id", workspace.id);
+
+      if (count !== null && count >= plan.run_cap) {
+        return NextResponse.json(
+          { error: "Run limit reached. Please upgrade your plan." },
+          { status: 403 }
+        );
+      }
+    }
+  }
+
+  // 4. Parse request body
+  const body = await request.json();
+  const { module_key, workflow_key, input_json } = body as {
+    module_key: string;
+    workflow_key: string;
+    input_json: SocialPostsInput;
+  };
+
+  // 5. Create run record (status: running)
+  const { data: run, error: runError } = await admin
+    .from("runs")
+    .insert({
+      workspace_id: workspace.id,
+      user_id: user.id,
+      module_key,
+      workflow_key,
+      status: "running",
+      input_json,
+      context_snapshot_json: context ?? {},
+      model_provider: "anthropic",
+      model_name: "claude-3-5-sonnet-20241022",
+      started_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+
+  if (runError || !run) {
+    return NextResponse.json(
+      { error: "Failed to create run", detail: runError?.message },
+      { status: 500 }
+    );
+  }
+
+  // 6. Execute the workflow
+  try {
+    let text: string;
+    let promptTokens = 0;
+    let completionTokens = 0;
+
+    if (module_key === "marketing" && workflow_key === "social_posts") {
+      const result = await runSocialPosts(
+        context ?? {},
+        input_json as unknown as SocialPostsInput
+      );
+      text = result.text;
+      promptTokens = result.promptTokens;
+      completionTokens = result.completionTokens;
+    } else {
+      throw new Error(`Unknown workflow: ${module_key}/${workflow_key}`);
+    }
+
+    // 7. Save output
+    const { data: output } = await admin
+      .from("outputs")
+      .insert({
+        run_id: run.id,
+        title: `Social posts — ${(input_json as SocialPostsInput).platform}`,
+        output_markdown: text,
+      })
+      .select("id, output_markdown")
+      .single();
+
+    // 8. Mark run completed
+    await admin
+      .from("runs")
+      .update({
+        status: "completed",
+        prompt_tokens: promptTokens,
+        completion_tokens: completionTokens,
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", run.id);
+
+    return NextResponse.json({
+      run_id: run.id,
+      output_id: output?.id,
+      output_markdown: output?.output_markdown,
+    });
+  } catch (err) {
+    // Mark run failed
+    const message = err instanceof Error ? err.message : "Unknown error";
+    await admin
+      .from("runs")
+      .update({
+        status: "failed",
+        error_message: message,
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", run.id);
+
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
