@@ -49,8 +49,8 @@ const navItems = [
   },
   {
     label: "Outreach OS",
-    href: "#",
-    active: false,
+    href: "/app/outreach",
+    active: true,
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -100,11 +100,18 @@ function formatShortDate(iso: string) {
 }
 
 const workflowDotColor: Record<string, string> = {
-  social_posts: "#a78bfa",   // purple
-  ad_copy: "#60a5fa",        // blue
-  email_campaign: "#34d399",  // green
-  landing_page: "#fb923c",    // orange
-  content_brief: "#facc15",   // yellow
+  /* Marketing — blue */
+  social_posts: "#6c8cff",
+  ad_copy: "#6c8cff",
+  email_campaign: "#6c8cff",
+  landing_page: "#6c8cff",
+  content_brief: "#6c8cff",
+  /* Outreach — green */
+  cold_email: "#22c55e",
+  follow_up: "#22c55e",
+  proposal: "#22c55e",
+  discovery_prep: "#22c55e",
+  /* Operations — orange (reserved) */
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -159,6 +166,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return pathname === href || pathname.startsWith(href + "/");
   }
 
+  function getModuleAccent(): { color: string; bg: string } {
+    if (pathname.startsWith("/app/outreach"))   return { color: "#22c55e", bg: "rgba(34,197,94,0.1)" };
+    if (pathname.startsWith("/app/operations")) return { color: "#f97316", bg: "rgba(249,115,22,0.1)" };
+    return { color: accent, bg: "rgba(108,140,255,0.08)" };
+  }
+
+  function getNavAccent(href: string): { color: string; bg: string } {
+    if (href.startsWith("/app/outreach"))   return { color: "#22c55e", bg: "rgba(34,197,94,0.1)" };
+    if (href.startsWith("/app/operations")) return { color: "#f97316", bg: "rgba(249,115,22,0.1)" };
+    return { color: accent, bg: "rgba(108,140,255,0.08)" };
+  }
+
   const modalOutput = modalRun?.outputs?.[0]?.output_markdown ?? "";
   const modalPosts = modalOutput
     ? modalOutput.split(/\n---\n/).map((p: string) => p.trim()).filter(Boolean)
@@ -183,14 +202,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <nav className="px-3 space-y-1">
           {navItems.map((item) => {
             const current = isActive(item.href);
+            const navAccent = getNavAccent(item.href);
             const classes = "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors";
             const style = {
-              color: current ? accent : textMuted,
-              backgroundColor: current ? "rgba(108,140,255,0.08)" : "transparent",
+              color: current ? navAccent.color : textMuted,
+              backgroundColor: current ? navAccent.bg : "transparent",
             };
             const inner = (
               <>
-                <span style={{ color: current ? accent : "inherit" }}>{item.icon}</span>
+                <span style={{ color: current ? navAccent.color : "inherit" }}>{item.icon}</span>
                 <span className="flex-1 font-medium">{item.label}</span>
                 {!item.active && (
                   <span
@@ -283,13 +303,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex items-center justify-around py-2 px-1">
           {navItems.map((item) => {
             const current = isActive(item.href);
+            const mobileAccent = getNavAccent(item.href);
             const label = item.label.replace(" OS", "");
             const inner = (
               <>
-                <span style={{ color: current ? accent : textMuted }}>{item.icon}</span>
+                <span style={{ color: current ? mobileAccent.color : textMuted }}>{item.icon}</span>
                 <span
                   className="text-[10px] font-medium leading-none"
-                  style={{ color: current ? accent : textMuted }}
+                  style={{ color: current ? mobileAccent.color : textMuted }}
                 >
                   {label}
                 </span>

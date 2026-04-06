@@ -7,6 +7,10 @@ import { runAdCopy, type AdCopyInput } from "@/lib/workflows/marketing/ad-copy";
 import { runLandingPage, type LandingPageInput } from "@/lib/workflows/marketing/landing-page";
 import { runEmailCampaign, type EmailCampaignInput } from "@/lib/workflows/marketing/email-campaign";
 import { runContentBrief, type ContentBriefInput } from "@/lib/workflows/marketing/content-brief";
+import { runColdEmail, type ColdEmailInput } from "@/lib/workflows/outreach/cold-email";
+import { runFollowUp, type FollowUpInput } from "@/lib/workflows/outreach/follow-up";
+import { runProposal, type ProposalInput } from "@/lib/workflows/outreach/proposal";
+import { runDiscoveryPrep, type DiscoveryPrepInput } from "@/lib/workflows/outreach/discovery-prep";
 
 export async function POST(request: Request) {
   // 1. Authenticate
@@ -172,6 +176,42 @@ export async function POST(request: Request) {
       promptTokens = result.promptTokens;
       completionTokens = result.completionTokens;
       outputTitle = `Content brief — ${input_json.content_type}`;
+    } else if (module_key === "outreach" && workflow_key === "cold_email") {
+      const result = await runColdEmail(
+        context ?? {},
+        input_json as unknown as ColdEmailInput
+      );
+      text = result.text;
+      promptTokens = result.promptTokens;
+      completionTokens = result.completionTokens;
+      outputTitle = `Cold email — ${input_json.prospect_company}`;
+    } else if (module_key === "outreach" && workflow_key === "follow_up") {
+      const result = await runFollowUp(
+        context ?? {},
+        input_json as unknown as FollowUpInput
+      );
+      text = result.text;
+      promptTokens = result.promptTokens;
+      completionTokens = result.completionTokens;
+      outputTitle = `Follow-up — ${input_json.days_since}`;
+    } else if (module_key === "outreach" && workflow_key === "proposal") {
+      const result = await runProposal(
+        context ?? {},
+        input_json as unknown as ProposalInput
+      );
+      text = result.text;
+      promptTokens = result.promptTokens;
+      completionTokens = result.completionTokens;
+      outputTitle = `Proposal — ${input_json.client_name}`;
+    } else if (module_key === "outreach" && workflow_key === "discovery_prep") {
+      const result = await runDiscoveryPrep(
+        context ?? {},
+        input_json as unknown as DiscoveryPrepInput
+      );
+      text = result.text;
+      promptTokens = result.promptTokens;
+      completionTokens = result.completionTokens;
+      outputTitle = `Discovery prep — ${input_json.prospect_company}`;
     } else {
       throw new Error(`Unknown workflow: ${module_key}/${workflow_key}`);
     }

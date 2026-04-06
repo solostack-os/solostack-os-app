@@ -1,0 +1,45 @@
+import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
+import { callClaude } from "@/lib/ai/providers/anthropic";
+
+export const WORKFLOW_KEY = "cold_email";
+
+export interface ColdEmailInput {
+  prospect_name: string;
+  prospect_role: string;
+  prospect_company: string;
+  goal: "book_a_call" | "get_a_reply" | "share_a_resource";
+}
+
+const goalGuidance: Record<ColdEmailInput["goal"], string> = {
+  book_a_call:
+    "The CTA should ask for a short meeting or call. Make it easy to say yes — suggest a specific time frame and keep the commitment low.",
+  get_a_reply:
+    "The CTA should ask a simple question that invites a reply. No hard sell — just start a conversation.",
+  share_a_resource:
+    "The CTA should share something genuinely useful (guide, case study, tool) and invite them to check it out. Position it as giving, not asking.",
+};
+
+export async function runColdEmail(
+  context: WorkspaceContext,
+  input: ColdEmailInput
+) {
+  const contextPacket = buildContextPacket(context);
+
+  const systemPrompt = `You are an expert cold-email copywriter. You write emails that get opened and replied to. Your style is conversational, specific, and human — never salesy or generic.
+
+Here is the sender's business context:
+${contextPacket}
+
+Rules:
+- Max 150 words for the entire email.
+- Conversational tone — write like a real person, not a marketer.
+- No buzzwords (synergy, leverage, unlock, revolutionize, etc.).
+- One clear CTA only.
+- ${goalGuidance[input.goal]}
+- Output exactly two sections: "Subject:" and "Body:" — separated by a horizontal rule (---).
+- Output only the email. No preamble, no explanation.`;
+
+  const userPrompt = `Write a cold email to ${input.prospect_name}, ${input.prospect_role} at ${input.prospect_company}.`;
+
+  return callClaude(systemPrompt, userPrompt);
+}
