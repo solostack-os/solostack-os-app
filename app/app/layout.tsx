@@ -8,10 +8,11 @@ import { createClient } from "@/lib/supabase/client";
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
 const sidebarBg = "#070b16";
+const surface = "#111827";
 const accent = "#6c8cff";
 const textPrimary = "#f1f5f9";
 const textMuted = "#94a3b8";
-const border = "rgba(255,255,255,0.08)";
+const border = "rgba(255,255,255,0.06)";
 
 interface SidebarRun {
   id: string;
@@ -184,15 +185,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return pathname === href || pathname.startsWith(href + "/");
   }
 
-  function getModuleAccent(): { color: string; bg: string } {
-    if (pathname.startsWith("/app/outreach"))   return { color: "#22c55e", bg: "rgba(34,197,94,0.1)" };
-    if (pathname.startsWith("/app/operations")) return { color: "#f97316", bg: "rgba(249,115,22,0.1)" };
-    return { color: accent, bg: "rgba(108,140,255,0.08)" };
-  }
-
   function getNavAccent(href: string): { color: string; bg: string } {
-    if (href.startsWith("/app/outreach"))   return { color: "#22c55e", bg: "rgba(34,197,94,0.1)" };
-    if (href.startsWith("/app/operations")) return { color: "#f97316", bg: "rgba(249,115,22,0.1)" };
+    if (href.startsWith("/app/outreach"))   return { color: "#22c55e", bg: "rgba(34,197,94,0.08)" };
+    if (href.startsWith("/app/operations")) return { color: "#f97316", bg: "rgba(249,115,22,0.08)" };
     return { color: accent, bg: "rgba(108,140,255,0.08)" };
   }
 
@@ -209,10 +204,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         style={{ backgroundColor: sidebarBg, borderColor: border }}
       >
         {/* Logo */}
-        <div className="flex items-center gap-2.5 px-5 py-6">
-          <img src="/logo.png" alt="SoloStack OS" className="h-8 w-8 object-contain" />
-          <span className="text-sm font-bold tracking-tight" style={{ color: textPrimary }}>
+        <div className="flex items-center gap-3 px-5 py-7">
+          <img src="/logo.png" alt="SoloStack OS" className="h-12 w-12 object-contain flex-shrink-0" />
+          <span className="text-xl font-bold text-white tracking-tight whitespace-nowrap">
             SoloStack OS
+          </span>
+          <span
+            className="text-[10px] font-medium uppercase tracking-widest px-1.5 py-0.5 rounded flex-shrink-0"
+            style={{ backgroundColor: accent, color: sidebarBg }}
+          >
+            Beta
           </span>
         </div>
 
@@ -221,11 +222,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {navItems.map((item) => {
             const current = isActive(item.href);
             const navAccent = getNavAccent(item.href);
-            const classes = "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors";
-            const style = {
-              color: current ? navAccent.color : textMuted,
-              backgroundColor: current ? navAccent.bg : "transparent",
-            };
             const inner = (
               <>
                 <span style={{ color: current ? navAccent.color : "inherit" }}>{item.icon}</span>
@@ -241,28 +237,52 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </>
             );
 
+            const baseClasses = "flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] transition-all duration-200 relative";
+
             if (!item.active) {
               return (
-                <div key={item.label} className={`${classes} cursor-default opacity-40`} style={style}>
+                <div
+                  key={item.label}
+                  className={`${baseClasses} cursor-default opacity-40`}
+                  style={{ color: textMuted }}
+                >
                   {inner}
                 </div>
               );
             }
 
             return (
-              <Link key={item.label} href={item.href} className={`${classes} cursor-pointer`} style={style}>
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`${baseClasses} cursor-pointer`}
+                style={{
+                  color: current ? navAccent.color : textMuted,
+                  backgroundColor: current ? navAccent.bg : "transparent",
+                }}
+              >
+                {/* Active indicator bar */}
+                {current && (
+                  <span
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full"
+                    style={{ backgroundColor: navAccent.color }}
+                  />
+                )}
                 {inner}
               </Link>
             );
           })}
         </nav>
 
+        {/* Divider */}
+        <div className="mx-5 mt-6 mb-2 h-px" style={{ backgroundColor: border }} />
+
         {/* Recent runs */}
-        <div className="flex-1 mt-6 px-3 flex flex-col min-h-0">
-          <div className="group/recents flex items-center gap-1 px-3 mb-2 flex-shrink-0">
+        <div className="flex-1 px-3 flex flex-col min-h-0">
+          <div className="group/recents flex items-center gap-1 px-4 mb-2 flex-shrink-0">
             <button
               onClick={() => setRecentsOpen((v) => !v)}
-              className="flex items-center gap-1.5"
+              className="flex items-center gap-1.5 cursor-pointer"
             >
               <svg
                 width="10"
@@ -273,26 +293,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="transition-transform"
+                className="transition-transform duration-200"
                 style={{ transform: recentsOpen ? "rotate(90deg)" : "rotate(0deg)" }}
               >
                 <polyline points="9 18 15 12 9 6" />
               </svg>
-              <span
-                className="text-[10px] font-medium uppercase tracking-wider"
-                style={{ color: textMuted }}
-              >
+              <span className="text-xs font-medium uppercase tracking-wider" style={{ color: textMuted }}>
                 Recents
               </span>
             </button>
             {recentRuns.length > 0 && (
               <button
                 onClick={handleClearAll}
-                className="ml-auto p-1 rounded transition-opacity opacity-0 group-hover/recents:opacity-60 hover:!opacity-100"
+                className="ml-auto p-1.5 rounded-lg transition-opacity opacity-0 group-hover/recents:opacity-60 hover:!opacity-100 cursor-pointer"
                 aria-label="Clear all"
                 title="Clear all recents"
               >
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="3 6 5 6 21 6" />
                   <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
                   <path d="M10 11v6" />
@@ -302,45 +319,50 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             )}
           </div>
           <style>{`
-            .recents-scroll::-webkit-scrollbar { width: 6px; }
-            .recents-scroll::-webkit-scrollbar-track { background: ${sidebarBg}; }
-            .recents-scroll::-webkit-scrollbar-thumb { background: ${accent}; border-radius: 3px; }
-            .recents-scroll::-webkit-scrollbar-thumb:hover { background: #8da6ff; }
+            .recents-scroll::-webkit-scrollbar { width: 5px; }
+            .recents-scroll::-webkit-scrollbar-track { background: transparent; }
+            .recents-scroll::-webkit-scrollbar-thumb { background: rgba(108,140,255,0.3); border-radius: 3px; }
+            .recents-scroll::-webkit-scrollbar-thumb:hover { background: rgba(108,140,255,0.5); }
           `}</style>
-          {recentsOpen && <div className="recents-scroll overflow-y-auto space-y-0.5 flex-1">
-            {recentRuns.length === 0 && (
-              <p className="px-3 text-xs" style={{ color: textMuted }}>
-                No credits yet
-              </p>
-            )}
-            {recentRuns.map((run) => (
-              <div
-                key={run.id}
-                onClick={() => { setModalRun(run); setCopiedIdx(null); }}
-                className="group w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors hover:bg-white/[0.03] cursor-pointer"
-              >
-                <span
-                  className="flex-shrink-0 w-2 h-2 rounded-full"
-                  style={{ backgroundColor: workflowDotColor[run.workflow_key] ?? "#64748b" }}
-                />
-                <span className="text-xs truncate flex-1" style={{ color: textPrimary }}>
-                  {getRunTitle(run)}
-                </span>
-                <button
-                  onClick={(e) => handleDeleteRun(e, run.id)}
-                  className="flex-shrink-0 p-1 rounded transition-opacity opacity-0 group-hover:opacity-60 hover:!opacity-100"
-                  aria-label="Delete credit"
+          {recentsOpen && (
+            <div className="recents-scroll overflow-y-auto space-y-0.5 flex-1 pb-4">
+              {recentRuns.length === 0 && (
+                <p className="px-4 text-sm" style={{ color: textMuted }}>
+                  No credits yet
+                </p>
+              )}
+              {recentRuns.map((run) => (
+                <div
+                  key={run.id}
+                  onClick={() => { setModalRun(run); setCopiedIdx(null); }}
+                  className="group w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-left transition-all duration-150 hover:bg-white/[0.04] cursor-pointer"
                 >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                    <path d="M10 11v6" />
-                    <path d="M14 11v6" />
-                  </svg>
-                </button>
-              </div>
-            ))}
-          </div>}
+                  <span
+                    className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
+                    style={{
+                      backgroundColor: workflowDotColor[run.workflow_key] ?? "#64748b",
+                      boxShadow: `0 0 6px ${workflowDotColor[run.workflow_key] ?? "#64748b"}60`,
+                    }}
+                  />
+                  <span className="text-sm truncate flex-1" style={{ color: textPrimary }}>
+                    {getRunTitle(run)}
+                  </span>
+                  <button
+                    onClick={(e) => handleDeleteRun(e, run.id)}
+                    className="flex-shrink-0 p-1 rounded-lg transition-opacity opacity-0 group-hover:opacity-60 hover:!opacity-100 cursor-pointer"
+                    aria-label="Delete credit"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                      <path d="M10 11v6" />
+                      <path d="M14 11v6" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </aside>
 
@@ -354,7 +376,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         className="fixed bottom-0 left-0 right-0 z-30 md:hidden border-t"
         style={{ backgroundColor: sidebarBg, borderColor: border }}
       >
-        <div className="flex items-center justify-around py-2 px-1">
+        <div className="flex items-center justify-around py-3 px-1">
           {navItems.map((item) => {
             const current = isActive(item.href);
             const mobileAccent = getNavAccent(item.href);
@@ -363,7 +385,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <>
                 <span style={{ color: current ? mobileAccent.color : textMuted }}>{item.icon}</span>
                 <span
-                  className="text-[10px] font-medium leading-none"
+                  className="text-xs font-medium leading-none"
                   style={{ color: current ? mobileAccent.color : textMuted }}
                 >
                   {label}
@@ -375,7 +397,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               return (
                 <div
                   key={item.label}
-                  className="flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg min-w-[60px] opacity-30 cursor-default"
+                  className="flex flex-col items-center gap-1.5 px-2 py-1.5 rounded-xl min-w-[60px] opacity-30 cursor-default"
                 >
                   {inner}
                 </div>
@@ -386,8 +408,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.label}
                 href={item.href}
-                className="flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg min-w-[60px] transition-colors"
+                className="flex flex-col items-center gap-1.5 px-2 py-1.5 rounded-xl min-w-[60px] transition-colors relative"
               >
+                {/* Active dot indicator */}
+                {current && (
+                  <span
+                    className="absolute -top-3 left-1/2 -translate-x-1/2 w-5 h-[2px] rounded-full"
+                    style={{ backgroundColor: mobileAccent.color }}
+                  />
+                )}
                 {inner}
               </Link>
             );
@@ -402,33 +431,36 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           onClick={() => setModalRun(null)}
         >
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
           {/* Modal */}
           <div
-            className="relative w-full max-w-lg max-h-[80vh] flex flex-col rounded-xl border overflow-hidden"
-            style={{ backgroundColor: "#111827", borderColor: border }}
+            className="relative w-full max-w-lg max-h-[80vh] flex flex-col rounded-2xl border overflow-hidden"
+            style={{ backgroundColor: surface, borderColor: border }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Accent bar */}
+            <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, #818cf8)` }} />
+
             {/* Header */}
             <div
-              className="flex items-center justify-between px-5 py-3 border-b flex-shrink-0"
+              className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0"
               style={{ borderColor: border }}
             >
-              <div className="flex items-center gap-2 min-w-0 mr-3">
-                <span className="text-sm font-medium truncate" style={{ color: textPrimary }}>
+              <div className="flex items-center gap-3 min-w-0 mr-3">
+                <span className="text-base font-medium truncate" style={{ color: textPrimary }}>
                   {getRunTitle(modalRun)}
                 </span>
-                <span className="text-xs flex-shrink-0" style={{ color: textMuted }}>
+                <span className="text-sm flex-shrink-0" style={{ color: textMuted }}>
                   {formatShortDate(modalRun.started_at)}
                 </span>
               </div>
               <button
                 onClick={() => setModalRun(null)}
-                className="p-1 rounded transition-colors hover:bg-white/10 flex-shrink-0"
+                className="p-1.5 rounded-lg transition-colors hover:bg-white/10 flex-shrink-0 cursor-pointer"
                 aria-label="Close"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -436,41 +468,41 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* Body — per-post cards */}
-            <div className="overflow-y-auto px-5 py-4 space-y-3">
+            <div className="overflow-y-auto px-6 py-5 space-y-3">
               {modalPosts.length > 0 ? (
                 modalPosts.map((post, idx) => {
                   const isCopied = copiedIdx === idx;
                   return (
                     <div
                       key={idx}
-                      className="relative rounded-lg border overflow-hidden group"
+                      className="relative rounded-xl border overflow-hidden group"
                       style={{ backgroundColor: "rgba(255,255,255,0.02)", borderColor: border }}
                     >
                       <button
                         onClick={() => handleCopyModalPost(post, idx)}
-                        className="absolute top-2.5 right-2.5 flex flex-col items-center gap-1 rounded-md px-2 py-1.5 transition-all opacity-60 hover:opacity-100"
+                        className="absolute top-3 right-3 flex flex-col items-center gap-1 rounded-lg px-2.5 py-2 transition-all opacity-60 hover:opacity-100 cursor-pointer"
                         style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                         aria-label="Copy post"
                       >
                         {isCopied ? (
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5eead4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5eead4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="20 6 9 17 4 12" />
                           </svg>
                         ) : (
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                           </svg>
                         )}
                         <span
-                          className="text-[10px] leading-none transition-opacity opacity-0 group-hover:opacity-100"
+                          className="text-[11px] leading-none transition-opacity opacity-0 group-hover:opacity-100"
                           style={{ color: isCopied ? "#5eead4" : textMuted }}
                         >
                           {isCopied ? "Done" : "Copy"}
                         </span>
                       </button>
                       <div
-                        className="px-4 py-3.5 pr-14 text-sm leading-relaxed whitespace-pre-wrap"
+                        className="px-5 py-4 pr-16 text-sm leading-relaxed whitespace-pre-wrap"
                         style={{ color: textPrimary }}
                       >
                         {post}

@@ -3,14 +3,18 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { DottedSurface } from "@/components/ui/dotted-surface";
 
 /* ─── Design tokens ─── */
-const bg = "#070b16";
+const bg = "#0a0f1e";
 const surface = "#111827";
+const surfaceLight = "#151d2e";
 const accent = "#6c8cff";
+const accentLight = "#818cf8";
+const accentGlow = "rgba(108,140,255,0.25)";
 const textPrimary = "#f1f5f9";
 const textMuted = "#94a3b8";
-const border = "rgba(255,255,255,0.08)";
+const border = "rgba(255,255,255,0.06)";
 
 const planDetails: Record<string, { name: string; credits: string; color: string }> = {
   trial: { name: "Trial", credits: "20 credits / month", color: accent },
@@ -24,7 +28,7 @@ const upgradePaths: Record<string, { target: string; priceEnvKey: string; price:
 };
 
 /* ─── Shared input style ─── */
-const inputClass = "w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#6c8cff]/50";
+const inputClass = "w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#6c8cff]/50 transition-shadow";
 const inputStyle = { backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary };
 
 export default function SettingsPage() {
@@ -200,18 +204,57 @@ export default function SettingsPage() {
 
     if (!error) {
       const { data: urlData } = supabase.storage.from("logos").getPublicUrl(path);
-      setLogoUrl(urlData.publicUrl);
+      setLogoUrl(urlData.publicUrl + "?t=" + Date.now());
     }
     setUploading(false);
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: bg }}>
-        <div
-          className="h-8 w-8 rounded-full border-2 border-t-transparent animate-spin"
-          style={{ borderColor: accent, borderTopColor: "transparent" }}
-        />
+      <div className="min-h-screen" style={{ backgroundColor: bg }}>
+        <style>{`
+          @keyframes skel-shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+          }
+          .skel {
+            background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+            background-size: 200% 100%;
+            animation: skel-shimmer 1.5s ease-in-out infinite;
+          }
+        `}</style>
+        <div className="max-w-2xl mx-auto px-6 lg:px-8 py-12">
+          {/* Header skeleton */}
+          <div className="skel h-9 w-36 rounded-lg mb-8" />
+
+          {/* Business Profile skeleton */}
+          <div className="rounded-xl overflow-hidden mb-6" style={{ backgroundColor: surface, border: `1px solid ${border}` }}>
+            <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <div className="p-7">
+              <div className="skel h-4 w-36 rounded mb-5" />
+              <div className="space-y-4">
+                <div><div className="skel h-3 w-24 rounded mb-1.5" /><div className="skel h-11 w-full rounded-lg" /></div>
+                <div><div className="skel h-3 w-20 rounded mb-1.5" /><div className="skel h-11 w-full rounded-lg" /></div>
+                <div><div className="skel h-3 w-20 rounded mb-1.5" /><div className="skel h-11 w-full rounded-lg" /></div>
+                <div><div className="skel h-3 w-32 rounded mb-1.5" /><div className="skel h-24 w-full rounded-lg" /></div>
+              </div>
+              <div className="skel h-14 w-full rounded-xl mt-6" />
+            </div>
+          </div>
+
+          {/* Plan skeleton */}
+          <div className="rounded-xl overflow-hidden mb-6" style={{ backgroundColor: surface, border: `1px solid ${border}` }}>
+            <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <div className="p-7">
+              <div className="flex items-center justify-between mb-4">
+                <div className="skel h-4 w-28 rounded" />
+                <div className="skel h-6 w-16 rounded-full" />
+              </div>
+              <div className="skel h-8 w-24 rounded mb-1" />
+              <div className="skel h-4 w-40 rounded" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -220,14 +263,25 @@ export default function SettingsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: bg }}>
         <div
-          className="rounded-xl p-8 border max-w-md text-center"
+          className="rounded-2xl p-10 border max-w-md text-center"
           style={{ backgroundColor: surface, borderColor: border }}
         >
-          <p className="text-sm mb-4" style={{ color: "#f87171" }}>{error}</p>
+          <div
+            className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{ backgroundColor: "rgba(248,113,113,0.1)" }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="15" y1="9" x2="9" y2="15" />
+              <line x1="9" y1="9" x2="15" y2="15" />
+            </svg>
+          </div>
+          <p className="text-base font-semibold mb-1" style={{ color: textPrimary }}>Something went wrong</p>
+          <p className="text-sm mb-6" style={{ color: textMuted }}>{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="text-sm font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-90"
-            style={{ backgroundColor: accent, color: bg }}
+            className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-opacity hover:opacity-90"
+            style={{ backgroundColor: accent, color: "#fff" }}
           >
             Try again
           </button>
@@ -237,9 +291,28 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: bg }}>
-      <div className="max-w-2xl mx-auto px-6 py-12">
-        <h1 className="text-2xl font-bold text-white tracking-tight mb-8">Settings</h1>
+    <div className="min-h-screen relative isolate" style={{ backgroundColor: bg }}>
+      <DottedSurface className="opacity-35" />
+      <style>{`
+        @keyframes gen-shimmer {
+          0% { background-position: 200% center; }
+          100% { background-position: -200% center; }
+        }
+        .generate-btn:not(:disabled) {
+          animation: gen-shimmer 3s linear infinite;
+        }
+        @keyframes skel-shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        .skel {
+          background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+          background-size: 200% 100%;
+          animation: skel-shimmer 1.5s ease-in-out infinite;
+        }
+      `}</style>
+      <div className="max-w-2xl mx-auto px-6 lg:px-8 py-12">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-8" style={{ color: textPrimary }}>Settings</h1>
 
         {/* ─── Success / Cancel banners ─── */}
         {upgraded && (
@@ -261,211 +334,256 @@ export default function SettingsPage() {
 
         {/* ─── Business Profile ─── */}
         {!profileAvailable ? (
-          <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-            <h2 className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: textMuted }}>
-              Business Profile
-            </h2>
-            <p className="text-sm mb-2" style={{ color: textMuted }}>
-              Profile columns haven&apos;t been added to the database yet.
-            </p>
-            <p className="text-xs" style={{ color: textMuted }}>
-              Run the migration in <span style={{ color: textPrimary }}>supabase/migrations/add_workspace_profile.sql</span> via the Supabase SQL Editor, then reload this page.
-            </p>
+          <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
+            <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <div className="p-7">
+              <h2 className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: textMuted }}>
+                Business Profile
+              </h2>
+              <p className="text-sm mb-2" style={{ color: textMuted }}>
+                Profile columns haven&apos;t been added to the database yet.
+              </p>
+              <p className="text-xs" style={{ color: textMuted }}>
+                Run the migration in <span style={{ color: textPrimary }}>supabase/migrations/add_workspace_profile.sql</span> via the Supabase SQL Editor, then reload this page.
+              </p>
+            </div>
           </div>
         ) : (
-        <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-          <h2 className="text-sm font-semibold uppercase tracking-wider mb-5" style={{ color: textMuted }}>
-            Business Profile
-          </h2>
+        <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
+          <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+          <div className="p-7">
+            <h2 className="text-sm font-semibold uppercase tracking-wider mb-5" style={{ color: textMuted }}>
+              Business Profile
+            </h2>
 
-          {/* Company Name */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Company Name</label>
-            <input
-              type="text"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="e.g. Acme Studio"
-              className={inputClass}
-              style={inputStyle}
-            />
-          </div>
+            {/* Company Name */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Company Name</label>
+              <input
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="e.g. Acme Studio"
+                className={inputClass}
+                style={inputStyle}
+              />
+            </div>
 
-          {/* Website */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Website</label>
-            <input
-              type="text"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              placeholder="https://yoursite.com"
-              className={inputClass}
-              style={inputStyle}
-            />
-          </div>
+            {/* Website */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Website</label>
+              <input
+                type="text"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                placeholder="https://yoursite.com"
+                className={inputClass}
+                style={inputStyle}
+              />
+            </div>
 
-          {/* Industry */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Industry</label>
-            <input
-              type="text"
-              value={industry}
-              onChange={(e) => setIndustry(e.target.value)}
-              placeholder="e.g. Marketing, Design, Consulting"
-              className={inputClass}
-              style={inputStyle}
-            />
-          </div>
+            {/* Industry */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Industry</label>
+              <input
+                type="text"
+                value={industry}
+                onChange={(e) => setIndustry(e.target.value)}
+                placeholder="e.g. Marketing, Design, Consulting"
+                className={inputClass}
+                style={inputStyle}
+              />
+            </div>
 
-          {/* Description */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Business Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-              placeholder="Describe what you do, who you serve, and your brand voice. This is used by AI to personalize all outputs."
-              className={`${inputClass} resize-none`}
-              style={inputStyle}
-            />
-          </div>
+            {/* Description */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Business Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+                placeholder="Describe what you do, who you serve, and your brand voice. This is used by AI to personalize all outputs."
+                className={`${inputClass} resize-none`}
+                style={inputStyle}
+              />
+            </div>
 
-          {/* Brand Colors */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Brand Colors</label>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="block text-xs mb-1" style={{ color: textMuted }}>Primary</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={brandPrimary}
-                    onChange={(e) => setBrandPrimary(e.target.value)}
-                    placeholder="#6c8cff"
-                    maxLength={7}
-                    className={`${inputClass} flex-1`}
-                    style={inputStyle}
-                  />
-                  <div
-                    className="w-6 h-6 rounded flex-shrink-0 border"
-                    style={{ backgroundColor: brandPrimary, borderColor: border }}
-                  />
+            {/* Brand Colors */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Brand Colors</label>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-xs mb-1" style={{ color: textMuted }}>Primary</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={brandPrimary}
+                      onChange={(e) => setBrandPrimary(e.target.value)}
+                      placeholder="#6c8cff"
+                      maxLength={7}
+                      className={`${inputClass} flex-1`}
+                      style={inputStyle}
+                    />
+                    <div
+                      className="w-6 h-6 rounded flex-shrink-0 border"
+                      style={{ backgroundColor: brandPrimary, borderColor: border }}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="flex-1">
-                <label className="block text-xs mb-1" style={{ color: textMuted }}>Secondary</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={brandSecondary}
-                    onChange={(e) => setBrandSecondary(e.target.value)}
-                    placeholder="#22c55e"
-                    maxLength={7}
-                    className={`${inputClass} flex-1`}
-                    style={inputStyle}
-                  />
-                  <div
-                    className="w-6 h-6 rounded flex-shrink-0 border"
-                    style={{ backgroundColor: brandSecondary, borderColor: border }}
-                  />
+                <div className="flex-1">
+                  <label className="block text-xs mb-1" style={{ color: textMuted }}>Secondary</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={brandSecondary}
+                      onChange={(e) => setBrandSecondary(e.target.value)}
+                      placeholder="#22c55e"
+                      maxLength={7}
+                      className={`${inputClass} flex-1`}
+                      style={inputStyle}
+                    />
+                    <div
+                      className="w-6 h-6 rounded flex-shrink-0 border"
+                      style={{ backgroundColor: brandSecondary, borderColor: border }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Logo */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Logo</label>
-            <div className="flex items-center gap-4">
-              {logoUrl && (
-                <img
-                  src={logoUrl}
-                  alt="Logo"
-                  className="w-12 h-12 rounded-lg object-contain border"
+            {/* Logo */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2" style={{ color: textPrimary }}>Logo</label>
+              <div className="flex items-start gap-5">
+                <div
+                  className="w-20 h-20 rounded-xl flex items-center justify-center border overflow-hidden flex-shrink-0"
                   style={{ borderColor: border, backgroundColor: bg }}
+                >
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt="Logo"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2 pt-1">
+                  <label
+                    className="px-4 py-2 text-sm font-medium rounded-lg border cursor-pointer transition-colors hover:bg-white/[0.04]"
+                    style={{ color: textPrimary, borderColor: border }}
+                  >
+                    {uploading ? "Uploading..." : logoUrl ? "Change logo" : "Upload logo"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                  </label>
+                  <p className="text-xs" style={{ color: textMuted }}>PNG, JPG, or SVG. Max 2MB.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Save */}
+            <div className="relative group mt-1">
+              {!saving && (
+                <div
+                  className="absolute -inset-1 rounded-2xl opacity-60 group-hover:opacity-80 transition-opacity blur-xl"
+                  style={{ background: `linear-gradient(135deg, ${accent}, ${accentLight})` }}
                 />
               )}
-              <label
-                className="px-4 py-2 text-sm rounded-lg border cursor-pointer transition-colors hover:bg-white/[0.03]"
-                style={{ color: textMuted, borderColor: border }}
+              <button
+                onClick={handleSaveProfile}
+                disabled={saving}
+                className="relative w-full py-4 text-base font-semibold rounded-xl transition-all disabled:opacity-30 cursor-pointer"
+                style={{
+                  background: `linear-gradient(135deg, ${accent}, ${accentLight})`,
+                  color: "#fff",
+                }}
               >
-                {uploading ? "Uploading..." : logoUrl ? "Change logo" : "Upload logo"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  disabled={uploading}
-                  className="hidden"
-                />
-              </label>
+                {saving ? "Saving..." : saved ? "Saved \u2713" : "Save Profile"}
+              </button>
             </div>
           </div>
-
-          {/* Save */}
-          <button
-            onClick={handleSaveProfile}
-            disabled={saving}
-            className="w-full py-3 text-sm font-medium rounded-lg transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ backgroundColor: accent, color: bg }}
-          >
-            {saving ? "Saving..." : saved ? "Saved \u2713" : "Save Profile"}
-          </button>
         </div>
         )}
 
         {/* ─── Current Plan ─── */}
-        <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: textMuted }}>
-              Current Plan
-            </h2>
-            <span
-              className="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full border"
-              style={{
-                color: plan.color,
-                borderColor: `${plan.color}4d`,
-                backgroundColor: `${plan.color}14`,
-              }}
-            >
-              {status === "active" ? "Active" : status === "trialing" ? "Trial" : status}
-            </span>
+        <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
+          <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+          <div className="p-7">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: textMuted }}>
+                Current Plan
+              </h2>
+              <span
+                className="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full border"
+                style={{
+                  color: plan.color,
+                  borderColor: `${plan.color}4d`,
+                  backgroundColor: `${plan.color}14`,
+                }}
+              >
+                {status === "active" ? "Active" : status === "trialing" ? "Trial" : status}
+              </span>
+            </div>
+
+            <p className="text-2xl font-bold text-white mb-1">{plan.name}</p>
+            <p className="text-sm mb-3" style={{ color: textMuted }}>{plan.credits}</p>
+
+            {periodEnd && status === "active" && (
+              <p className="text-xs" style={{ color: textMuted, fontVariantNumeric: "tabular-nums" }}>
+                Renews {new Date(periodEnd).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+              </p>
+            )}
           </div>
-
-          <p className="text-xl font-bold text-white mb-1">{plan.name}</p>
-          <p className="text-sm mb-3" style={{ color: textMuted }}>{plan.credits}</p>
-
-          {periodEnd && status === "active" && (
-            <p className="text-xs" style={{ color: textMuted }}>
-              Renews {new Date(periodEnd).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-            </p>
-          )}
         </div>
 
         {/* ─── Upgrade Card ─── */}
         {upgrade && targetPlan && (
           <div
-            className="rounded-xl p-6 border"
+            className="rounded-xl border overflow-hidden"
             style={{ backgroundColor: surface, borderColor: `${accent}33` }}
           >
-            <h2 className="text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: textMuted }}>
-              Upgrade
-            </h2>
+            <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <div className="p-7">
+              <h2 className="text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: textMuted }}>
+                Upgrade
+              </h2>
 
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-lg font-bold text-white">{targetPlan.name}</p>
-                <p className="text-sm" style={{ color: textMuted }}>
-                  {targetPlan.credits} &middot; {upgrade.price}
-                </p>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-lg font-bold text-white">{targetPlan.name}</p>
+                  <p className="text-sm" style={{ color: textMuted }}>
+                    {targetPlan.credits} &middot; {upgrade.price}
+                  </p>
+                </div>
+                <div className="relative group">
+                  <div
+                    className="absolute -inset-1 rounded-2xl opacity-60 group-hover:opacity-80 transition-opacity blur-xl"
+                    style={{ background: `linear-gradient(135deg, ${accent}, ${accentLight})` }}
+                  />
+                  <button
+                    onClick={handleUpgrade}
+                    disabled={upgrading}
+                    className="relative px-8 py-3 rounded-xl text-base font-semibold transition-all disabled:opacity-50 cursor-pointer"
+                    style={{
+                      background: `linear-gradient(135deg, ${accent}, ${accentLight})`,
+                      color: "#fff",
+                    }}
+                  >
+                    {upgrading ? "Redirecting..." : `Upgrade to ${targetPlan.name}`}
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={handleUpgrade}
-                disabled={upgrading}
-                className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor: accent, color: "#070b16" }}
-              >
-                {upgrading ? "Redirecting..." : `Upgrade to ${targetPlan.name}`}
-              </button>
             </div>
           </div>
         )}

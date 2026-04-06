@@ -5,10 +5,13 @@ import { useState, useCallback } from "react";
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
 const surface = "#111827";
+const surfaceLight = "#151d2e";
 const accent = "#22c55e";
+const accentLight = "#34d399";
+const accentGlow = "rgba(34,197,94,0.25)";
 const textPrimary = "#f1f5f9";
 const textMuted = "#94a3b8";
-const border = "rgba(255,255,255,0.08)";
+const border = "rgba(255,255,255,0.06)";
 
 /* ─── Option data ─── */
 const coldEmailGoals = [
@@ -60,7 +63,7 @@ function PillSelector<T extends string>({
 }) {
   return (
     <div className="mb-5">
-      <label className="block text-sm font-medium mb-2" style={{ color: textPrimary }}>
+      <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>
         {label}
       </label>
       <div className="flex flex-wrap gap-2">
@@ -68,12 +71,11 @@ function PillSelector<T extends string>({
           <button
             key={o.value}
             onClick={() => onChange(o.value)}
-            className="px-4 py-2 text-sm rounded-lg border transition-all"
+            className="px-4 py-2.5 text-sm rounded-lg border transition-all cursor-pointer"
             style={{
               backgroundColor: value === o.value ? "rgba(34,197,94,0.1)" : "transparent",
               borderColor: value === o.value ? accent : border,
               color: value === o.value ? accent : textMuted,
-              boxShadow: value === o.value ? `0 0 0 1px ${accent}` : "none",
             }}
           >
             {o.label}
@@ -100,7 +102,7 @@ function TextInput({
 }) {
   return (
     <div className="mb-5">
-      <label className="block text-sm font-medium mb-2" style={{ color: textPrimary }}>
+      <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>
         {label}
         {optional && <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>}
       </label>
@@ -109,7 +111,7 @@ function TextInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#22c55e]/50"
+        className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 transition-shadow focus:ring-2 focus:ring-[#22c55e]/40 focus:shadow-[0_0_0_1px_rgba(34,197,94,0.3)]"
         style={{ backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary }}
       />
     </div>
@@ -133,7 +135,7 @@ function TextareaInput({
   const warnAt = Math.round(maxLen * 0.9);
   return (
     <div className="mb-5">
-      <label className="block text-sm font-medium mb-2" style={{ color: textPrimary }}>
+      <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>
         {label}
       </label>
       <textarea
@@ -142,7 +144,7 @@ function TextareaInput({
         maxLength={maxLen}
         rows={3}
         placeholder={placeholder}
-        className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#22c55e]/50 resize-none"
+        className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 transition-shadow focus:ring-2 focus:ring-[#22c55e]/40 focus:shadow-[0_0_0_1px_rgba(34,197,94,0.3)] resize-none"
         style={{ backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary }}
       />
       <div className="flex justify-end mt-1.5">
@@ -167,7 +169,7 @@ function OutputCards({
   if (cards.length === 0) return null;
   return (
     <div className="space-y-4">
-      <span className="text-xs font-medium uppercase tracking-wider" style={{ color: textMuted }}>
+      <span className="text-[11px] font-medium uppercase tracking-wider px-0.5" style={{ color: textMuted }}>
         Output
       </span>
       {cards.map((card, idx) => {
@@ -178,9 +180,10 @@ function OutputCards({
             className="relative rounded-xl border overflow-hidden group"
             style={{ backgroundColor: surface, borderColor: border }}
           >
+            <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
             <button
               onClick={() => onCopy(card, idx)}
-              className="absolute top-3 right-3 flex flex-col items-center gap-1 rounded-md px-2 py-1.5 transition-all opacity-60 hover:opacity-100"
+              className="absolute top-5 right-3 flex flex-col items-center gap-1 rounded-md px-2 py-1.5 transition-all opacity-60 hover:opacity-100 cursor-pointer"
               style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
               aria-label="Copy"
             >
@@ -217,18 +220,21 @@ function OutputCards({
 /* ─── Loading skeleton ─── */
 function LoadingSkeleton({ message }: { message: string }) {
   return (
-    <div className="rounded-xl p-6 border" style={{ backgroundColor: surface, borderColor: border }}>
-      <div className="flex items-center gap-3 mb-4">
-        <div
-          className="h-5 w-5 rounded-full border-2 border-t-transparent animate-spin"
-          style={{ borderColor: accent, borderTopColor: "transparent" }}
-        />
-        <span className="text-sm" style={{ color: textMuted }}>{message}</span>
-      </div>
-      <div className="space-y-3">
-        <div className="h-4 rounded w-full animate-pulse" style={{ backgroundColor: "rgba(255,255,255,0.04)" }} />
-        <div className="h-4 rounded w-5/6 animate-pulse" style={{ backgroundColor: "rgba(255,255,255,0.04)" }} />
-        <div className="h-4 rounded w-4/6 animate-pulse" style={{ backgroundColor: "rgba(255,255,255,0.04)" }} />
+    <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: surface, borderColor: border }}>
+      <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+      <div className="p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div
+            className="h-4 w-4 rounded-full border-2 border-t-transparent animate-spin"
+            style={{ borderColor: accent, borderTopColor: "transparent" }}
+          />
+          <span className="text-sm" style={{ color: textMuted }}>{message}</span>
+        </div>
+        <div className="space-y-3">
+          <div className="h-4 rounded-md w-full skel" />
+          <div className="h-4 rounded-md w-5/6 skel" />
+          <div className="h-4 rounded-md w-4/6 skel" />
+        </div>
       </div>
     </div>
   );
@@ -237,21 +243,49 @@ function LoadingSkeleton({ message }: { message: string }) {
 /* ─── Generate button ─── */
 function GenerateButton({ loading, disabled, onClick, label }: { loading: boolean; disabled: boolean; onClick: () => void; label: string }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={loading || disabled}
-      className="w-full py-3 text-sm font-medium rounded-lg transition-opacity hover:opacity-90 disabled:opacity-40"
-      style={{ backgroundColor: accent, color: bg }}
-    >
-      {loading ? "Generating..." : label}
-    </button>
+    <div className="relative group mt-1">
+      {!disabled && !loading && (
+        <div
+          className="absolute -inset-1 rounded-2xl opacity-60 group-hover:opacity-80 transition-opacity blur-xl"
+          style={{ background: `linear-gradient(135deg, ${accent}, ${accentLight})` }}
+        />
+      )}
+      <button
+        onClick={onClick}
+        disabled={loading || disabled}
+        className="relative w-full py-4 text-base font-semibold rounded-xl transition-all disabled:opacity-30 cursor-pointer"
+        style={{
+          background: `linear-gradient(135deg, ${accent}, ${accentLight})`,
+          color: "#fff",
+        }}
+      >
+        {loading ? (
+          <span className="flex items-center justify-center gap-2.5">
+            <span
+              className="h-4 w-4 rounded-full border-2 border-t-transparent animate-spin"
+              style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "#fff" }}
+            />
+            Generating...
+          </span>
+        ) : label}
+      </button>
+    </div>
   );
 }
 
 /* ─── Error display ─── */
 function ErrorMsg({ error }: { error: string | null }) {
   if (!error) return null;
-  return <p className="text-sm mt-3 text-center" style={{ color: "#f87171" }}>{error}</p>;
+  return (
+    <div className="flex items-center gap-2 mt-3 px-1">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      <p className="text-sm" style={{ color: "#f87171" }}>{error}</p>
+    </div>
+  );
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -340,22 +374,39 @@ export default function OutreachPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: bg }}>
-      <div className="max-w-2xl mx-auto px-6 py-12">
+      <style>{`
+        @keyframes skel-shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        .skel {
+          background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+          background-size: 200% 100%;
+          animation: skel-shimmer 1.5s ease-in-out infinite;
+        }
+      `}</style>
+
+      <div className="max-w-2xl mx-auto px-6 lg:px-8 py-12">
         {/* ── Tab navigation ── */}
-        <div className="mb-8 -mx-6 px-6 overflow-x-auto scrollbar-hide">
-          <div className="flex gap-1 min-w-max">
+        <div className="mb-8 -mx-6 px-6 lg:-mx-8 lg:px-8 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-1 min-w-max border-b" style={{ borderColor: border }}>
             {tabs.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setActiveTab(t.key)}
-                className="px-4 py-2 text-sm rounded-lg transition-all whitespace-nowrap"
+                className="relative px-4 py-2.5 text-base transition-colors whitespace-nowrap cursor-pointer"
                 style={{
-                  backgroundColor: activeTab === t.key ? "rgba(34,197,94,0.1)" : "transparent",
                   color: activeTab === t.key ? accent : textMuted,
                   fontWeight: activeTab === t.key ? 600 : 400,
                 }}
               >
                 {t.label}
+                {activeTab === t.key && (
+                  <span
+                    className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full"
+                    style={{ backgroundColor: accent }}
+                  />
+                )}
               </button>
             ))}
           </div>
@@ -363,10 +414,10 @@ export default function OutreachPage() {
 
         {/* ── Header ── */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: textPrimary }}>
             {tabDescriptions[activeTab].title}
           </h1>
-          <p className="text-sm mt-1" style={{ color: textMuted }}>
+          <p className="text-base mt-1.5" style={{ color: textMuted }}>
             {tabDescriptions[activeTab].subtitle}
           </p>
         </div>
@@ -376,18 +427,21 @@ export default function OutreachPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "cold_email" && (
           <>
-            <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <TextInput label="Prospect name" value={ceName} onChange={setCeName} placeholder="e.g. Sarah Chen" />
-              <TextInput label="Role" value={ceRole} onChange={setCeRole} placeholder="e.g. VP of Marketing" />
-              <TextInput label="Company" value={ceCompany} onChange={setCeCompany} placeholder="e.g. Acme Corp" />
-              <PillSelector label="Goal" options={coldEmailGoals} value={ceGoal} onChange={setCeGoal} />
-              <GenerateButton
-                loading={ceLoading}
-                disabled={!ceName.trim() || !ceRole.trim() || !ceCompany.trim()}
-                onClick={() => callWorkflow("cold_email", { prospect_name: ceName, prospect_role: ceRole, prospect_company: ceCompany, goal: ceGoal }, setCeLoading, setCeOutput, setCeError)}
-                label="Generate"
-              />
-              <ErrorMsg error={ceError} />
+            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+              <div className="p-7">
+                <TextInput label="Prospect name" value={ceName} onChange={setCeName} placeholder="e.g. Sarah Chen" />
+                <TextInput label="Role" value={ceRole} onChange={setCeRole} placeholder="e.g. VP of Marketing" />
+                <TextInput label="Company" value={ceCompany} onChange={setCeCompany} placeholder="e.g. Acme Corp" />
+                <PillSelector label="Goal" options={coldEmailGoals} value={ceGoal} onChange={setCeGoal} />
+                <GenerateButton
+                  loading={ceLoading}
+                  disabled={!ceName.trim() || !ceRole.trim() || !ceCompany.trim()}
+                  onClick={() => callWorkflow("cold_email", { prospect_name: ceName, prospect_role: ceRole, prospect_company: ceCompany, goal: ceGoal }, setCeLoading, setCeOutput, setCeError)}
+                  label="Generate"
+                />
+                <ErrorMsg error={ceError} />
+              </div>
             </div>
             {ceLoading && <LoadingSkeleton message="Writing your cold email..." />}
             {!ceLoading && <OutputCards cards={splitCards(ceOutput)} copiedIdx={ceCopied} onCopy={(t, i) => handleCopy(t, i, setCeCopied)} />}
@@ -399,22 +453,25 @@ export default function OutreachPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "follow_up" && (
           <>
-            <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <TextareaInput
-                label="What was the original email about?"
-                value={fuContext}
-                onChange={setFuContext}
-                placeholder="e.g. I reached out about our design services after seeing their rebrand announcement..."
-                maxLen={500}
-              />
-              <PillSelector label="Time since last email" options={followUpDays} value={fuDays} onChange={setFuDays} />
-              <GenerateButton
-                loading={fuLoading}
-                disabled={!fuContext.trim()}
-                onClick={() => callWorkflow("follow_up", { context: fuContext, days_since: fuDays }, setFuLoading, setFuOutput, setFuError)}
-                label="Generate"
-              />
-              <ErrorMsg error={fuError} />
+            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+              <div className="p-7">
+                <TextareaInput
+                  label="What was the original email about?"
+                  value={fuContext}
+                  onChange={setFuContext}
+                  placeholder="e.g. I reached out about our design services after seeing their rebrand announcement..."
+                  maxLen={500}
+                />
+                <PillSelector label="Time since last email" options={followUpDays} value={fuDays} onChange={setFuDays} />
+                <GenerateButton
+                  loading={fuLoading}
+                  disabled={!fuContext.trim()}
+                  onClick={() => callWorkflow("follow_up", { context: fuContext, days_since: fuDays }, setFuLoading, setFuOutput, setFuError)}
+                  label="Generate"
+                />
+                <ErrorMsg error={fuError} />
+              </div>
             </div>
             {fuLoading && <LoadingSkeleton message="Writing follow-up sequence..." />}
             {!fuLoading && <OutputCards cards={splitCards(fuOutput)} copiedIdx={fuCopied} onCopy={(t, i) => handleCopy(t, i, setFuCopied)} />}
@@ -426,17 +483,20 @@ export default function OutreachPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "proposal" && (
           <>
-            <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <TextInput label="Project type" value={prType} onChange={setPrType} placeholder="e.g. Brand identity redesign" />
-              <TextInput label="Client name" value={prClient} onChange={setPrClient} placeholder="e.g. Bloom Skincare" />
-              <TextInput label="Budget range" value={prBudget} onChange={setPrBudget} placeholder="e.g. $3,000 - $5,000" optional />
-              <GenerateButton
-                loading={prLoading}
-                disabled={!prType.trim() || !prClient.trim()}
-                onClick={() => callWorkflow("proposal", { project_type: prType, client_name: prClient, ...(prBudget.trim() ? { budget_range: prBudget } : {}) }, setPrLoading, setPrOutput, setPrError)}
-                label="Generate"
-              />
-              <ErrorMsg error={prError} />
+            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+              <div className="p-7">
+                <TextInput label="Project type" value={prType} onChange={setPrType} placeholder="e.g. Brand identity redesign" />
+                <TextInput label="Client name" value={prClient} onChange={setPrClient} placeholder="e.g. Bloom Skincare" />
+                <TextInput label="Budget range" value={prBudget} onChange={setPrBudget} placeholder="e.g. $3,000 - $5,000" optional />
+                <GenerateButton
+                  loading={prLoading}
+                  disabled={!prType.trim() || !prClient.trim()}
+                  onClick={() => callWorkflow("proposal", { project_type: prType, client_name: prClient, ...(prBudget.trim() ? { budget_range: prBudget } : {}) }, setPrLoading, setPrOutput, setPrError)}
+                  label="Generate"
+                />
+                <ErrorMsg error={prError} />
+              </div>
             </div>
             {prLoading && <LoadingSkeleton message="Writing your proposal..." />}
             {!prLoading && <OutputCards cards={splitCards(prOutput)} copiedIdx={prCopied} onCopy={(t, i) => handleCopy(t, i, setPrCopied)} />}
@@ -448,17 +508,20 @@ export default function OutreachPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "discovery_prep" && (
           <>
-            <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <TextInput label="Prospect company" value={dpCompany} onChange={setDpCompany} placeholder="e.g. Stripe" />
-              <TextInput label="Industry" value={dpIndustry} onChange={setDpIndustry} placeholder="e.g. Fintech / Payments" />
-              <PillSelector label="Call goal" options={callGoals} value={dpGoal} onChange={setDpGoal} />
-              <GenerateButton
-                loading={dpLoading}
-                disabled={!dpCompany.trim() || !dpIndustry.trim()}
-                onClick={() => callWorkflow("discovery_prep", { prospect_company: dpCompany, industry: dpIndustry, call_goal: dpGoal }, setDpLoading, setDpOutput, setDpError)}
-                label="Generate"
-              />
-              <ErrorMsg error={dpError} />
+            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+              <div className="p-7">
+                <TextInput label="Prospect company" value={dpCompany} onChange={setDpCompany} placeholder="e.g. Stripe" />
+                <TextInput label="Industry" value={dpIndustry} onChange={setDpIndustry} placeholder="e.g. Fintech / Payments" />
+                <PillSelector label="Call goal" options={callGoals} value={dpGoal} onChange={setDpGoal} />
+                <GenerateButton
+                  loading={dpLoading}
+                  disabled={!dpCompany.trim() || !dpIndustry.trim()}
+                  onClick={() => callWorkflow("discovery_prep", { prospect_company: dpCompany, industry: dpIndustry, call_goal: dpGoal }, setDpLoading, setDpOutput, setDpError)}
+                  label="Generate"
+                />
+                <ErrorMsg error={dpError} />
+              </div>
             </div>
             {dpLoading && <LoadingSkeleton message="Preparing your call notes..." />}
             {!dpLoading && <OutputCards cards={splitCards(dpOutput)} copiedIdx={dpCopied} onCopy={(t, i) => handleCopy(t, i, setDpCopied)} />}

@@ -5,10 +5,13 @@ import { useState, useCallback } from "react";
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
 const surface = "#111827";
+const surfaceLight = "#151d2e";
 const accent = "#f97316";
+const accentLight = "#fb923c";
+const accentGlow = "rgba(249,115,22,0.25)";
 const textPrimary = "#f1f5f9";
 const textMuted = "#94a3b8";
-const border = "rgba(255,255,255,0.08)";
+const border = "rgba(255,255,255,0.06)";
 
 /* ─── Option data ─── */
 const departments = [
@@ -67,7 +70,7 @@ function PillSelector<T extends string>({
 }) {
   return (
     <div className="mb-5">
-      <label className="block text-sm font-medium mb-2" style={{ color: textPrimary }}>
+      <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>
         {label}
       </label>
       <div className="flex flex-wrap gap-2">
@@ -75,12 +78,11 @@ function PillSelector<T extends string>({
           <button
             key={o.value}
             onClick={() => onChange(o.value)}
-            className="px-4 py-2 text-sm rounded-lg border transition-all"
+            className="px-4 py-2.5 text-sm rounded-lg border transition-all cursor-pointer"
             style={{
               backgroundColor: value === o.value ? "rgba(249,115,22,0.1)" : "transparent",
               borderColor: value === o.value ? accent : border,
               color: value === o.value ? accent : textMuted,
-              boxShadow: value === o.value ? `0 0 0 1px ${accent}` : "none",
             }}
           >
             {o.label}
@@ -105,7 +107,7 @@ function TextInput({
 }) {
   return (
     <div className="mb-5">
-      <label className="block text-sm font-medium mb-2" style={{ color: textPrimary }}>
+      <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>
         {label}
       </label>
       <input
@@ -113,7 +115,7 @@ function TextInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#f97316]/50"
+        className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#f97316]/40 focus:shadow-[0_0_0_1px_rgba(249,115,22,0.3)] transition-shadow"
         style={{ backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary }}
       />
     </div>
@@ -139,7 +141,7 @@ function TextareaInput({
   const warnAt = Math.round(maxLen * 0.9);
   return (
     <div className="mb-5">
-      <label className="block text-sm font-medium mb-2" style={{ color: textPrimary }}>
+      <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>
         {label}
       </label>
       <textarea
@@ -148,7 +150,7 @@ function TextareaInput({
         maxLength={maxLen}
         rows={rows}
         placeholder={placeholder}
-        className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#f97316]/50 resize-none"
+        className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#f97316]/40 focus:shadow-[0_0_0_1px_rgba(249,115,22,0.3)] transition-shadow resize-none"
         style={{ backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary }}
       />
       <div className="flex justify-end mt-1.5">
@@ -173,7 +175,7 @@ function OutputCards({
   if (cards.length === 0) return null;
   return (
     <div className="space-y-4">
-      <span className="text-xs font-medium uppercase tracking-wider" style={{ color: textMuted }}>
+      <span className="text-[11px] font-medium uppercase tracking-wider px-0.5" style={{ color: textMuted }}>
         Output
       </span>
       {cards.map((card, idx) => {
@@ -184,9 +186,10 @@ function OutputCards({
             className="relative rounded-xl border overflow-hidden group"
             style={{ backgroundColor: surface, borderColor: border }}
           >
+            <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
             <button
               onClick={() => onCopy(card, idx)}
-              className="absolute top-3 right-3 flex flex-col items-center gap-1 rounded-md px-2 py-1.5 transition-all opacity-60 hover:opacity-100"
+              className="absolute top-3 right-3 flex flex-col items-center gap-1 rounded-md px-2 py-1.5 transition-all opacity-60 hover:opacity-100 cursor-pointer"
               style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
               aria-label="Copy"
             >
@@ -223,18 +226,21 @@ function OutputCards({
 /* ─── Loading skeleton ─── */
 function LoadingSkeleton({ message }: { message: string }) {
   return (
-    <div className="rounded-xl p-6 border" style={{ backgroundColor: surface, borderColor: border }}>
-      <div className="flex items-center gap-3 mb-4">
-        <div
-          className="h-5 w-5 rounded-full border-2 border-t-transparent animate-spin"
-          style={{ borderColor: accent, borderTopColor: "transparent" }}
-        />
-        <span className="text-sm" style={{ color: textMuted }}>{message}</span>
-      </div>
-      <div className="space-y-3">
-        <div className="h-4 rounded w-full animate-pulse" style={{ backgroundColor: "rgba(255,255,255,0.04)" }} />
-        <div className="h-4 rounded w-5/6 animate-pulse" style={{ backgroundColor: "rgba(255,255,255,0.04)" }} />
-        <div className="h-4 rounded w-4/6 animate-pulse" style={{ backgroundColor: "rgba(255,255,255,0.04)" }} />
+    <div className="rounded-xl border overflow-hidden" style={{ backgroundColor: surface, borderColor: border }}>
+      <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+      <div className="p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div
+            className="h-5 w-5 rounded-full border-2 border-t-transparent animate-spin"
+            style={{ borderColor: accent, borderTopColor: "transparent" }}
+          />
+          <span className="text-sm" style={{ color: textMuted }}>{message}</span>
+        </div>
+        <div className="space-y-3">
+          <div className="skel h-4 rounded w-full" />
+          <div className="skel h-4 rounded w-5/6" />
+          <div className="skel h-4 rounded w-4/6" />
+        </div>
       </div>
     </div>
   );
@@ -243,21 +249,49 @@ function LoadingSkeleton({ message }: { message: string }) {
 /* ─── Generate button ─── */
 function GenerateButton({ loading, disabled, onClick, label }: { loading: boolean; disabled: boolean; onClick: () => void; label: string }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={loading || disabled}
-      className="w-full py-3 text-sm font-medium rounded-lg transition-opacity hover:opacity-90 disabled:opacity-40"
-      style={{ backgroundColor: accent, color: "#fff" }}
-    >
-      {loading ? "Generating..." : label}
-    </button>
+    <div className="relative group mt-1">
+      {!disabled && !loading && (
+        <div
+          className="absolute -inset-1 rounded-2xl opacity-60 group-hover:opacity-80 transition-opacity blur-xl"
+          style={{ background: `linear-gradient(135deg, ${accent}, ${accentLight})` }}
+        />
+      )}
+      <button
+        onClick={onClick}
+        disabled={loading || disabled}
+        className="relative w-full py-4 text-base font-semibold rounded-xl transition-all disabled:opacity-30 cursor-pointer"
+        style={{
+          background: `linear-gradient(135deg, ${accent}, ${accentLight})`,
+          color: "#fff",
+        }}
+      >
+        {loading ? (
+          <span className="flex items-center justify-center gap-2.5">
+            <span
+              className="h-4 w-4 rounded-full border-2 border-t-transparent animate-spin"
+              style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "#fff" }}
+            />
+            Generating...
+          </span>
+        ) : label}
+      </button>
+    </div>
   );
 }
 
 /* ─── Error display ─── */
 function ErrorMsg({ error }: { error: string | null }) {
   if (!error) return null;
-  return <p className="text-sm mt-3 text-center" style={{ color: "#f87171" }}>{error}</p>;
+  return (
+    <div className="flex items-center gap-2 mt-3 justify-center">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      <p className="text-sm" style={{ color: "#f87171" }}>{error}</p>
+    </div>
+  );
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -347,22 +381,38 @@ export default function OperationsPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: bg }}>
-      <div className="max-w-2xl mx-auto px-6 py-12">
+      <style>{`
+        @keyframes skel-shimmer {
+          0% { background-position: 200% center; }
+          100% { background-position: -200% center; }
+        }
+        .skel {
+          background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+          background-size: 200% 100%;
+          animation: skel-shimmer 1.5s ease-in-out infinite;
+        }
+      `}</style>
+      <div className="max-w-2xl mx-auto px-6 lg:px-8 py-12">
         {/* ── Tab navigation ── */}
         <div className="mb-8 -mx-6 px-6 overflow-x-auto scrollbar-hide">
-          <div className="flex gap-1 min-w-max">
+          <div className="flex gap-1 min-w-max border-b" style={{ borderColor: border }}>
             {tabs.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setActiveTab(t.key)}
-                className="px-4 py-2 text-sm rounded-lg transition-all whitespace-nowrap"
+                className="relative px-4 py-2 text-base transition-all whitespace-nowrap cursor-pointer"
                 style={{
-                  backgroundColor: activeTab === t.key ? "rgba(249,115,22,0.1)" : "transparent",
                   color: activeTab === t.key ? accent : textMuted,
                   fontWeight: activeTab === t.key ? 600 : 400,
                 }}
               >
                 {t.label}
+                {activeTab === t.key && (
+                  <span
+                    className="absolute bottom-0 left-0 right-0 h-[2px]"
+                    style={{ background: accent }}
+                  />
+                )}
               </button>
             ))}
           </div>
@@ -370,10 +420,10 @@ export default function OperationsPage() {
 
         {/* ── Header ── */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
             {tabDescriptions[activeTab].title}
           </h1>
-          <p className="text-sm mt-1" style={{ color: textMuted }}>
+          <p className="text-base mt-1.5" style={{ color: textMuted }}>
             {tabDescriptions[activeTab].subtitle}
           </p>
         </div>
@@ -383,17 +433,20 @@ export default function OperationsPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "sop_generator" && (
           <>
-            <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <TextInput label="Process name" value={sopName} onChange={setSopName} placeholder="e.g. Client onboarding" />
-              <PillSelector label="Department" options={departments} value={sopDept} onChange={setSopDept} />
-              <PillSelector label="Detail level" options={detailLevels} value={sopDetail} onChange={setSopDetail} />
-              <GenerateButton
-                loading={sopLoading}
-                disabled={!sopName.trim()}
-                onClick={() => callWorkflow("sop_generator", { process_name: sopName, department: sopDept, detail_level: sopDetail }, setSopLoading, setSopOutput, setSopError)}
-                label="Generate"
-              />
-              <ErrorMsg error={sopError} />
+            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+              <div className="p-7">
+                <TextInput label="Process name" value={sopName} onChange={setSopName} placeholder="e.g. Client onboarding" />
+                <PillSelector label="Department" options={departments} value={sopDept} onChange={setSopDept} />
+                <PillSelector label="Detail level" options={detailLevels} value={sopDetail} onChange={setSopDetail} />
+                <GenerateButton
+                  loading={sopLoading}
+                  disabled={!sopName.trim()}
+                  onClick={() => callWorkflow("sop_generator", { process_name: sopName, department: sopDept, detail_level: sopDetail }, setSopLoading, setSopOutput, setSopError)}
+                  label="Generate"
+                />
+                <ErrorMsg error={sopError} />
+              </div>
             </div>
             {sopLoading && <LoadingSkeleton message="Generating your SOP..." />}
             {!sopLoading && <OutputCards cards={wrapOutput(sopOutput)} copiedIdx={sopCopied} onCopy={(t, i) => handleCopy(t, i, setSopCopied)} />}
@@ -405,23 +458,26 @@ export default function OperationsPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "weekly_plan" && (
           <>
-            <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <TextInput label="Focus area" value={wpFocus} onChange={setWpFocus} placeholder="e.g. Product launch prep" />
-              <TextareaInput
-                label="Priorities"
-                value={wpPriorities}
-                onChange={setWpPriorities}
-                placeholder="List your top priorities or projects for the week"
-                maxLen={500}
-              />
-              <PillSelector label="Work style" options={workStyles} value={wpStyle} onChange={setWpStyle} />
-              <GenerateButton
-                loading={wpLoading}
-                disabled={!wpFocus.trim() || !wpPriorities.trim()}
-                onClick={() => callWorkflow("weekly_plan", { focus_area: wpFocus, priorities: wpPriorities, work_style: wpStyle }, setWpLoading, setWpOutput, setWpError)}
-                label="Generate"
-              />
-              <ErrorMsg error={wpError} />
+            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+              <div className="p-7">
+                <TextInput label="Focus area" value={wpFocus} onChange={setWpFocus} placeholder="e.g. Product launch prep" />
+                <TextareaInput
+                  label="Priorities"
+                  value={wpPriorities}
+                  onChange={setWpPriorities}
+                  placeholder="List your top priorities or projects for the week"
+                  maxLen={500}
+                />
+                <PillSelector label="Work style" options={workStyles} value={wpStyle} onChange={setWpStyle} />
+                <GenerateButton
+                  loading={wpLoading}
+                  disabled={!wpFocus.trim() || !wpPriorities.trim()}
+                  onClick={() => callWorkflow("weekly_plan", { focus_area: wpFocus, priorities: wpPriorities, work_style: wpStyle }, setWpLoading, setWpOutput, setWpError)}
+                  label="Generate"
+                />
+                <ErrorMsg error={wpError} />
+              </div>
             </div>
             {wpLoading && <LoadingSkeleton message="Planning your week..." />}
             {!wpLoading && <OutputCards cards={wrapOutput(wpOutput)} copiedIdx={wpCopied} onCopy={(t, i) => handleCopy(t, i, setWpCopied)} />}
@@ -433,24 +489,27 @@ export default function OperationsPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "onboarding_doc" && (
           <>
-            <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <TextInput label="Client name" value={obClient} onChange={setObClient} placeholder="e.g. Bloom Skincare" />
-              <TextInput label="Service type" value={obService} onChange={setObService} placeholder="e.g. Brand identity" />
-              <TextInput label="Start date" value={obDate} onChange={setObDate} placeholder="e.g. May 1, 2025" />
-              <TextareaInput
-                label="Key deliverables"
-                value={obDeliverables}
-                onChange={setObDeliverables}
-                placeholder="List the main deliverables for this project"
-                maxLen={500}
-              />
-              <GenerateButton
-                loading={obLoading}
-                disabled={!obClient.trim() || !obService.trim() || !obDate.trim()}
-                onClick={() => callWorkflow("onboarding_doc", { client_name: obClient, service_type: obService, start_date: obDate, key_deliverables: obDeliverables }, setObLoading, setObOutput, setObError)}
-                label="Generate"
-              />
-              <ErrorMsg error={obError} />
+            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+              <div className="p-7">
+                <TextInput label="Client name" value={obClient} onChange={setObClient} placeholder="e.g. Bloom Skincare" />
+                <TextInput label="Service type" value={obService} onChange={setObService} placeholder="e.g. Brand identity" />
+                <TextInput label="Start date" value={obDate} onChange={setObDate} placeholder="e.g. May 1, 2025" />
+                <TextareaInput
+                  label="Key deliverables"
+                  value={obDeliverables}
+                  onChange={setObDeliverables}
+                  placeholder="List the main deliverables for this project"
+                  maxLen={500}
+                />
+                <GenerateButton
+                  loading={obLoading}
+                  disabled={!obClient.trim() || !obService.trim() || !obDate.trim()}
+                  onClick={() => callWorkflow("onboarding_doc", { client_name: obClient, service_type: obService, start_date: obDate, key_deliverables: obDeliverables }, setObLoading, setObOutput, setObError)}
+                  label="Generate"
+                />
+                <ErrorMsg error={obError} />
+              </div>
             </div>
             {obLoading && <LoadingSkeleton message="Creating onboarding doc..." />}
             {!obLoading && <OutputCards cards={wrapOutput(obOutput)} copiedIdx={obCopied} onCopy={(t, i) => handleCopy(t, i, setObCopied)} />}
@@ -462,24 +521,27 @@ export default function OperationsPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "process_notes" && (
           <>
-            <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <TextInput label="Process title" value={pnTitle} onChange={setPnTitle} placeholder="e.g. Monthly reporting" />
-              <TextareaInput
-                label="Raw notes"
-                value={pnNotes}
-                onChange={setPnNotes}
-                placeholder="Paste your rough notes, steps, or observations here"
-                maxLen={2000}
-                rows={6}
-              />
-              <PillSelector label="Output format" options={outputFormats} value={pnFormat} onChange={setPnFormat} />
-              <GenerateButton
-                loading={pnLoading}
-                disabled={!pnTitle.trim() || !pnNotes.trim()}
-                onClick={() => callWorkflow("process_notes", { process_title: pnTitle, raw_notes: pnNotes, output_format: pnFormat }, setPnLoading, setPnOutput, setPnError)}
-                label="Generate"
-              />
-              <ErrorMsg error={pnError} />
+            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+              <div className="p-7">
+                <TextInput label="Process title" value={pnTitle} onChange={setPnTitle} placeholder="e.g. Monthly reporting" />
+                <TextareaInput
+                  label="Raw notes"
+                  value={pnNotes}
+                  onChange={setPnNotes}
+                  placeholder="Paste your rough notes, steps, or observations here"
+                  maxLen={2000}
+                  rows={6}
+                />
+                <PillSelector label="Output format" options={outputFormats} value={pnFormat} onChange={setPnFormat} />
+                <GenerateButton
+                  loading={pnLoading}
+                  disabled={!pnTitle.trim() || !pnNotes.trim()}
+                  onClick={() => callWorkflow("process_notes", { process_title: pnTitle, raw_notes: pnNotes, output_format: pnFormat }, setPnLoading, setPnOutput, setPnError)}
+                  label="Generate"
+                />
+                <ErrorMsg error={pnError} />
+              </div>
             </div>
             {pnLoading && <LoadingSkeleton message="Structuring your notes..." />}
             {!pnLoading && <OutputCards cards={wrapOutput(pnOutput)} copiedIdx={pnCopied} onCopy={(t, i) => handleCopy(t, i, setPnCopied)} />}
