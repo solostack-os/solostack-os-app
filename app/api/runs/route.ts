@@ -11,6 +11,10 @@ import { runColdEmail, type ColdEmailInput } from "@/lib/workflows/outreach/cold
 import { runFollowUp, type FollowUpInput } from "@/lib/workflows/outreach/follow-up";
 import { runProposal, type ProposalInput } from "@/lib/workflows/outreach/proposal";
 import { runDiscoveryPrep, type DiscoveryPrepInput } from "@/lib/workflows/outreach/discovery-prep";
+import { runSopGenerator, type SopGeneratorInput } from "@/lib/workflows/operations/sop-generator";
+import { runWeeklyPlan, type WeeklyPlanInput } from "@/lib/workflows/operations/weekly-plan";
+import { runOnboardingDoc, type OnboardingDocInput } from "@/lib/workflows/operations/onboarding-doc";
+import { runProcessNotes, type ProcessNotesInput } from "@/lib/workflows/operations/process-notes";
 
 export async function POST(request: Request) {
   // 1. Authenticate
@@ -31,21 +35,43 @@ export async function POST(request: Request) {
   );
 
   // 2. Get workspace + context
-  const { data: workspace } = await supabase
+  // Try with profile columns first, fall back to basic query if columns don't exist yet
+  let workspace: { id: string; company_name?: string; website?: string; industry?: string; description?: string } | null = null;
+
+  const { data: wsProfile } = await supabase
     .from("workspaces")
-    .select("id")
+    .select("id, company_name, website, industry, description")
     .eq("owner_user_id", user.id)
     .single();
+
+  if (wsProfile) {
+    workspace = wsProfile;
+  } else {
+    const { data: wsBasic } = await supabase
+      .from("workspaces")
+      .select("id")
+      .eq("owner_user_id", user.id)
+      .single();
+    if (wsBasic) workspace = wsBasic;
+  }
 
   if (!workspace) {
     return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
   }
 
-  const { data: context } = await supabase
+  const { data: ctxRow } = await supabase
     .from("workspace_context")
     .select("main_goal, business_type, offer, target_audience, tone, brand_notes")
     .eq("workspace_id", workspace.id)
     .single();
+
+  const context = {
+    ...(ctxRow ?? {}),
+    company_name: workspace.company_name,
+    industry: workspace.industry,
+    description: workspace.description,
+    website: workspace.website,
+  };
 
   // 3. Parse request body
   const body = await request.json();
@@ -212,6 +238,42 @@ export async function POST(request: Request) {
       promptTokens = result.promptTokens;
       completionTokens = result.completionTokens;
       outputTitle = `Discovery prep — ${input_json.prospect_company}`;
+    } else if (module_key === "operations" && workflow_key === "sop_generator") {
+      const result = await runSopGenerator(
+        context ?? {},
+        input_json as unknown as SopGeneratorInput
+      );
+      text = result.text;
+      promptTokens = result.promptTokens;
+      completionTokens = result.completionTokens;
+      outputTitle = `SOP — ${input_json.process_name}`;
+    } else if (module_key === "operations" && workflow_key === "weekly_plan") {
+      const result = await runWeeklyPlan(
+        context ?? {},
+        input_json as unknown as WeeklyPlanInput
+      );
+      text = result.text;
+      promptTokens = result.promptTokens;
+      completionTokens = result.completionTokens;
+      outputTitle = `Weekly plan — ${input_json.focus_area}`;
+    } else if (module_key === "operations" && workflow_key === "onboarding_doc") {
+      const result = await runOnboardingDoc(
+        context ?? {},
+        input_json as unknown as OnboardingDocInput
+      );
+      text = result.text;
+      promptTokens = result.promptTokens;
+      completionTokens = result.completionTokens;
+      outputTitle = `Onboarding — ${input_json.client_name}`;
+    } else if (module_key === "operations" && workflow_key === "process_notes") {
+      const result = await runProcessNotes(
+        context ?? {},
+        input_json as unknown as ProcessNotesInput
+      );
+      text = result.text;
+      promptTokens = result.promptTokens;
+      completionTokens = result.completionTokens;
+      outputTitle = `Process notes — ${input_json.process_title}`;
     } else {
       throw new Error(`Unknown workflow: ${module_key}/${workflow_key}`);
     }

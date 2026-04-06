@@ -260,6 +260,7 @@ export default function MarketingPage() {
         setError(data.error ?? "Something went wrong");
       } else {
         setOutput(data.output_markdown);
+        window.dispatchEvent(new Event("recents:refresh"));
       }
     } catch {
       setError("Network error");

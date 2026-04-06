@@ -5,45 +5,52 @@ import { useState, useCallback } from "react";
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
 const surface = "#111827";
-const accent = "#22c55e";
+const accent = "#f97316";
 const textPrimary = "#f1f5f9";
 const textMuted = "#94a3b8";
 const border = "rgba(255,255,255,0.08)";
 
 /* ─── Option data ─── */
-const coldEmailGoals = [
-  { value: "book_a_call", label: "Book a call" },
-  { value: "get_a_reply", label: "Get a reply" },
-  { value: "share_a_resource", label: "Share a resource" },
+const departments = [
+  { value: "operations", label: "Operations" },
+  { value: "marketing", label: "Marketing" },
+  { value: "sales", label: "Sales" },
+  { value: "finance", label: "Finance" },
 ] as const;
 
-const followUpDays = [
-  { value: "3_days", label: "3 days" },
-  { value: "1_week", label: "1 week" },
-  { value: "2_weeks", label: "2 weeks" },
+const detailLevels = [
+  { value: "summary", label: "Summary" },
+  { value: "standard", label: "Standard" },
+  { value: "detailed", label: "Detailed" },
 ] as const;
 
-const callGoals = [
-  { value: "qualify", label: "Qualify" },
-  { value: "pitch", label: "Pitch" },
-  { value: "explore_fit", label: "Explore fit" },
+const workStyles = [
+  { value: "deep_work", label: "Deep Work" },
+  { value: "mixed", label: "Mixed" },
+  { value: "meetings_heavy", label: "Meetings-Heavy" },
+] as const;
+
+const outputFormats = [
+  { value: "bullet_summary", label: "Bullet Summary" },
+  { value: "step_by_step", label: "Step-by-Step" },
+  { value: "decision_tree", label: "Decision Tree" },
 ] as const;
 
 /* ─── Tab definitions ─── */
-type TabKey = "cold_email" | "follow_up" | "proposal" | "discovery_prep";
+type TabKey = "sop_generator" | "weekly_plan" | "onboarding_doc" | "process_notes";
 
 const tabs: { key: TabKey; label: string }[] = [
-  { key: "cold_email", label: "Cold Email" },
-  { key: "follow_up", label: "Follow-up" },
-  { key: "proposal", label: "Proposal" },
-  { key: "discovery_prep", label: "Discovery Prep" },
+  { key: "sop_generator", label: "SOP Generator" },
+  { key: "weekly_plan", label: "Weekly Plan" },
+  { key: "onboarding_doc", label: "Onboarding Doc" },
+  { key: "process_notes", label: "Process Notes" },
 ];
 
 const tabDescriptions: Record<TabKey, { title: string; subtitle: string }> = {
-  cold_email: { title: "Write a cold email", subtitle: "Generate personalized outreach that gets replies." },
-  follow_up: { title: "Write follow-up emails", subtitle: "Generate a 3-email follow-up sequence." },
-  proposal: { title: "Write a proposal", subtitle: "Generate a structured project proposal outline." },
-  discovery_prep: { title: "Prepare for a discovery call", subtitle: "Generate research, questions, and talking points." },
+  sop_generator: { title: "Generate an SOP", subtitle: "Create a structured standard operating procedure for any process." },
+  weekly_plan: { title: "Plan your week", subtitle: "Generate a focused weekly plan with daily themes and time blocks." },
+  onboarding_doc: { title: "Create an onboarding doc", subtitle: "Generate a professional client onboarding document." },
+  process_notes: { title: "Structure process notes", subtitle: "Turn rough notes into clean, structured documentation." },
 };
 
 /* ─── Reusable pill selector ─── */
@@ -70,7 +77,7 @@ function PillSelector<T extends string>({
             onClick={() => onChange(o.value)}
             className="px-4 py-2 text-sm rounded-lg border transition-all"
             style={{
-              backgroundColor: value === o.value ? "rgba(34,197,94,0.1)" : "transparent",
+              backgroundColor: value === o.value ? "rgba(249,115,22,0.1)" : "transparent",
               borderColor: value === o.value ? accent : border,
               color: value === o.value ? accent : textMuted,
               boxShadow: value === o.value ? `0 0 0 1px ${accent}` : "none",
@@ -90,26 +97,23 @@ function TextInput({
   value,
   onChange,
   placeholder,
-  optional,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
-  optional?: boolean;
 }) {
   return (
     <div className="mb-5">
       <label className="block text-sm font-medium mb-2" style={{ color: textPrimary }}>
         {label}
-        {optional && <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>}
       </label>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#22c55e]/50"
+        className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#f97316]/50"
         style={{ backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary }}
       />
     </div>
@@ -123,12 +127,14 @@ function TextareaInput({
   onChange,
   placeholder,
   maxLen = 500,
+  rows = 3,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
   maxLen?: number;
+  rows?: number;
 }) {
   const warnAt = Math.round(maxLen * 0.9);
   return (
@@ -140,9 +146,9 @@ function TextareaInput({
         value={value}
         onChange={(e) => { if (e.target.value.length <= maxLen) onChange(e.target.value); }}
         maxLength={maxLen}
-        rows={3}
+        rows={rows}
         placeholder={placeholder}
-        className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#22c55e]/50 resize-none"
+        className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#f97316]/50 resize-none"
         style={{ backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary }}
       />
       <div className="flex justify-end mt-1.5">
@@ -241,7 +247,7 @@ function GenerateButton({ loading, disabled, onClick, label }: { loading: boolea
       onClick={onClick}
       disabled={loading || disabled}
       className="w-full py-3 text-sm font-medium rounded-lg transition-opacity hover:opacity-90 disabled:opacity-40"
-      style={{ backgroundColor: accent, color: bg }}
+      style={{ backgroundColor: accent, color: "#fff" }}
     >
       {loading ? "Generating..." : label}
     </button>
@@ -257,44 +263,45 @@ function ErrorMsg({ error }: { error: string | null }) {
 /* ═══════════════════════════════════════════════════════════════
    Main page
    ═══════════════════════════════════════════════════════════════ */
-export default function OutreachPage() {
-  const [activeTab, setActiveTab] = useState<TabKey>("cold_email");
+export default function OperationsPage() {
+  const [activeTab, setActiveTab] = useState<TabKey>("sop_generator");
 
-  /* ── Cold Email state ── */
-  const [ceName, setCeName] = useState("");
-  const [ceRole, setCeRole] = useState("");
-  const [ceCompany, setCeCompany] = useState("");
-  const [ceGoal, setCeGoal] = useState<"book_a_call" | "get_a_reply" | "share_a_resource">("book_a_call");
-  const [ceLoading, setCeLoading] = useState(false);
-  const [ceOutput, setCeOutput] = useState<string | null>(null);
-  const [ceError, setCeError] = useState<string | null>(null);
-  const [ceCopied, setCeCopied] = useState<number | null>(null);
+  /* ── SOP Generator state ── */
+  const [sopName, setSopName] = useState("");
+  const [sopDept, setSopDept] = useState<"operations" | "marketing" | "sales" | "finance">("operations");
+  const [sopDetail, setSopDetail] = useState<"summary" | "standard" | "detailed">("standard");
+  const [sopLoading, setSopLoading] = useState(false);
+  const [sopOutput, setSopOutput] = useState<string | null>(null);
+  const [sopError, setSopError] = useState<string | null>(null);
+  const [sopCopied, setSopCopied] = useState<number | null>(null);
 
-  /* ── Follow-up state ── */
-  const [fuContext, setFuContext] = useState("");
-  const [fuDays, setFuDays] = useState<"3_days" | "1_week" | "2_weeks">("3_days");
-  const [fuLoading, setFuLoading] = useState(false);
-  const [fuOutput, setFuOutput] = useState<string | null>(null);
-  const [fuError, setFuError] = useState<string | null>(null);
-  const [fuCopied, setFuCopied] = useState<number | null>(null);
+  /* ── Weekly Plan state ── */
+  const [wpFocus, setWpFocus] = useState("");
+  const [wpPriorities, setWpPriorities] = useState("");
+  const [wpStyle, setWpStyle] = useState<"deep_work" | "mixed" | "meetings_heavy">("mixed");
+  const [wpLoading, setWpLoading] = useState(false);
+  const [wpOutput, setWpOutput] = useState<string | null>(null);
+  const [wpError, setWpError] = useState<string | null>(null);
+  const [wpCopied, setWpCopied] = useState<number | null>(null);
 
-  /* ── Proposal state ── */
-  const [prType, setPrType] = useState("");
-  const [prClient, setPrClient] = useState("");
-  const [prBudget, setPrBudget] = useState("");
-  const [prLoading, setPrLoading] = useState(false);
-  const [prOutput, setPrOutput] = useState<string | null>(null);
-  const [prError, setPrError] = useState<string | null>(null);
-  const [prCopied, setPrCopied] = useState<number | null>(null);
+  /* ── Onboarding Doc state ── */
+  const [obClient, setObClient] = useState("");
+  const [obService, setObService] = useState("");
+  const [obDate, setObDate] = useState("");
+  const [obDeliverables, setObDeliverables] = useState("");
+  const [obLoading, setObLoading] = useState(false);
+  const [obOutput, setObOutput] = useState<string | null>(null);
+  const [obError, setObError] = useState<string | null>(null);
+  const [obCopied, setObCopied] = useState<number | null>(null);
 
-  /* ── Discovery Prep state ── */
-  const [dpCompany, setDpCompany] = useState("");
-  const [dpIndustry, setDpIndustry] = useState("");
-  const [dpGoal, setDpGoal] = useState<"qualify" | "pitch" | "explore_fit">("qualify");
-  const [dpLoading, setDpLoading] = useState(false);
-  const [dpOutput, setDpOutput] = useState<string | null>(null);
-  const [dpError, setDpError] = useState<string | null>(null);
-  const [dpCopied, setDpCopied] = useState<number | null>(null);
+  /* ── Process Notes state ── */
+  const [pnTitle, setPnTitle] = useState("");
+  const [pnNotes, setPnNotes] = useState("");
+  const [pnFormat, setPnFormat] = useState<"bullet_summary" | "step_by_step" | "decision_tree">("bullet_summary");
+  const [pnLoading, setPnLoading] = useState(false);
+  const [pnOutput, setPnOutput] = useState<string | null>(null);
+  const [pnError, setPnError] = useState<string | null>(null);
+  const [pnCopied, setPnCopied] = useState<number | null>(null);
 
   /* ─── Generic helpers ─── */
   async function callWorkflow(
@@ -311,7 +318,7 @@ export default function OutreachPage() {
       const res = await fetch("/api/runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ module_key: "outreach", workflow_key, input_json }),
+        body: JSON.stringify({ module_key: "operations", workflow_key, input_json }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -327,9 +334,9 @@ export default function OutreachPage() {
     }
   }
 
-  function splitCards(raw: string | null) {
+  function wrapOutput(raw: string | null) {
     if (!raw) return [];
-    return raw.split(/\n---\n/).map((p) => p.trim()).filter(Boolean);
+    return [raw.trim()];
   }
 
   const handleCopy = useCallback(async (text: string, idx: number, setter: (n: number | null) => void) => {
@@ -350,7 +357,7 @@ export default function OutreachPage() {
                 onClick={() => setActiveTab(t.key)}
                 className="px-4 py-2 text-sm rounded-lg transition-all whitespace-nowrap"
                 style={{
-                  backgroundColor: activeTab === t.key ? "rgba(34,197,94,0.1)" : "transparent",
+                  backgroundColor: activeTab === t.key ? "rgba(249,115,22,0.1)" : "transparent",
                   color: activeTab === t.key ? accent : textMuted,
                   fontWeight: activeTab === t.key ? 600 : 400,
                 }}
@@ -372,96 +379,110 @@ export default function OutreachPage() {
         </div>
 
         {/* ════════════════════════════════════════════════
-            Cold Email tab
+            SOP Generator tab
             ════════════════════════════════════════════════ */}
-        {activeTab === "cold_email" && (
+        {activeTab === "sop_generator" && (
           <>
             <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <TextInput label="Prospect name" value={ceName} onChange={setCeName} placeholder="e.g. Sarah Chen" />
-              <TextInput label="Role" value={ceRole} onChange={setCeRole} placeholder="e.g. VP of Marketing" />
-              <TextInput label="Company" value={ceCompany} onChange={setCeCompany} placeholder="e.g. Acme Corp" />
-              <PillSelector label="Goal" options={coldEmailGoals} value={ceGoal} onChange={setCeGoal} />
+              <TextInput label="Process name" value={sopName} onChange={setSopName} placeholder="e.g. Client onboarding" />
+              <PillSelector label="Department" options={departments} value={sopDept} onChange={setSopDept} />
+              <PillSelector label="Detail level" options={detailLevels} value={sopDetail} onChange={setSopDetail} />
               <GenerateButton
-                loading={ceLoading}
-                disabled={!ceName.trim() || !ceRole.trim() || !ceCompany.trim()}
-                onClick={() => callWorkflow("cold_email", { prospect_name: ceName, prospect_role: ceRole, prospect_company: ceCompany, goal: ceGoal }, setCeLoading, setCeOutput, setCeError)}
+                loading={sopLoading}
+                disabled={!sopName.trim()}
+                onClick={() => callWorkflow("sop_generator", { process_name: sopName, department: sopDept, detail_level: sopDetail }, setSopLoading, setSopOutput, setSopError)}
                 label="Generate"
               />
-              <ErrorMsg error={ceError} />
+              <ErrorMsg error={sopError} />
             </div>
-            {ceLoading && <LoadingSkeleton message="Writing your cold email..." />}
-            {!ceLoading && <OutputCards cards={splitCards(ceOutput)} copiedIdx={ceCopied} onCopy={(t, i) => handleCopy(t, i, setCeCopied)} />}
+            {sopLoading && <LoadingSkeleton message="Generating your SOP..." />}
+            {!sopLoading && <OutputCards cards={wrapOutput(sopOutput)} copiedIdx={sopCopied} onCopy={(t, i) => handleCopy(t, i, setSopCopied)} />}
           </>
         )}
 
         {/* ════════════════════════════════════════════════
-            Follow-up tab
+            Weekly Plan tab
             ════════════════════════════════════════════════ */}
-        {activeTab === "follow_up" && (
+        {activeTab === "weekly_plan" && (
           <>
             <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
+              <TextInput label="Focus area" value={wpFocus} onChange={setWpFocus} placeholder="e.g. Product launch prep" />
               <TextareaInput
-                label="What was the original email about?"
-                value={fuContext}
-                onChange={setFuContext}
-                placeholder="e.g. I reached out about our design services after seeing their rebrand announcement..."
+                label="Priorities"
+                value={wpPriorities}
+                onChange={setWpPriorities}
+                placeholder="List your top priorities or projects for the week"
                 maxLen={500}
               />
-              <PillSelector label="Time since last email" options={followUpDays} value={fuDays} onChange={setFuDays} />
+              <PillSelector label="Work style" options={workStyles} value={wpStyle} onChange={setWpStyle} />
               <GenerateButton
-                loading={fuLoading}
-                disabled={!fuContext.trim()}
-                onClick={() => callWorkflow("follow_up", { context: fuContext, days_since: fuDays }, setFuLoading, setFuOutput, setFuError)}
+                loading={wpLoading}
+                disabled={!wpFocus.trim() || !wpPriorities.trim()}
+                onClick={() => callWorkflow("weekly_plan", { focus_area: wpFocus, priorities: wpPriorities, work_style: wpStyle }, setWpLoading, setWpOutput, setWpError)}
                 label="Generate"
               />
-              <ErrorMsg error={fuError} />
+              <ErrorMsg error={wpError} />
             </div>
-            {fuLoading && <LoadingSkeleton message="Writing follow-up sequence..." />}
-            {!fuLoading && <OutputCards cards={splitCards(fuOutput)} copiedIdx={fuCopied} onCopy={(t, i) => handleCopy(t, i, setFuCopied)} />}
+            {wpLoading && <LoadingSkeleton message="Planning your week..." />}
+            {!wpLoading && <OutputCards cards={wrapOutput(wpOutput)} copiedIdx={wpCopied} onCopy={(t, i) => handleCopy(t, i, setWpCopied)} />}
           </>
         )}
 
         {/* ════════════════════════════════════════════════
-            Proposal tab
+            Onboarding Doc tab
             ════════════════════════════════════════════════ */}
-        {activeTab === "proposal" && (
+        {activeTab === "onboarding_doc" && (
           <>
             <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <TextInput label="Project type" value={prType} onChange={setPrType} placeholder="e.g. Brand identity redesign" />
-              <TextInput label="Client name" value={prClient} onChange={setPrClient} placeholder="e.g. Bloom Skincare" />
-              <TextInput label="Budget range" value={prBudget} onChange={setPrBudget} placeholder="e.g. $3,000 - $5,000" optional />
+              <TextInput label="Client name" value={obClient} onChange={setObClient} placeholder="e.g. Bloom Skincare" />
+              <TextInput label="Service type" value={obService} onChange={setObService} placeholder="e.g. Brand identity" />
+              <TextInput label="Start date" value={obDate} onChange={setObDate} placeholder="e.g. May 1, 2025" />
+              <TextareaInput
+                label="Key deliverables"
+                value={obDeliverables}
+                onChange={setObDeliverables}
+                placeholder="List the main deliverables for this project"
+                maxLen={500}
+              />
               <GenerateButton
-                loading={prLoading}
-                disabled={!prType.trim() || !prClient.trim()}
-                onClick={() => callWorkflow("proposal", { project_type: prType, client_name: prClient, ...(prBudget.trim() ? { budget_range: prBudget } : {}) }, setPrLoading, setPrOutput, setPrError)}
+                loading={obLoading}
+                disabled={!obClient.trim() || !obService.trim() || !obDate.trim()}
+                onClick={() => callWorkflow("onboarding_doc", { client_name: obClient, service_type: obService, start_date: obDate, key_deliverables: obDeliverables }, setObLoading, setObOutput, setObError)}
                 label="Generate"
               />
-              <ErrorMsg error={prError} />
+              <ErrorMsg error={obError} />
             </div>
-            {prLoading && <LoadingSkeleton message="Writing your proposal..." />}
-            {!prLoading && <OutputCards cards={splitCards(prOutput)} copiedIdx={prCopied} onCopy={(t, i) => handleCopy(t, i, setPrCopied)} />}
+            {obLoading && <LoadingSkeleton message="Creating onboarding doc..." />}
+            {!obLoading && <OutputCards cards={wrapOutput(obOutput)} copiedIdx={obCopied} onCopy={(t, i) => handleCopy(t, i, setObCopied)} />}
           </>
         )}
 
         {/* ════════════════════════════════════════════════
-            Discovery Prep tab
+            Process Notes tab
             ════════════════════════════════════════════════ */}
-        {activeTab === "discovery_prep" && (
+        {activeTab === "process_notes" && (
           <>
             <div className="rounded-xl p-6 border mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <TextInput label="Prospect company" value={dpCompany} onChange={setDpCompany} placeholder="e.g. Stripe" />
-              <TextInput label="Industry" value={dpIndustry} onChange={setDpIndustry} placeholder="e.g. Fintech / Payments" />
-              <PillSelector label="Call goal" options={callGoals} value={dpGoal} onChange={setDpGoal} />
+              <TextInput label="Process title" value={pnTitle} onChange={setPnTitle} placeholder="e.g. Monthly reporting" />
+              <TextareaInput
+                label="Raw notes"
+                value={pnNotes}
+                onChange={setPnNotes}
+                placeholder="Paste your rough notes, steps, or observations here"
+                maxLen={2000}
+                rows={6}
+              />
+              <PillSelector label="Output format" options={outputFormats} value={pnFormat} onChange={setPnFormat} />
               <GenerateButton
-                loading={dpLoading}
-                disabled={!dpCompany.trim() || !dpIndustry.trim()}
-                onClick={() => callWorkflow("discovery_prep", { prospect_company: dpCompany, industry: dpIndustry, call_goal: dpGoal }, setDpLoading, setDpOutput, setDpError)}
+                loading={pnLoading}
+                disabled={!pnTitle.trim() || !pnNotes.trim()}
+                onClick={() => callWorkflow("process_notes", { process_title: pnTitle, raw_notes: pnNotes, output_format: pnFormat }, setPnLoading, setPnOutput, setPnError)}
                 label="Generate"
               />
-              <ErrorMsg error={dpError} />
+              <ErrorMsg error={pnError} />
             </div>
-            {dpLoading && <LoadingSkeleton message="Preparing your call notes..." />}
-            {!dpLoading && <OutputCards cards={splitCards(dpOutput)} copiedIdx={dpCopied} onCopy={(t, i) => handleCopy(t, i, setDpCopied)} />}
+            {pnLoading && <LoadingSkeleton message="Structuring your notes..." />}
+            {!pnLoading && <OutputCards cards={wrapOutput(pnOutput)} copiedIdx={pnCopied} onCopy={(t, i) => handleCopy(t, i, setPnCopied)} />}
           </>
         )}
       </div>

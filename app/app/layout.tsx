@@ -60,8 +60,8 @@ const navItems = [
   },
   {
     label: "Operations OS",
-    href: "#",
-    active: false,
+    href: "/app/operations",
+    active: true,
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="3" />
@@ -111,7 +111,11 @@ const workflowDotColor: Record<string, string> = {
   follow_up: "#22c55e",
   proposal: "#22c55e",
   discovery_prep: "#22c55e",
-  /* Operations — orange (reserved) */
+  /* Operations — orange */
+  sop_generator: "#f97316",
+  weekly_plan: "#f97316",
+  onboarding_doc: "#f97316",
+  process_notes: "#f97316",
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -119,6 +123,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [recentRuns, setRecentRuns] = useState<SidebarRun[]>([]);
   const [modalRun, setModalRun] = useState<SidebarRun | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [recentsOpen, setRecentsOpen] = useState(true);
 
   const loadRuns = useCallback(async () => {
     const supabase = createClient();
@@ -147,6 +152,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     loadRuns();
   }, [pathname, loadRuns]);
+
+  useEffect(() => {
+    const handler = () => loadRuns();
+    window.addEventListener("recents:refresh", handler);
+    return () => window.removeEventListener("recents:refresh", handler);
+  }, [loadRuns]);
+
+  async function handleClearAll() {
+    if (!window.confirm("Delete all recent runs? This cannot be undone.")) return;
+    await fetch("/api/runs/clear", { method: "DELETE" });
+    setModalRun(null);
+    loadRuns();
+  }
 
   async function handleDeleteRun(e: React.MouseEvent, runId: string) {
     e.stopPropagation();
@@ -241,19 +259,55 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Recent runs */}
         <div className="flex-1 mt-6 px-3 flex flex-col min-h-0">
-          <span
-            className="block text-[10px] font-medium uppercase tracking-wider px-3 mb-2 flex-shrink-0"
-            style={{ color: textMuted }}
-          >
-            Recents
-          </span>
+          <div className="group/recents flex items-center gap-1 px-3 mb-2 flex-shrink-0">
+            <button
+              onClick={() => setRecentsOpen((v) => !v)}
+              className="flex items-center gap-1.5"
+            >
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={textMuted}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="transition-transform"
+                style={{ transform: recentsOpen ? "rotate(90deg)" : "rotate(0deg)" }}
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+              <span
+                className="text-[10px] font-medium uppercase tracking-wider"
+                style={{ color: textMuted }}
+              >
+                Recents
+              </span>
+            </button>
+            {recentRuns.length > 0 && (
+              <button
+                onClick={handleClearAll}
+                className="ml-auto p-1 rounded transition-opacity opacity-0 group-hover/recents:opacity-60 hover:!opacity-100"
+                aria-label="Clear all"
+                title="Clear all recents"
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                </svg>
+              </button>
+            )}
+          </div>
           <style>{`
             .recents-scroll::-webkit-scrollbar { width: 6px; }
             .recents-scroll::-webkit-scrollbar-track { background: ${sidebarBg}; }
             .recents-scroll::-webkit-scrollbar-thumb { background: ${accent}; border-radius: 3px; }
             .recents-scroll::-webkit-scrollbar-thumb:hover { background: #8da6ff; }
           `}</style>
-          <div className="recents-scroll overflow-y-auto space-y-0.5 flex-1">
+          {recentsOpen && <div className="recents-scroll overflow-y-auto space-y-0.5 flex-1">
             {recentRuns.length === 0 && (
               <p className="px-3 text-xs" style={{ color: textMuted }}>
                 No credits yet
@@ -286,7 +340,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </button>
               </div>
             ))}
-          </div>
+          </div>}
         </div>
       </aside>
 
