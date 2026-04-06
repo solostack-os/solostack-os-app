@@ -83,7 +83,7 @@ export async function POST(request: Request) {
 
       if (count !== null && count >= plan.run_cap) {
         return NextResponse.json(
-          { error: "Run limit reached. Please upgrade your plan." },
+          { error: "Credit limit reached. Please upgrade your plan." },
           { status: 403 }
         );
       }
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
 
   if (runError || !run) {
     return NextResponse.json(
-      { error: "Failed to create run", detail: runError?.message },
+      { error: "Failed to create credit", detail: runError?.message },
       { status: 500 }
     );
   }

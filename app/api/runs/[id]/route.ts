@@ -40,7 +40,7 @@ export async function DELETE(
     .single();
 
   if (!run) {
-    return NextResponse.json({ error: "Run not found" }, { status: 404 });
+    return NextResponse.json({ error: "Credit not found" }, { status: 404 });
   }
 
   // Delete outputs first (FK), then the run

@@ -351,7 +351,7 @@ const plans = [
     period: "",
     features: [
       "7-day free trial",
-      "20 runs included",
+      "20 credits included",
       "All 3 modules",
       "Basic exports",
     ],

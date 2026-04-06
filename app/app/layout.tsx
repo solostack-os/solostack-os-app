@@ -86,7 +86,7 @@ function getRunTitle(run: SidebarRun): string {
   const topic = run.input_json?.topic as string | undefined;
   if (topic) return topic;
   const text = run.outputs?.[0]?.output_markdown ?? "";
-  if (!text) return "Untitled run";
+  if (!text) return "Untitled credit";
   const words = text.replace(/\s+/g, " ").trim().split(" ");
   const snippet = words.slice(0, 9).join(" ");
   return words.length > 9 ? snippet + "..." : snippet;
@@ -227,7 +227,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="recents-scroll overflow-y-auto space-y-0.5 flex-1">
             {recentRuns.length === 0 && (
               <p className="px-3 text-xs" style={{ color: textMuted }}>
-                No runs yet
+                No credits yet
               </p>
             )}
             {recentRuns.map((run) => (
@@ -242,7 +242,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <button
                   onClick={(e) => handleDeleteRun(e, run.id)}
                   className="flex-shrink-0 p-1 rounded transition-opacity opacity-0 group-hover:opacity-60 hover:!opacity-100"
-                  aria-label="Delete run"
+                  aria-label="Delete credit"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="3 6 5 6 21 6" />

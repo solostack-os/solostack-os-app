@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 /* ─── Design tokens ─── */
@@ -179,7 +180,7 @@ export default function DashboardPage() {
     );
   }
 
-  const planLabel = planKey === "pro" ? "Pro" : "Trial";
+  const planLabel = planKey === "pro" ? "Pro" : planKey === "starter" ? "Starter" : "Trial";
   const usagePercent = runCap ? Math.min((runsUsed / runCap) * 100, 100) : 0;
 
   return (
@@ -263,7 +264,7 @@ export default function DashboardPage() {
                 Usage
               </span>
               <span className="text-xs" style={{ color: textMuted }}>
-                {runsUsed} of {runCap} runs used this month
+                {runsUsed} of {runCap} credits used this month
               </span>
             </div>
             <div
@@ -278,6 +279,15 @@ export default function DashboardPage() {
                 }}
               />
             </div>
+            {(planKey === "trial" || planKey === "starter") && (
+              <Link
+                href="/app/settings"
+                className="inline-block mt-3 text-xs font-medium transition-opacity hover:opacity-80"
+                style={{ color: accent }}
+              >
+                Upgrade plan &rarr;
+              </Link>
+            )}
           </div>
         )}
 
