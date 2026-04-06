@@ -99,6 +99,14 @@ function formatShortDate(iso: string) {
   });
 }
 
+const workflowDotColor: Record<string, string> = {
+  social_posts: "#a78bfa",   // purple
+  ad_copy: "#60a5fa",        // blue
+  email_campaign: "#34d399",  // green
+  landing_page: "#fb923c",    // orange
+  content_brief: "#facc15",   // yellow
+};
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [recentRuns, setRecentRuns] = useState<SidebarRun[]>([]);
@@ -123,7 +131,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       .from("runs")
       .select("id, workflow_key, input_json, started_at, created_at, outputs(output_markdown)")
       .eq("workspace_id", workspace.id)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(20);
 
     if (runs) setRecentRuns(runs as unknown as SidebarRun[]);
   }, []);
@@ -159,7 +168,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen" style={{ backgroundColor: bg }}>
       {/* ─── Desktop Sidebar ─── */}
       <aside
-        className="hidden md:flex flex-col fixed top-0 left-0 h-screen w-72 z-30 border-r"
+        className="hidden md:flex flex-col fixed top-0 left-0 h-screen w-80 z-30 border-r"
         style={{ backgroundColor: sidebarBg, borderColor: border }}
       >
         {/* Logo */}
@@ -236,6 +245,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 onClick={() => { setModalRun(run); setCopiedIdx(null); }}
                 className="group w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors hover:bg-white/[0.03] cursor-pointer"
               >
+                <span
+                  className="flex-shrink-0 w-2 h-2 rounded-full"
+                  style={{ backgroundColor: workflowDotColor[run.workflow_key] ?? "#64748b" }}
+                />
                 <span className="text-xs truncate flex-1" style={{ color: textPrimary }}>
                   {getRunTitle(run)}
                 </span>
@@ -251,9 +264,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <path d="M14 11v6" />
                   </svg>
                 </button>
-                <span className="text-[10px] flex-shrink-0" style={{ color: textMuted }}>
-                  {formatShortDate(run.started_at)}
-                </span>
               </div>
             ))}
           </div>
@@ -261,7 +271,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* ─── Main content ─── */}
-      <main className="flex-1 md:ml-72 pb-20 md:pb-0">
+      <main className="flex-1 md:ml-80 pb-20 md:pb-0">
         {children}
       </main>
 

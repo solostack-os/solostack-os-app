@@ -3,6 +3,10 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { runSocialPosts, type SocialPostsInput } from "@/lib/workflows/marketing/social-posts";
 import { runTopicSuggestions, type TopicSuggestionsInput } from "@/lib/workflows/marketing/topic-suggestions";
+import { runAdCopy, type AdCopyInput } from "@/lib/workflows/marketing/ad-copy";
+import { runLandingPage, type LandingPageInput } from "@/lib/workflows/marketing/landing-page";
+import { runEmailCampaign, type EmailCampaignInput } from "@/lib/workflows/marketing/email-campaign";
+import { runContentBrief, type ContentBriefInput } from "@/lib/workflows/marketing/content-brief";
 
 export async function POST(request: Request) {
   // 1. Authenticate
@@ -44,7 +48,7 @@ export async function POST(request: Request) {
   const { module_key, workflow_key, input_json } = body as {
     module_key: string;
     workflow_key: string;
-    input_json: SocialPostsInput;
+    input_json: Record<string, unknown>;
   };
 
   // 3a. Helper workflows bypass usage gate and run tracking
@@ -121,6 +125,8 @@ export async function POST(request: Request) {
     let promptTokens = 0;
     let completionTokens = 0;
 
+    let outputTitle = "";
+
     if (module_key === "marketing" && workflow_key === "social_posts") {
       const result = await runSocialPosts(
         context ?? {},
@@ -129,6 +135,43 @@ export async function POST(request: Request) {
       text = result.text;
       promptTokens = result.promptTokens;
       completionTokens = result.completionTokens;
+      outputTitle = `Social posts — ${input_json.platform}`;
+    } else if (module_key === "marketing" && workflow_key === "ad_copy") {
+      const result = await runAdCopy(
+        context ?? {},
+        input_json as unknown as AdCopyInput
+      );
+      text = result.text;
+      promptTokens = result.promptTokens;
+      completionTokens = result.completionTokens;
+      outputTitle = `Ad copy — ${input_json.platform}`;
+    } else if (module_key === "marketing" && workflow_key === "landing_page") {
+      const result = await runLandingPage(
+        context ?? {},
+        input_json as unknown as LandingPageInput
+      );
+      text = result.text;
+      promptTokens = result.promptTokens;
+      completionTokens = result.completionTokens;
+      outputTitle = `Landing page — ${input_json.section}`;
+    } else if (module_key === "marketing" && workflow_key === "email_campaign") {
+      const result = await runEmailCampaign(
+        context ?? {},
+        input_json as unknown as EmailCampaignInput
+      );
+      text = result.text;
+      promptTokens = result.promptTokens;
+      completionTokens = result.completionTokens;
+      outputTitle = `Email — ${input_json.email_type}`;
+    } else if (module_key === "marketing" && workflow_key === "content_brief") {
+      const result = await runContentBrief(
+        context ?? {},
+        input_json as unknown as ContentBriefInput
+      );
+      text = result.text;
+      promptTokens = result.promptTokens;
+      completionTokens = result.completionTokens;
+      outputTitle = `Content brief — ${input_json.content_type}`;
     } else {
       throw new Error(`Unknown workflow: ${module_key}/${workflow_key}`);
     }
@@ -138,7 +181,7 @@ export async function POST(request: Request) {
       .from("outputs")
       .insert({
         run_id: run.id,
-        title: `Social posts — ${(input_json as SocialPostsInput).platform}`,
+        title: outputTitle,
         output_markdown: text,
       })
       .select("id, output_markdown")
