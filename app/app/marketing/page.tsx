@@ -7,10 +7,8 @@ import { OutputCards } from "@/components/ui/output-cards";
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
 const surface = "#111827";
-const surfaceLight = "#151d2e";
 const accent = "#6c8cff";
 const accentLight = "#818cf8";
-const accentGlow = "rgba(108,140,255,0.25)";
 const textPrimary = "#f1f5f9";
 const textMuted = "#94a3b8";
 const border = "rgba(255,255,255,0.06)";

@@ -13,7 +13,6 @@ import { DottedSurface } from "@/components/ui/dotted-surface";
 const bg = "#0a0f1e";
 const surface = "#111827";
 const accent = "#6c8cff";
-const textPrimary = "#f1f5f9";
 const textMuted = "#94a3b8";
 
 /* ─── Per-module themes ─── */

@@ -8,10 +8,8 @@ import { DottedSurface } from "@/components/ui/dotted-surface";
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
 const surface = "#111827";
-const surfaceLight = "#151d2e";
 const accent = "#6c8cff";
 const accentLight = "#818cf8";
-const accentGlow = "rgba(108,140,255,0.25)";
 const textPrimary = "#f1f5f9";
 const textMuted = "#94a3b8";
 const border = "rgba(255,255,255,0.06)";
@@ -24,7 +22,7 @@ const planDetails: Record<string, { name: string; credits: string; color: string
 
 const upgradePaths: Record<string, { target: string; priceEnvKey: string; price: string }> = {
   trial: { target: "starter", priceEnvKey: "NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID", price: "$19/mo" },
-  starter: { target: "pro", priceEnvKey: "NEXT_PUBLIC_STRIPE_PRO_PRICE_ID", price: "$49/mo" },
+  starter: { target: "pro", priceEnvKey: "NEXT_PUBLIC_STRIPE_PRO_PRICE_ID", price: "$39/mo" },
 };
 
 /* ─── Shared input style ─── */
