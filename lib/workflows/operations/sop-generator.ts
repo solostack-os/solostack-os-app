@@ -22,12 +22,10 @@ export async function runSopGenerator(
   context: WorkspaceContext,
   input: SopGeneratorInput
 ) {
-  const contextPacket = buildContextPacket(context);
+  const brandContext = buildContextPacket(context);
+  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `You are an expert operations consultant who writes clear, actionable standard operating procedures. Your SOPs are practical, easy to follow, and tailored to the business.
-
-Here is the business context:
-${contextPacket}
+  const systemPrompt = `${brandPrefix}You are an expert operations consultant who writes clear, actionable standard operating procedures. Your SOPs are practical, easy to follow, and tailored to the business.
 
 Rules:
 - Write for the ${input.department} department.

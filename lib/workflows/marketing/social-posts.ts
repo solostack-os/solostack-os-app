@@ -22,12 +22,10 @@ export async function runSocialPosts(
   context: WorkspaceContext,
   input: SocialPostsInput
 ) {
-  const contextPacket = buildContextPacket(context);
+  const brandContext = buildContextPacket(context);
+  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `You are an expert social media copywriter. You write posts that sound human, not AI-generated. You adapt to the brand's voice and audience.
-
-Here is the business context you must reflect in every post:
-${contextPacket}
+  const systemPrompt = `${brandPrefix}You are an expert social media copywriter. You write posts that sound human, not AI-generated. You adapt to the brand's voice and audience.
 
 Rules:
 - Write exactly ${input.num_posts} post(s).

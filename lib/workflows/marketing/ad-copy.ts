@@ -31,12 +31,10 @@ export async function runAdCopy(
   context: WorkspaceContext,
   input: AdCopyInput
 ) {
-  const contextPacket = buildContextPacket(context);
+  const brandContext = buildContextPacket(context);
+  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `You are an expert performance-marketing copywriter. You craft ad copy that converts while matching the brand voice.
-
-Here is the business context you must reflect in every variation:
-${contextPacket}
+  const systemPrompt = `${brandPrefix}You are an expert performance-marketing copywriter. You craft ad copy that converts while matching the brand voice.
 
 Rules:
 - Write exactly 3 ad variations.

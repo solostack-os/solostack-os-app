@@ -14,12 +14,10 @@ export async function runOnboardingDoc(
   context: WorkspaceContext,
   input: OnboardingDocInput
 ) {
-  const contextPacket = buildContextPacket(context);
+  const brandContext = buildContextPacket(context);
+  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `You are an expert at creating professional client onboarding documents. Your documents set clear expectations, build confidence, and make clients feel taken care of from day one.
-
-Here is the business context:
-${contextPacket}
+  const systemPrompt = `${brandPrefix}You are an expert at creating professional client onboarding documents. Your documents set clear expectations, build confidence, and make clients feel taken care of from day one.
 
 Rules:
 - Write a client onboarding document for ${input.client_name}.

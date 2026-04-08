@@ -20,12 +20,10 @@ export async function runTopicSuggestions(
   context: WorkspaceContext,
   input: TopicSuggestionsInput
 ) {
-  const contextPacket = buildContextPacket(context);
+  const brandContext = buildContextPacket(context);
+  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `You are an expert social media strategist. Given a business context, you generate short, punchy post topic ideas that would resonate with the target audience.
-
-Here is the business context:
-${contextPacket}
+  const systemPrompt = `${brandPrefix}You are an expert social media strategist. Given a business context, you generate short, punchy post topic ideas that would resonate with the target audience.
 
 Platform: ${input.platform}
 ${platformTips[input.platform]}

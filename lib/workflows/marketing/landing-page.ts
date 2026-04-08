@@ -35,12 +35,10 @@ export async function runLandingPage(
   context: WorkspaceContext,
   input: LandingPageInput
 ) {
-  const contextPacket = buildContextPacket(context);
+  const brandContext = buildContextPacket(context);
+  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `You are an expert landing-page copywriter. You write conversion-focused copy that sounds human and matches the brand voice.
-
-Here is the business context you must reflect:
-${contextPacket}
+  const systemPrompt = `${brandPrefix}You are an expert landing-page copywriter. You write conversion-focused copy that sounds human and matches the brand voice.
 
 Rules:
 - ${sectionGuidance[input.section]}

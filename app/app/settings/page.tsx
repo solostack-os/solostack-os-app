@@ -50,12 +50,15 @@ export default function SettingsPage() {
   const [website, setWebsite] = useState("");
   const [industry, setIndustry] = useState("");
   const [description, setDescription] = useState("");
+  const [brandVoice, setBrandVoice] = useState("");
+  const [useBrandContext, setUseBrandContext] = useState(true);
   const [brandPrimary, setBrandPrimary] = useState("#6c8cff");
   const [brandSecondary, setBrandSecondary] = useState("#22c55e");
   const [logoUrl, setLogoUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [logoError, setLogoError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -70,14 +73,43 @@ export default function SettingsPage() {
           return;
         }
 
-        // Try fetching with profile columns first
-        const { data: workspace, error: wsError } = await supabase
+        // Try fetching with the newest brand-context columns first, then fall
+        // back to the older profile columns, then to id only. This mirrors the
+        // tiered fallback used by the runs API for forward compatibility with
+        // migrations that haven't been applied yet.
+        type WorkspaceRow = {
+          id: string;
+          company_name?: string | null;
+          website?: string | null;
+          industry?: string | null;
+          description?: string | null;
+          brand_color_primary?: string | null;
+          brand_color_secondary?: string | null;
+          logo_url?: string | null;
+          brand_voice?: string | null;
+          use_brand_context?: boolean | null;
+        };
+
+        let workspace: WorkspaceRow | null = null;
+
+        const { data: wsWithBrand } = await supabase
           .from("workspaces")
-          .select("id, company_name, website, industry, description, brand_color_primary, brand_color_secondary, logo_url")
+          .select("id, company_name, website, industry, description, brand_color_primary, brand_color_secondary, logo_url, brand_voice, use_brand_context")
           .eq("owner_user_id", user.id)
           .single();
 
-        if (wsError || !workspace) {
+        if (wsWithBrand) {
+          workspace = wsWithBrand;
+        } else {
+          const { data: wsProfile } = await supabase
+            .from("workspaces")
+            .select("id, company_name, website, industry, description, brand_color_primary, brand_color_secondary, logo_url")
+            .eq("owner_user_id", user.id)
+            .single();
+          if (wsProfile) workspace = wsProfile;
+        }
+
+        if (!workspace) {
           // Profile columns may not exist yet — fall back to basic query
           const { data: basicWs, error: basicErr } = await supabase
             .from("workspaces")
@@ -113,6 +145,8 @@ export default function SettingsPage() {
         setWebsite(workspace.website ?? "");
         setIndustry(workspace.industry ?? "");
         setDescription(workspace.description ?? "");
+        setBrandVoice(workspace.brand_voice ?? "");
+        setUseBrandContext(workspace.use_brand_context ?? true);
         setBrandPrimary(workspace.brand_color_primary ?? "#6c8cff");
         setBrandSecondary(workspace.brand_color_secondary ?? "#22c55e");
         setLogoUrl(workspace.logo_url ?? "");
@@ -171,18 +205,38 @@ export default function SettingsPage() {
     setSaved(false);
 
     const supabase = createClient();
-    await supabase
+    // Try the full update (including brand context fields) first. If the
+    // columns don't exist yet, retry without them so the rest of the profile
+    // still saves cleanly.
+    const { error: fullErr } = await supabase
       .from("workspaces")
       .update({
         company_name: companyName || null,
         website: website || null,
         industry: industry || null,
         description: description || null,
+        brand_voice: brandVoice || null,
+        use_brand_context: useBrandContext,
         brand_color_primary: brandPrimary || "#6c8cff",
         brand_color_secondary: brandSecondary || "#22c55e",
         logo_url: logoUrl || null,
       })
       .eq("id", workspaceId);
+
+    if (fullErr) {
+      await supabase
+        .from("workspaces")
+        .update({
+          company_name: companyName || null,
+          website: website || null,
+          industry: industry || null,
+          description: description || null,
+          brand_color_primary: brandPrimary || "#6c8cff",
+          brand_color_secondary: brandSecondary || "#22c55e",
+          logo_url: logoUrl || null,
+        })
+        .eq("id", workspaceId);
+    }
 
     setSaving(false);
     setSaved(true);
@@ -190,23 +244,54 @@ export default function SettingsPage() {
   }
 
   async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+    const input = e.target;
+    const file = input.files?.[0];
     if (!file || !workspaceId) return;
+
+    setLogoError(null);
+
+    // Client-side size validation — the UI advertises a 2MB cap.
+    const MAX_BYTES = 2 * 1024 * 1024;
+    if (file.size > MAX_BYTES) {
+      setLogoError("File is larger than 2MB. Please choose a smaller image.");
+      input.value = "";
+      return;
+    }
 
     setUploading(true);
     const supabase = createClient();
-    const ext = file.name.split(".").pop();
+    const ext = (file.name.split(".").pop() || "png").toLowerCase();
     const path = `${workspaceId}/logo.${ext}`;
 
-    const { error } = await supabase.storage
+    const { error: uploadErr } = await supabase.storage
       .from("logos")
-      .upload(path, file, { upsert: true });
+      .upload(path, file, { upsert: true, contentType: file.type || undefined });
 
-    if (!error) {
-      const { data: urlData } = supabase.storage.from("logos").getPublicUrl(path);
-      setLogoUrl(urlData.publicUrl + "?t=" + Date.now());
+    if (uploadErr) {
+      setLogoError(uploadErr.message || "Upload failed. Please try again.");
+      setUploading(false);
+      input.value = "";
+      return;
     }
+
+    const { data: urlData } = supabase.storage.from("logos").getPublicUrl(path);
+    // Cache-buster so the <img> refreshes after a re-upload with the same path.
+    const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+    setLogoUrl(publicUrl);
+
+    // Persist immediately so the logo survives a refresh without the user
+    // having to click "Save Profile" first.
+    const { error: persistErr } = await supabase
+      .from("workspaces")
+      .update({ logo_url: publicUrl })
+      .eq("id", workspaceId);
+
+    if (persistErr) {
+      setLogoError(`Upload succeeded but saving the URL failed: ${persistErr.message}`);
+    }
+
     setUploading(false);
+    input.value = "";
   }
 
   if (loading) {
@@ -408,6 +493,56 @@ export default function SettingsPage() {
               />
             </div>
 
+            {/* Brand Voice */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Brand Voice</label>
+              <textarea
+                value={brandVoice}
+                onChange={(e) => setBrandVoice(e.target.value)}
+                rows={3}
+                placeholder="Describe your tone of voice. e.g. Warm but direct. Confident, never pushy. Use plain language — avoid jargon."
+                className={`${inputClass} resize-none`}
+                style={inputStyle}
+              />
+            </div>
+
+            {/* Brand context toggle */}
+            <div
+              className="mb-5 flex items-start justify-between gap-4 rounded-lg px-4 py-3 border"
+              style={{ backgroundColor: bg, borderColor: border }}
+            >
+              <div className="min-w-0">
+                <label
+                  htmlFor="use-brand-context"
+                  className="block text-sm font-medium cursor-pointer"
+                  style={{ color: textPrimary }}
+                >
+                  Apply brand context to generations
+                </label>
+                <p className="text-xs mt-0.5" style={{ color: textMuted }}>
+                  Inject your company, industry, description, and brand voice into every AI generation.
+                </p>
+              </div>
+              <button
+                id="use-brand-context"
+                type="button"
+                role="switch"
+                aria-checked={useBrandContext}
+                onClick={() => setUseBrandContext((v) => !v)}
+                className="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#6c8cff]/50 cursor-pointer mt-0.5"
+                style={{
+                  backgroundColor: useBrandContext ? accent : "rgba(255,255,255,0.1)",
+                }}
+              >
+                <span
+                  className="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform"
+                  style={{
+                    transform: useBrandContext ? "translateX(22px)" : "translateX(2px)",
+                  }}
+                />
+              </button>
+            </div>
+
             {/* Brand Colors */}
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Brand Colors</label>
@@ -473,21 +608,26 @@ export default function SettingsPage() {
                     </svg>
                   )}
                 </div>
-                <div className="flex flex-col gap-2 pt-1">
+                <div className="flex flex-col gap-2 pt-1 min-w-0">
                   <label
-                    className="px-4 py-2 text-sm font-medium rounded-lg border cursor-pointer transition-colors hover:bg-white/[0.04]"
+                    className="px-4 py-2 text-sm font-medium rounded-lg border cursor-pointer transition-colors hover:bg-white/[0.04] w-fit"
                     style={{ color: textPrimary, borderColor: border }}
                   >
                     {uploading ? "Uploading..." : logoUrl ? "Change logo" : "Upload logo"}
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/png,image/jpeg,image/svg+xml"
                       onChange={handleLogoUpload}
                       disabled={uploading}
                       className="hidden"
                     />
                   </label>
                   <p className="text-xs" style={{ color: textMuted }}>PNG, JPG, or SVG. Max 2MB.</p>
+                  {logoError && (
+                    <p className="text-xs break-words" style={{ color: "#f87171" }}>
+                      {logoError}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

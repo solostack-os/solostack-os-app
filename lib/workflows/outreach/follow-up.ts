@@ -21,12 +21,10 @@ export async function runFollowUp(
   context: WorkspaceContext,
   input: FollowUpInput
 ) {
-  const contextPacket = buildContextPacket(context);
+  const brandContext = buildContextPacket(context);
+  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `You are an expert at writing follow-up emails that get replies without being annoying. You respect people's time and attention.
-
-Here is the sender's business context:
-${contextPacket}
+  const systemPrompt = `${brandPrefix}You are an expert at writing follow-up emails that get replies without being annoying. You respect people's time and attention.
 
 Rules:
 - Write exactly 3 follow-up email variations.

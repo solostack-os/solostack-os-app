@@ -22,12 +22,10 @@ export async function runWeeklyPlan(
   context: WorkspaceContext,
   input: WeeklyPlanInput
 ) {
-  const contextPacket = buildContextPacket(context);
+  const brandContext = buildContextPacket(context);
+  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `You are an expert productivity strategist. You create realistic, actionable weekly plans that help solopreneurs and small teams stay focused and make progress on what matters.
-
-Here is the business context:
-${contextPacket}
+  const systemPrompt = `${brandPrefix}You are an expert productivity strategist. You create realistic, actionable weekly plans that help solopreneurs and small teams stay focused and make progress on what matters.
 
 Rules:
 - ${styleGuidance[input.work_style]}

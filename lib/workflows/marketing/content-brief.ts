@@ -21,12 +21,10 @@ export async function runContentBrief(
   context: WorkspaceContext,
   input: ContentBriefInput
 ) {
-  const contextPacket = buildContextPacket(context);
+  const brandContext = buildContextPacket(context);
+  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `You are an expert content strategist. You create structured briefs that make it easy for creators to produce high-quality content.
-
-Here is the business context you must reflect:
-${contextPacket}
+  const systemPrompt = `${brandPrefix}You are an expert content strategist. You create structured briefs that make it easy for creators to produce high-quality content.
 
 Rules:
 - ${typeGuidance[input.content_type]}

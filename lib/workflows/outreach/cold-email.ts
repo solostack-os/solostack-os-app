@@ -23,12 +23,10 @@ export async function runColdEmail(
   context: WorkspaceContext,
   input: ColdEmailInput
 ) {
-  const contextPacket = buildContextPacket(context);
+  const brandContext = buildContextPacket(context);
+  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `You are an expert cold-email copywriter. You write emails that get opened and replied to. Your style is conversational, specific, and human — never salesy or generic.
-
-Here is the sender's business context:
-${contextPacket}
+  const systemPrompt = `${brandPrefix}You are an expert cold-email copywriter. You write emails that get opened and replied to. Your style is conversational, specific, and human — never salesy or generic.
 
 Rules:
 - Max 150 words for the entire email.

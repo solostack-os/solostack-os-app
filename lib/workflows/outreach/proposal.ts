@@ -13,16 +13,14 @@ export async function runProposal(
   context: WorkspaceContext,
   input: ProposalInput
 ) {
-  const contextPacket = buildContextPacket(context);
+  const brandContext = buildContextPacket(context);
+  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
   const budgetLine = input.budget_range
     ? `The client's indicated budget range is: ${input.budget_range}. Tailor the Investment section accordingly.`
     : "No budget was provided. Use placeholder ranges based on typical market rates for this type of work.";
 
-  const systemPrompt = `You are an expert at writing concise, persuasive project proposals. You communicate value clearly and make it easy for the client to say yes.
-
-Here is the sender's business context:
-${contextPacket}
+  const systemPrompt = `${brandPrefix}You are an expert at writing concise, persuasive project proposals. You communicate value clearly and make it easy for the client to say yes.
 
 Rules:
 - Write a structured proposal with exactly these sections: Summary, What's Included, Timeline, Investment, Next Steps.

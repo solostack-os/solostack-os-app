@@ -23,12 +23,10 @@ export async function runEmailCampaign(
   context: WorkspaceContext,
   input: EmailCampaignInput
 ) {
-  const contextPacket = buildContextPacket(context);
+  const brandContext = buildContextPacket(context);
+  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `You are an expert email marketer. You write emails that get opened, read, and clicked — while sounding human and on-brand.
-
-Here is the business context you must reflect:
-${contextPacket}
+  const systemPrompt = `${brandPrefix}You are an expert email marketer. You write emails that get opened, read, and clicked — while sounding human and on-brand.
 
 Rules:
 - ${typeGuidance[input.email_type]}

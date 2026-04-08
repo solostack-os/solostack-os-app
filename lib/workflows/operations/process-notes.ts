@@ -22,12 +22,10 @@ export async function runProcessNotes(
   context: WorkspaceContext,
   input: ProcessNotesInput
 ) {
-  const contextPacket = buildContextPacket(context);
+  const brandContext = buildContextPacket(context);
+  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `You are an expert at turning messy notes into clean, structured process documentation. You extract the signal from the noise and produce something anyone on the team can follow.
-
-Here is the business context:
-${contextPacket}
+  const systemPrompt = `${brandPrefix}You are an expert at turning messy notes into clean, structured process documentation. You extract the signal from the noise and produce something anyone on the team can follow.
 
 Rules:
 - ${formatGuidance[input.output_format]}

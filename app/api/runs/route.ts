@@ -36,23 +36,43 @@ export async function POST(request: Request) {
 
   // 2. Get workspace + context
   // Try with profile columns first, fall back to basic query if columns don't exist yet
-  let workspace: { id: string; company_name?: string; website?: string; industry?: string; description?: string } | null = null;
+  let workspace: {
+    id: string;
+    company_name?: string;
+    website?: string;
+    industry?: string;
+    description?: string;
+    brand_voice?: string | null;
+    use_brand_context?: boolean | null;
+  } | null = null;
 
-  const { data: wsProfile } = await supabase
+  // Tiered fallback: newest columns (brand context) → profile columns → id only.
+  // This lets the route keep working across migrations that haven't been applied yet.
+  const { data: wsWithBrand } = await supabase
     .from("workspaces")
-    .select("id, company_name, website, industry, description")
+    .select("id, company_name, website, industry, description, brand_voice, use_brand_context")
     .eq("owner_user_id", user.id)
     .single();
 
-  if (wsProfile) {
-    workspace = wsProfile;
+  if (wsWithBrand) {
+    workspace = wsWithBrand;
   } else {
-    const { data: wsBasic } = await supabase
+    const { data: wsProfile } = await supabase
       .from("workspaces")
-      .select("id")
+      .select("id, company_name, website, industry, description")
       .eq("owner_user_id", user.id)
       .single();
-    if (wsBasic) workspace = wsBasic;
+
+    if (wsProfile) {
+      workspace = wsProfile;
+    } else {
+      const { data: wsBasic } = await supabase
+        .from("workspaces")
+        .select("id")
+        .eq("owner_user_id", user.id)
+        .single();
+      if (wsBasic) workspace = wsBasic;
+    }
   }
 
   if (!workspace) {
@@ -71,6 +91,10 @@ export async function POST(request: Request) {
     industry: workspace.industry,
     description: workspace.description,
     website: workspace.website,
+    brand_voice: workspace.brand_voice,
+    // Default to true when the column doesn't exist yet (pre-migration workspaces)
+    // or when the value is null — opt-in-by-default matches the DB default.
+    use_brand_context: workspace.use_brand_context ?? true,
   };
 
   // 3. Parse request body

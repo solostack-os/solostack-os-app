@@ -22,12 +22,10 @@ export async function runDiscoveryPrep(
   context: WorkspaceContext,
   input: DiscoveryPrepInput
 ) {
-  const contextPacket = buildContextPacket(context);
+  const brandContext = buildContextPacket(context);
+  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `You are an expert sales strategist. You prepare people for discovery calls so they walk in confident, well-researched, and ready to have a real conversation.
-
-Here is the seller's business context:
-${contextPacket}
+  const systemPrompt = `${brandPrefix}You are an expert sales strategist. You prepare people for discovery calls so they walk in confident, well-researched, and ready to have a real conversation.
 
 Rules:
 - Output exactly these sections: Background Research, Key Questions to Ask, Objections to Prepare For, Your Talking Points.
