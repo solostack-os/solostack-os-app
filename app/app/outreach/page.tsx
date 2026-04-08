@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { GlowCard } from "@/components/ui/glow-card";
+import { OutputCards } from "@/components/ui/output-cards";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -168,65 +169,7 @@ function TextareaInput({
 }
 
 /* ─── Reusable output card list ─── */
-function OutputCards({
-  cards,
-  copiedIdx,
-  onCopy,
-}: {
-  cards: string[];
-  copiedIdx: number | null;
-  onCopy: (text: string, idx: number) => void;
-}) {
-  if (cards.length === 0) return null;
-  return (
-    <div className="space-y-4">
-      <span className="text-[11px] font-medium uppercase tracking-wider px-0.5" style={{ color: textMuted }}>
-        Output
-      </span>
-      {cards.map((card, idx) => {
-        const isCopied = copiedIdx === idx;
-        return (
-          <div
-            key={idx}
-            className="relative rounded-xl border overflow-hidden group"
-            style={{ backgroundColor: surface, borderColor: border }}
-          >
-            <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
-            <button
-              onClick={() => onCopy(card, idx)}
-              className="absolute top-5 right-3 flex flex-col items-center gap-1 rounded-md px-2 py-1.5 transition-all opacity-60 hover:opacity-100 cursor-pointer"
-              style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-              aria-label="Copy"
-            >
-              {isCopied ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5eead4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-              )}
-              <span
-                className="text-[10px] leading-none transition-opacity opacity-0 group-hover:opacity-100"
-                style={{ color: isCopied ? "#5eead4" : textMuted }}
-              >
-                {isCopied ? "Done" : "Copy"}
-              </span>
-            </button>
-            <div
-              className="px-6 py-5 pr-16 text-sm leading-relaxed whitespace-pre-wrap"
-              style={{ color: textPrimary }}
-            >
-              {card}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+/* OutputCards is now shared across all module pages — see components/ui/output-cards.tsx */
 
 /* ─── Loading skeleton ─── */
 function LoadingSkeleton({ message }: { message: string }) {
@@ -469,7 +412,7 @@ export default function OutreachPage() {
               </div>
             </GlowCard>
             {ceLoading && <LoadingSkeleton message="Writing your cold email..." />}
-            {!ceLoading && <OutputCards cards={splitCards(ceOutput)} copiedIdx={ceCopied} onCopy={(t, i) => handleCopy(t, i, setCeCopied)} />}
+            {!ceLoading && <OutputCards cards={splitCards(ceOutput)} copiedIdx={ceCopied} onCopy={(t, i) => handleCopy(t, i, setCeCopied)} accent={accent} accentLight={accentLight} contentType="cold_email" />}
           </>
         )}
 
@@ -501,7 +444,7 @@ export default function OutreachPage() {
               </div>
             </GlowCard>
             {fuLoading && <LoadingSkeleton message="Writing follow-up sequence..." />}
-            {!fuLoading && <OutputCards cards={splitCards(fuOutput)} copiedIdx={fuCopied} onCopy={(t, i) => handleCopy(t, i, setFuCopied)} />}
+            {!fuLoading && <OutputCards cards={splitCards(fuOutput)} copiedIdx={fuCopied} onCopy={(t, i) => handleCopy(t, i, setFuCopied)} accent={accent} accentLight={accentLight} contentType="follow_up" />}
           </>
         )}
 
@@ -537,7 +480,7 @@ export default function OutreachPage() {
               </div>
             </GlowCard>
             {prLoading && <LoadingSkeleton message="Writing your proposal..." />}
-            {!prLoading && <OutputCards cards={splitCards(prOutput)} copiedIdx={prCopied} onCopy={(t, i) => handleCopy(t, i, setPrCopied)} />}
+            {!prLoading && <OutputCards cards={splitCards(prOutput)} copiedIdx={prCopied} onCopy={(t, i) => handleCopy(t, i, setPrCopied)} accent={accent} accentLight={accentLight} contentType="proposal" />}
           </>
         )}
 
@@ -573,7 +516,7 @@ export default function OutreachPage() {
               </div>
             </GlowCard>
             {dpLoading && <LoadingSkeleton message="Preparing your call notes..." />}
-            {!dpLoading && <OutputCards cards={splitCards(dpOutput)} copiedIdx={dpCopied} onCopy={(t, i) => handleCopy(t, i, setDpCopied)} />}
+            {!dpLoading && <OutputCards cards={splitCards(dpOutput)} copiedIdx={dpCopied} onCopy={(t, i) => handleCopy(t, i, setDpCopied)} accent={accent} accentLight={accentLight} contentType="discovery_prep" />}
           </>
         )}
       </div>

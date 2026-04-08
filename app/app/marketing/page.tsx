@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { GlowCard } from "@/components/ui/glow-card";
+import { OutputCards } from "@/components/ui/output-cards";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -110,66 +111,7 @@ function PillSelector<T extends string>({
   );
 }
 
-/* ─── Reusable output card list ─── */
-function OutputCards({
-  cards,
-  copiedIdx,
-  onCopy,
-}: {
-  cards: string[];
-  copiedIdx: number | null;
-  onCopy: (text: string, idx: number) => void;
-}) {
-  if (cards.length === 0) return null;
-  return (
-    <div className="space-y-4">
-      <span className="text-xs font-medium uppercase tracking-wider px-0.5" style={{ color: textMuted }}>
-        Output
-      </span>
-      {cards.map((card, idx) => {
-        const isCopied = copiedIdx === idx;
-        return (
-          <div
-            key={idx}
-            className="relative rounded-xl border overflow-hidden group"
-            style={{ backgroundColor: surface, borderColor: border }}
-          >
-            <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
-            <button
-              onClick={() => onCopy(card, idx)}
-              className="absolute top-5 right-3 flex flex-col items-center gap-1 rounded-md px-2 py-1.5 transition-all opacity-60 hover:opacity-100 cursor-pointer"
-              style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-              aria-label="Copy"
-            >
-              {isCopied ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5eead4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-              )}
-              <span
-                className="text-[10px] leading-none transition-opacity opacity-0 group-hover:opacity-100"
-                style={{ color: isCopied ? "#5eead4" : textMuted }}
-              >
-                {isCopied ? "Done" : "Copy"}
-              </span>
-            </button>
-            <div
-              className="px-6 py-5 pr-16 text-sm leading-relaxed whitespace-pre-wrap"
-              style={{ color: textPrimary }}
-            >
-              {card}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+/* OutputCards is now shared across all module pages — see components/ui/output-cards.tsx */
 
 /* ─── Loading skeleton ─── */
 function LoadingSkeleton({ message }: { message: string }) {
@@ -552,7 +494,7 @@ export default function MarketingPage() {
               </div>
             </GlowCard>
             {spLoading && <LoadingSkeleton message="Generating your posts..." />}
-            {!spLoading && <OutputCards cards={splitCards(spOutput)} copiedIdx={spCopied} onCopy={(t, i) => handleCopy(t, i, setSpCopied)} />}
+            {!spLoading && <OutputCards cards={splitCards(spOutput)} copiedIdx={spCopied} onCopy={(t, i) => handleCopy(t, i, setSpCopied)} accent={accent} accentLight={accentLight} contentType="social_posts" />}
           </>
         )}
 
@@ -579,7 +521,7 @@ export default function MarketingPage() {
               </div>
             </GlowCard>
             {acLoading && <LoadingSkeleton message="Generating ad variations..." />}
-            {!acLoading && <OutputCards cards={splitCards(acOutput)} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} />}
+            {!acLoading && <OutputCards cards={splitCards(acOutput)} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} accent={accent} accentLight={accentLight} contentType="ad_copy" />}
           </>
         )}
 
@@ -606,7 +548,7 @@ export default function MarketingPage() {
               </div>
             </GlowCard>
             {lpLoading && <LoadingSkeleton message="Generating landing page copy..." />}
-            {!lpLoading && <OutputCards cards={splitCards(lpOutput)} copiedIdx={lpCopied} onCopy={(t, i) => handleCopy(t, i, setLpCopied)} />}
+            {!lpLoading && <OutputCards cards={splitCards(lpOutput)} copiedIdx={lpCopied} onCopy={(t, i) => handleCopy(t, i, setLpCopied)} accent={accent} accentLight={accentLight} contentType="landing_page" />}
           </>
         )}
 
@@ -632,7 +574,7 @@ export default function MarketingPage() {
               </div>
             </GlowCard>
             {ecLoading && <LoadingSkeleton message="Generating your email..." />}
-            {!ecLoading && <OutputCards cards={splitCards(ecOutput)} copiedIdx={ecCopied} onCopy={(t, i) => handleCopy(t, i, setEcCopied)} />}
+            {!ecLoading && <OutputCards cards={splitCards(ecOutput)} copiedIdx={ecCopied} onCopy={(t, i) => handleCopy(t, i, setEcCopied)} accent={accent} accentLight={accentLight} contentType="email_campaign" />}
           </>
         )}
 
@@ -658,7 +600,7 @@ export default function MarketingPage() {
               </div>
             </GlowCard>
             {cbLoading && <LoadingSkeleton message="Generating your brief..." />}
-            {!cbLoading && <OutputCards cards={splitCards(cbOutput)} copiedIdx={cbCopied} onCopy={(t, i) => handleCopy(t, i, setCbCopied)} />}
+            {!cbLoading && <OutputCards cards={splitCards(cbOutput)} copiedIdx={cbCopied} onCopy={(t, i) => handleCopy(t, i, setCbCopied)} accent={accent} accentLight={accentLight} contentType="content_brief" />}
           </>
         )}
       </div>
