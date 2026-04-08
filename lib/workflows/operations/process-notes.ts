@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaude } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "process_notes";
 
@@ -18,7 +18,7 @@ const formatGuidance: Record<ProcessNotesInput["output_format"], string> = {
     "Output a decision-tree style document. Start with the trigger/entry point, then branch into decision nodes with clear Yes/No or conditional paths. Use indentation to show hierarchy.",
 };
 
-export async function runProcessNotes(
+export function runProcessNotes(
   context: WorkspaceContext,
   input: ProcessNotesInput
 ) {
@@ -36,5 +36,5 @@ Rules:
 
   const userPrompt = `Structure these process notes for "${input.process_title}":\n\n${input.raw_notes}`;
 
-  return callClaude(systemPrompt, userPrompt);
+  return callClaudeStream(systemPrompt, userPrompt);
 }

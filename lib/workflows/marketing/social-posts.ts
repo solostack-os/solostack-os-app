@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaude } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "social_posts";
 
@@ -18,7 +18,7 @@ const platformGuidance: Record<SocialPostsInput["platform"], string> = {
     "Write for Facebook. Max 100 words per post. Warm, conversational, and engaging tone. Keep it relatable and easy to interact with. End with a question or CTA to drive comments. Use 1-2 hashtags at most.",
 };
 
-export async function runSocialPosts(
+export function runSocialPosts(
   context: WorkspaceContext,
   input: SocialPostsInput
 ) {
@@ -35,5 +35,5 @@ Rules:
 
   const userPrompt = `Write ${input.num_posts} ${input.platform} post(s) about: ${input.topic}`;
 
-  return callClaude(systemPrompt, userPrompt);
+  return callClaudeStream(systemPrompt, userPrompt);
 }

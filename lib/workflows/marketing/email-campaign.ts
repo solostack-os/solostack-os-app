@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaude } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "email_campaign";
 
@@ -19,7 +19,7 @@ const typeGuidance: Record<EmailCampaignInput["email_type"], string> = {
     "Re-engagement email — personal, curiosity-driven. Acknowledge the absence, remind them of the value, and offer a compelling reason to return.",
 };
 
-export async function runEmailCampaign(
+export function runEmailCampaign(
   context: WorkspaceContext,
   input: EmailCampaignInput
 ) {
@@ -38,5 +38,5 @@ Rules:
 
   const userPrompt = `Write a ${input.email_type.replace("_", " ")} email about: ${input.topic}`;
 
-  return callClaude(systemPrompt, userPrompt);
+  return callClaudeStream(systemPrompt, userPrompt);
 }

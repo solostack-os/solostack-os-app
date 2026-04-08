@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaude } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "proposal";
 
@@ -10,7 +10,7 @@ export interface ProposalInput {
   additional_context?: string;
 }
 
-export async function runProposal(
+export function runProposal(
   context: WorkspaceContext,
   input: ProposalInput
 ) {
@@ -42,5 +42,5 @@ Rules:
 
   const userPrompt = `Write a project proposal for ${input.client_name}. Project type: ${input.project_type}.`;
 
-  return callClaude(systemPrompt, userPrompt);
+  return callClaudeStream(systemPrompt, userPrompt);
 }

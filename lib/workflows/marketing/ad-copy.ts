@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaude } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "ad_copy";
 
@@ -27,7 +27,7 @@ const goalGuidance: Record<AdCopyInput["goal"], string> = {
     "Optimise for conversions — emphasise urgency, social proof, and a clear value proposition.",
 };
 
-export async function runAdCopy(
+export function runAdCopy(
   context: WorkspaceContext,
   input: AdCopyInput
 ) {
@@ -46,5 +46,5 @@ Rules:
 
   const userPrompt = `Write 3 ad variations about: ${input.topic}`;
 
-  return callClaude(systemPrompt, userPrompt);
+  return callClaudeStream(systemPrompt, userPrompt);
 }

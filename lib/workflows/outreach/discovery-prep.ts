@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaude } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "discovery_prep";
 
@@ -19,7 +19,7 @@ const goalGuidance: Record<DiscoveryPrepInput["call_goal"], string> = {
     "Focus on mutual fit: balanced questions that help both sides decide if working together makes sense. Less selling, more genuine discovery.",
 };
 
-export async function runDiscoveryPrep(
+export function runDiscoveryPrep(
   context: WorkspaceContext,
   input: DiscoveryPrepInput
 ) {
@@ -45,5 +45,5 @@ Rules:
 
   const userPrompt = `Prepare discovery call notes for a meeting with ${input.prospect_company} (${input.industry} industry). Call goal: ${input.call_goal.replace("_", " ")}.`;
 
-  return callClaude(systemPrompt, userPrompt);
+  return callClaudeStream(systemPrompt, userPrompt);
 }

@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaude } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "landing_page";
 
@@ -31,7 +31,7 @@ const goalGuidance: Record<LandingPageInput["goal"], string> = {
     "Optimise copy for waitlist sign-ups — build anticipation, exclusivity, and FOMO.",
 };
 
-export async function runLandingPage(
+export function runLandingPage(
   context: WorkspaceContext,
   input: LandingPageInput
 ) {
@@ -47,5 +47,5 @@ Rules:
 
   const userPrompt = `Write ${input.section.replace("_", " ")} section copy about: ${input.topic}`;
 
-  return callClaude(systemPrompt, userPrompt);
+  return callClaudeStream(systemPrompt, userPrompt);
 }

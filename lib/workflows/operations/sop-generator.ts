@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaude } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "sop_generator";
 
@@ -19,7 +19,7 @@ const detailGuidance: Record<SopGeneratorInput["detail_level"], string> = {
     "Maximum detail — granular step-by-step instructions, sub-steps where needed, responsible parties for each step, expected timeframes, and edge cases.",
 };
 
-export async function runSopGenerator(
+export function runSopGenerator(
   context: WorkspaceContext,
   input: SopGeneratorInput
 ) {
@@ -43,5 +43,5 @@ Rules:
 
   const userPrompt = `Write a standard operating procedure for: ${input.process_name}`;
 
-  return callClaude(systemPrompt, userPrompt);
+  return callClaudeStream(systemPrompt, userPrompt);
 }

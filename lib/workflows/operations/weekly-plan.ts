@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaude } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "weekly_plan";
 
@@ -18,7 +18,7 @@ const styleGuidance: Record<WeeklyPlanInput["work_style"], string> = {
     "Work around a packed meeting schedule — use short focus sprints (60-90 min) between meetings, front-load prep work early in the day, keep Fridays lighter where possible.",
 };
 
-export async function runWeeklyPlan(
+export function runWeeklyPlan(
   context: WorkspaceContext,
   input: WeeklyPlanInput
 ) {
@@ -38,5 +38,5 @@ Rules:
 
   const userPrompt = `Create a weekly plan focused on: ${input.focus_area}\n\nPriorities:\n${input.priorities}`;
 
-  return callClaude(systemPrompt, userPrompt);
+  return callClaudeStream(systemPrompt, userPrompt);
 }

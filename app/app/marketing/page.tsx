@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import { GlowCard } from "@/components/ui/glow-card";
 import { OutputCards } from "@/components/ui/output-cards";
+import { StreamingCard } from "@/components/ui/streaming-card";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -134,6 +135,85 @@ function LoadingSkeleton({ message }: { message: string }) {
   );
 }
 
+/* ─── Topic input with sparkle suggestions ─── */
+function TopicInput({
+  value,
+  onChange,
+  placeholder,
+  maxLen = 200,
+  loadingSuggestions,
+  onSuggest,
+  suggestions,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  maxLen?: number;
+  loadingSuggestions: boolean;
+  onSuggest: () => void;
+  suggestions: string[];
+}) {
+  const warnAt = Math.round(maxLen * 0.9);
+  return (
+    <div className="mb-5">
+      <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>
+        Topic
+      </label>
+      <div className="relative">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => { if (e.target.value.length <= maxLen) onChange(e.target.value); }}
+          maxLength={maxLen}
+          placeholder={placeholder}
+          className="w-full px-4 py-3 pr-11 text-sm rounded-lg outline-none placeholder:text-slate-500 transition-shadow focus:ring-2 focus:ring-[#6c8cff]/40 focus:shadow-[0_0_0_1px_rgba(108,140,255,0.3)]"
+          style={{ backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary }}
+        />
+        <button
+          type="button"
+          onClick={onSuggest}
+          disabled={loadingSuggestions}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors hover:bg-white/10 disabled:opacity-40 cursor-pointer"
+          aria-label="Suggest topics"
+          title="Get AI topic ideas"
+        >
+          {loadingSuggestions ? (
+            <div
+              className="h-4 w-4 rounded-full border-2 border-t-transparent animate-spin"
+              style={{ borderColor: accent, borderTopColor: "transparent" }}
+            />
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
+              <path d="M20 16l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z" />
+            </svg>
+          )}
+        </button>
+      </div>
+      <div className="flex justify-between items-center mt-1.5 gap-3">
+        <span className="text-xs text-white/35">Output language follows your input language</span>
+        <span className="text-[11px] tabular-nums" style={{ color: value.length >= warnAt ? "#f87171" : textMuted }}>
+          {value.length}/{maxLen}
+        </span>
+      </div>
+      {suggestions.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-3">
+          {suggestions.map((s, i) => (
+            <button
+              key={i}
+              onClick={() => onChange(s)}
+              className="px-3 py-1.5 text-xs rounded-full border transition-all hover:border-[#6c8cff]/60 hover:bg-[#6c8cff]/10 cursor-pointer"
+              style={{ color: textPrimary, borderColor: border }}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════
    Main page
    ═══════════════════════════════════════════════════════════════ */
@@ -145,9 +225,11 @@ export default function MarketingPage() {
   const [spTopic, setSpTopic] = useState("");
   const [spNumPosts, setSpNumPosts] = useState<number>(1);
   const [spLoading, setSpLoading] = useState(false);
+  const [spStreaming, setSpStreaming] = useState(false);
   const [spOutput, setSpOutput] = useState<string | null>(null);
   const [spError, setSpError] = useState<string | null>(null);
   const [spCopied, setSpCopied] = useState<number | null>(null);
+  const spStreamTextRef = useRef<HTMLDivElement | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
@@ -156,34 +238,42 @@ export default function MarketingPage() {
   const [acGoal, setAcGoal] = useState<"awareness" | "clicks" | "conversions">("clicks");
   const [acTopic, setAcTopic] = useState("");
   const [acLoading, setAcLoading] = useState(false);
+  const [acStreaming, setAcStreaming] = useState(false);
   const [acOutput, setAcOutput] = useState<string | null>(null);
   const [acError, setAcError] = useState<string | null>(null);
   const [acCopied, setAcCopied] = useState<number | null>(null);
+  const acStreamTextRef = useRef<HTMLDivElement | null>(null);
 
   /* ── Landing Page state ── */
   const [lpSection, setLpSection] = useState<"hero" | "features" | "cta" | "faq" | "testimonial_prompt">("hero");
   const [lpGoal, setLpGoal] = useState<"lead_gen" | "sales" | "waitlist">("lead_gen");
   const [lpTopic, setLpTopic] = useState("");
   const [lpLoading, setLpLoading] = useState(false);
+  const [lpStreaming, setLpStreaming] = useState(false);
   const [lpOutput, setLpOutput] = useState<string | null>(null);
   const [lpError, setLpError] = useState<string | null>(null);
   const [lpCopied, setLpCopied] = useState<number | null>(null);
+  const lpStreamTextRef = useRef<HTMLDivElement | null>(null);
 
   /* ── Email Campaign state ── */
   const [ecType, setEcType] = useState<"welcome" | "promotional" | "nurture" | "re_engagement">("welcome");
   const [ecTopic, setEcTopic] = useState("");
   const [ecLoading, setEcLoading] = useState(false);
+  const [ecStreaming, setEcStreaming] = useState(false);
   const [ecOutput, setEcOutput] = useState<string | null>(null);
   const [ecError, setEcError] = useState<string | null>(null);
   const [ecCopied, setEcCopied] = useState<number | null>(null);
+  const ecStreamTextRef = useRef<HTMLDivElement | null>(null);
 
   /* ── Content Brief state ── */
   const [cbType, setCbType] = useState<"blog_post" | "video_script" | "podcast_episode">("blog_post");
   const [cbTopic, setCbTopic] = useState("");
   const [cbLoading, setCbLoading] = useState(false);
+  const [cbStreaming, setCbStreaming] = useState(false);
   const [cbOutput, setCbOutput] = useState<string | null>(null);
   const [cbError, setCbError] = useState<string | null>(null);
   const [cbCopied, setCbCopied] = useState<number | null>(null);
+  const cbStreamTextRef = useRef<HTMLDivElement | null>(null);
 
   /* ─── Generic helpers ─── */
   async function callWorkflow(
@@ -192,27 +282,79 @@ export default function MarketingPage() {
     setLoading: (b: boolean) => void,
     setOutput: (s: string | null) => void,
     setError: (s: string | null) => void,
+    setStreaming: (b: boolean) => void,
+    streamTextRef: React.RefObject<HTMLDivElement | null>,
   ) {
     setLoading(true);
     setOutput(null);
     setError(null);
+    // Clear any leftover text from a previous run on the always-mounted
+    // streaming card so the first paint of the new run starts empty.
+    if (streamTextRef.current) {
+      streamTextRef.current.textContent = "";
+    }
     try {
       const res = await fetch("/api/runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ module_key: "marketing", workflow_key, input_json }),
       });
-      const data = await res.json();
+
+      // Error path — server returns JSON with a non-2xx status BEFORE
+      // any streaming begins (auth, workspace, cap, unknown workflow).
       if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
         setError(data.error ?? "Something went wrong");
-      } else {
-        setOutput(data.output_markdown);
-        window.dispatchEvent(new Event("recents:refresh"));
+        return;
       }
+
+      // Streaming path — write tokens directly to the StreamingCard's
+      // text element via the ref, bypassing React state entirely. No
+      // reconcile/commit/paint cycle per token, no splitCards reparse,
+      // and `contain: layout style` on the text box keeps each append
+      // from reflowing the whole page. setOutput is only called once
+      // at the end to commit the final string to React for OutputCards.
+      const reader = res.body?.getReader();
+      if (!reader) {
+        setError("Streaming not supported in this browser");
+        return;
+      }
+      const decoder = new TextDecoder();
+      let full = "";
+      let firstChunk = true;
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) {
+          full += decoder.decode(value, { stream: true });
+          if (streamTextRef.current) {
+            streamTextRef.current.textContent = full;
+          }
+          if (firstChunk) {
+            firstChunk = false;
+            // Swap the skeleton for the (already-populated) streaming
+            // card. These two setState calls are batched by React 18
+            // and commit in a single render.
+            setLoading(false);
+            setStreaming(true);
+          }
+        }
+      }
+      // Flush any remaining bytes from the TextDecoder and commit the
+      // final text to React state — that renders OutputCards with the
+      // fully split markdown and hides the StreamingCard.
+      full += decoder.decode();
+      if (streamTextRef.current) {
+        streamTextRef.current.textContent = full;
+      }
+      setStreaming(false);
+      setOutput(full);
+      window.dispatchEvent(new Event("recents:refresh"));
     } catch {
       setError("Network error");
     } finally {
       setLoading(false);
+      setStreaming(false);
     }
   }
 
@@ -263,7 +405,7 @@ export default function MarketingPage() {
   /* ─── Social Posts handlers ─── */
   function handleSpGenerate() {
     if (!spTopic.trim()) return;
-    callWorkflow("social_posts", { platform: spPlatform, topic: spTopic, num_posts: spNumPosts }, setSpLoading, setSpOutput, setSpError);
+    callWorkflow("social_posts", { platform: spPlatform, topic: spTopic, num_posts: spNumPosts }, setSpLoading, setSpOutput, setSpError, setSpStreaming, spStreamTextRef);
   }
 
   function handleSpTopicChange(value: string) {
@@ -280,79 +422,6 @@ export default function MarketingPage() {
     email_campaign: { title: "Create marketing emails", subtitle: "Generate complete, ready-to-send marketing emails." },
     content_brief: { title: "Create a content brief", subtitle: "Generate structured briefs for any content format." },
   };
-
-  /* ─── Topic input with sparkle suggestions ─── */
-  function TopicInput({
-    value,
-    onChange,
-    placeholder,
-    maxLen = 200,
-  }: {
-    value: string;
-    onChange: (v: string) => void;
-    placeholder: string;
-    maxLen?: number;
-  }) {
-    const warnAt = Math.round(maxLen * 0.9);
-    return (
-      <div className="mb-5">
-        <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>
-          Topic
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={value}
-            onChange={(e) => { if (e.target.value.length <= maxLen) onChange(e.target.value); }}
-            maxLength={maxLen}
-            placeholder={placeholder}
-            className="w-full px-4 py-3 pr-11 text-sm rounded-lg outline-none placeholder:text-slate-500 transition-shadow focus:ring-2 focus:ring-[#6c8cff]/40 focus:shadow-[0_0_0_1px_rgba(108,140,255,0.3)]"
-            style={{ backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary }}
-          />
-          <button
-            type="button"
-            onClick={handleSuggest}
-            disabled={loadingSuggestions}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors hover:bg-white/10 disabled:opacity-40 cursor-pointer"
-            aria-label="Suggest topics"
-            title="Get AI topic ideas"
-          >
-            {loadingSuggestions ? (
-              <div
-                className="h-4 w-4 rounded-full border-2 border-t-transparent animate-spin"
-                style={{ borderColor: accent, borderTopColor: "transparent" }}
-              />
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
-                <path d="M20 16l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z" />
-              </svg>
-            )}
-          </button>
-        </div>
-        <div className="flex justify-between items-center mt-1.5 gap-3">
-          <span className="text-xs text-white/35">Output language follows your input language</span>
-          <span className="text-[11px] tabular-nums" style={{ color: value.length >= warnAt ? "#f87171" : textMuted }}>
-            {value.length}/{maxLen}
-          </span>
-        </div>
-        {suggestions.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {suggestions.map((s, i) => (
-              <button
-                key={i}
-                onClick={() => { onChange(s); setSuggestions([]); }}
-                className="px-3 py-1.5 text-xs rounded-full border transition-all hover:border-[#6c8cff]/60 hover:bg-[#6c8cff]/10 cursor-pointer"
-                style={{ color: textPrimary, borderColor: border }}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
 
   /* ─── Generate button with outer glow ─── */
   function GenerateButton({ loading, disabled, onClick, label }: { loading: boolean; disabled: boolean; onClick: () => void; label: string }) {
@@ -466,6 +535,9 @@ export default function MarketingPage() {
                   value={spTopic}
                   onChange={handleSpTopicChange}
                   placeholder="e.g. Why small businesses need a content strategy"
+                  loadingSuggestions={loadingSuggestions}
+                  onSuggest={handleSuggest}
+                  suggestions={suggestions}
                 />
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>Number of posts</label>
@@ -491,8 +563,9 @@ export default function MarketingPage() {
               </div>
               </div>
             </GlowCard>
-            {spLoading && <LoadingSkeleton message="Generating your posts..." />}
-            {!spLoading && <OutputCards cards={splitCards(spOutput)} copiedIdx={spCopied} onCopy={(t, i) => handleCopy(t, i, setSpCopied)} accent={accent} accentLight={accentLight} contentType="social_posts" />}
+            {spLoading && !spStreaming && <LoadingSkeleton message="Generating your posts..." />}
+            <StreamingCard ref={spStreamTextRef} visible={spStreaming} accent={accent} accentLight={accentLight} />
+            {!spLoading && !spStreaming && <OutputCards cards={splitCards(spOutput)} copiedIdx={spCopied} onCopy={(t, i) => handleCopy(t, i, setSpCopied)} accent={accent} accentLight={accentLight} contentType="social_posts" />}
           </>
         )}
 
@@ -507,19 +580,20 @@ export default function MarketingPage() {
               <div className="p-7">
                 <PillSelector label="Platform" options={adPlatforms} value={acPlatform} onChange={setAcPlatform} />
                 <PillSelector label="Goal" options={adGoals} value={acGoal} onChange={setAcGoal} />
-                <TopicInput value={acTopic} onChange={(v) => { setAcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. Summer sale on premium headphones" />
+                <TopicInput value={acTopic} onChange={(v) => { setAcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. Summer sale on premium headphones" loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} />
                 <GenerateButton
                   loading={acLoading}
                   disabled={!acTopic.trim()}
-                  onClick={() => callWorkflow("ad_copy", { platform: acPlatform, goal: acGoal, topic: acTopic }, setAcLoading, setAcOutput, setAcError)}
+                  onClick={() => callWorkflow("ad_copy", { platform: acPlatform, goal: acGoal, topic: acTopic }, setAcLoading, setAcOutput, setAcError, setAcStreaming, acStreamTextRef)}
                   label="Generate"
                 />
                 <ErrorMsg error={acError} />
               </div>
               </div>
             </GlowCard>
-            {acLoading && <LoadingSkeleton message="Generating ad variations..." />}
-            {!acLoading && <OutputCards cards={splitCards(acOutput)} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} accent={accent} accentLight={accentLight} contentType="ad_copy" />}
+            {acLoading && !acStreaming && <LoadingSkeleton message="Generating ad variations..." />}
+            <StreamingCard ref={acStreamTextRef} visible={acStreaming} accent={accent} accentLight={accentLight} />
+            {!acLoading && !acStreaming && <OutputCards cards={splitCards(acOutput)} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} accent={accent} accentLight={accentLight} contentType="ad_copy" />}
           </>
         )}
 
@@ -534,19 +608,20 @@ export default function MarketingPage() {
               <div className="p-7">
                 <PillSelector label="Section" options={landingSections} value={lpSection} onChange={setLpSection} />
                 <PillSelector label="Goal" options={landingGoals} value={lpGoal} onChange={setLpGoal} />
-                <TopicInput value={lpTopic} onChange={(v) => { setLpTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. AI-powered project management tool" maxLen={300} />
+                <TopicInput value={lpTopic} onChange={(v) => { setLpTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. AI-powered project management tool" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} />
                 <GenerateButton
                   loading={lpLoading}
                   disabled={!lpTopic.trim()}
-                  onClick={() => callWorkflow("landing_page", { section: lpSection, goal: lpGoal, topic: lpTopic }, setLpLoading, setLpOutput, setLpError)}
+                  onClick={() => callWorkflow("landing_page", { section: lpSection, goal: lpGoal, topic: lpTopic }, setLpLoading, setLpOutput, setLpError, setLpStreaming, lpStreamTextRef)}
                   label="Generate"
                 />
                 <ErrorMsg error={lpError} />
               </div>
               </div>
             </GlowCard>
-            {lpLoading && <LoadingSkeleton message="Generating landing page copy..." />}
-            {!lpLoading && <OutputCards cards={splitCards(lpOutput)} copiedIdx={lpCopied} onCopy={(t, i) => handleCopy(t, i, setLpCopied)} accent={accent} accentLight={accentLight} contentType="landing_page" />}
+            {lpLoading && !lpStreaming && <LoadingSkeleton message="Generating landing page copy..." />}
+            <StreamingCard ref={lpStreamTextRef} visible={lpStreaming} accent={accent} accentLight={accentLight} />
+            {!lpLoading && !lpStreaming && <OutputCards cards={splitCards(lpOutput)} copiedIdx={lpCopied} onCopy={(t, i) => handleCopy(t, i, setLpCopied)} accent={accent} accentLight={accentLight} contentType="landing_page" />}
           </>
         )}
 
@@ -560,19 +635,20 @@ export default function MarketingPage() {
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Email type" options={emailTypes} value={ecType} onChange={setEcType} />
-                <TopicInput value={ecTopic} onChange={(v) => { setEcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. New feature launch announcement" maxLen={300} />
+                <TopicInput value={ecTopic} onChange={(v) => { setEcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. New feature launch announcement" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} />
                 <GenerateButton
                   loading={ecLoading}
                   disabled={!ecTopic.trim()}
-                  onClick={() => callWorkflow("email_campaign", { email_type: ecType, topic: ecTopic }, setEcLoading, setEcOutput, setEcError)}
+                  onClick={() => callWorkflow("email_campaign", { email_type: ecType, topic: ecTopic }, setEcLoading, setEcOutput, setEcError, setEcStreaming, ecStreamTextRef)}
                   label="Generate"
                 />
                 <ErrorMsg error={ecError} />
               </div>
               </div>
             </GlowCard>
-            {ecLoading && <LoadingSkeleton message="Generating your email..." />}
-            {!ecLoading && <OutputCards cards={splitCards(ecOutput)} copiedIdx={ecCopied} onCopy={(t, i) => handleCopy(t, i, setEcCopied)} accent={accent} accentLight={accentLight} contentType="email_campaign" />}
+            {ecLoading && !ecStreaming && <LoadingSkeleton message="Generating your email..." />}
+            <StreamingCard ref={ecStreamTextRef} visible={ecStreaming} accent={accent} accentLight={accentLight} />
+            {!ecLoading && !ecStreaming && <OutputCards cards={splitCards(ecOutput)} copiedIdx={ecCopied} onCopy={(t, i) => handleCopy(t, i, setEcCopied)} accent={accent} accentLight={accentLight} contentType="email_campaign" />}
           </>
         )}
 
@@ -586,19 +662,20 @@ export default function MarketingPage() {
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Content type" options={contentTypes} value={cbType} onChange={setCbType} />
-                <TopicInput value={cbTopic} onChange={(v) => { setCbTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. How to build a personal brand in 2025" maxLen={2000} />
+                <TopicInput value={cbTopic} onChange={(v) => { setCbTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. How to build a personal brand in 2025" maxLen={2000} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} />
                 <GenerateButton
                   loading={cbLoading}
                   disabled={!cbTopic.trim()}
-                  onClick={() => callWorkflow("content_brief", { content_type: cbType, topic: cbTopic }, setCbLoading, setCbOutput, setCbError)}
+                  onClick={() => callWorkflow("content_brief", { content_type: cbType, topic: cbTopic }, setCbLoading, setCbOutput, setCbError, setCbStreaming, cbStreamTextRef)}
                   label="Generate"
                 />
                 <ErrorMsg error={cbError} />
               </div>
               </div>
             </GlowCard>
-            {cbLoading && <LoadingSkeleton message="Generating your brief..." />}
-            {!cbLoading && <OutputCards cards={splitCards(cbOutput)} copiedIdx={cbCopied} onCopy={(t, i) => handleCopy(t, i, setCbCopied)} accent={accent} accentLight={accentLight} contentType="content_brief" />}
+            {cbLoading && !cbStreaming && <LoadingSkeleton message="Generating your brief..." />}
+            <StreamingCard ref={cbStreamTextRef} visible={cbStreaming} accent={accent} accentLight={accentLight} />
+            {!cbLoading && !cbStreaming && <OutputCards cards={splitCards(cbOutput)} copiedIdx={cbCopied} onCopy={(t, i) => handleCopy(t, i, setCbCopied)} accent={accent} accentLight={accentLight} contentType="content_brief" />}
           </>
         )}
       </div>

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import { GlowCard } from "@/components/ui/glow-card";
 import { OutputCards } from "@/components/ui/output-cards";
+import { StreamingCard } from "@/components/ui/streaming-card";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -253,17 +254,21 @@ export default function OutreachPage() {
   const [ceGoal, setCeGoal] = useState<"book_a_call" | "get_a_reply" | "share_a_resource">("book_a_call");
   const [ceExtra, setCeExtra] = useState("");
   const [ceLoading, setCeLoading] = useState(false);
+  const [ceStreaming, setCeStreaming] = useState(false);
   const [ceOutput, setCeOutput] = useState<string | null>(null);
   const [ceError, setCeError] = useState<string | null>(null);
   const [ceCopied, setCeCopied] = useState<number | null>(null);
+  const ceStreamTextRef = useRef<HTMLDivElement | null>(null);
 
   /* ── Follow-up state ── */
   const [fuContext, setFuContext] = useState("");
   const [fuDays, setFuDays] = useState<"3_days" | "1_week" | "2_weeks">("3_days");
   const [fuLoading, setFuLoading] = useState(false);
+  const [fuStreaming, setFuStreaming] = useState(false);
   const [fuOutput, setFuOutput] = useState<string | null>(null);
   const [fuError, setFuError] = useState<string | null>(null);
   const [fuCopied, setFuCopied] = useState<number | null>(null);
+  const fuStreamTextRef = useRef<HTMLDivElement | null>(null);
 
   /* ── Proposal state ── */
   const [prType, setPrType] = useState("");
@@ -271,9 +276,11 @@ export default function OutreachPage() {
   const [prBudget, setPrBudget] = useState("");
   const [prExtra, setPrExtra] = useState("");
   const [prLoading, setPrLoading] = useState(false);
+  const [prStreaming, setPrStreaming] = useState(false);
   const [prOutput, setPrOutput] = useState<string | null>(null);
   const [prError, setPrError] = useState<string | null>(null);
   const [prCopied, setPrCopied] = useState<number | null>(null);
+  const prStreamTextRef = useRef<HTMLDivElement | null>(null);
 
   /* ── Discovery Prep state ── */
   const [dpCompany, setDpCompany] = useState("");
@@ -281,9 +288,11 @@ export default function OutreachPage() {
   const [dpGoal, setDpGoal] = useState<"qualify" | "pitch" | "explore_fit">("qualify");
   const [dpExtra, setDpExtra] = useState("");
   const [dpLoading, setDpLoading] = useState(false);
+  const [dpStreaming, setDpStreaming] = useState(false);
   const [dpOutput, setDpOutput] = useState<string | null>(null);
   const [dpError, setDpError] = useState<string | null>(null);
   const [dpCopied, setDpCopied] = useState<number | null>(null);
+  const dpStreamTextRef = useRef<HTMLDivElement | null>(null);
 
   /* ─── Generic helpers ─── */
   async function callWorkflow(
@@ -292,27 +301,79 @@ export default function OutreachPage() {
     setLoading: (b: boolean) => void,
     setOutput: (s: string | null) => void,
     setError: (s: string | null) => void,
+    setStreaming: (b: boolean) => void,
+    streamTextRef: React.RefObject<HTMLDivElement | null>,
   ) {
     setLoading(true);
     setOutput(null);
     setError(null);
+    // Clear any leftover text from a previous run on the always-mounted
+    // streaming card so the first paint of the new run starts empty.
+    if (streamTextRef.current) {
+      streamTextRef.current.textContent = "";
+    }
     try {
       const res = await fetch("/api/runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ module_key: "outreach", workflow_key, input_json }),
       });
-      const data = await res.json();
+
+      // Error path — server returns JSON with a non-2xx status BEFORE
+      // any streaming begins (auth, workspace, cap, unknown workflow).
       if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
         setError(data.error ?? "Something went wrong");
-      } else {
-        setOutput(data.output_markdown);
-        window.dispatchEvent(new Event("recents:refresh"));
+        return;
       }
+
+      // Streaming path — write tokens directly to the StreamingCard's
+      // text element via the ref, bypassing React state entirely. No
+      // reconcile/commit/paint cycle per token, no splitCards reparse,
+      // and `contain: layout style` on the text box keeps each append
+      // from reflowing the whole page. setOutput is only called once
+      // at the end to commit the final string to React for OutputCards.
+      const reader = res.body?.getReader();
+      if (!reader) {
+        setError("Streaming not supported in this browser");
+        return;
+      }
+      const decoder = new TextDecoder();
+      let full = "";
+      let firstChunk = true;
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) {
+          full += decoder.decode(value, { stream: true });
+          if (streamTextRef.current) {
+            streamTextRef.current.textContent = full;
+          }
+          if (firstChunk) {
+            firstChunk = false;
+            // Swap the skeleton for the (already-populated) streaming
+            // card. These two setState calls are batched by React 18
+            // and commit in a single render.
+            setLoading(false);
+            setStreaming(true);
+          }
+        }
+      }
+      // Flush any remaining bytes from the TextDecoder and commit the
+      // final text to React state — that renders OutputCards with the
+      // fully split markdown and hides the StreamingCard.
+      full += decoder.decode();
+      if (streamTextRef.current) {
+        streamTextRef.current.textContent = full;
+      }
+      setStreaming(false);
+      setOutput(full);
+      window.dispatchEvent(new Event("recents:refresh"));
     } catch {
       setError("Network error");
     } finally {
       setLoading(false);
+      setStreaming(false);
     }
   }
 
@@ -402,15 +463,16 @@ export default function OutreachPage() {
                 <GenerateButton
                   loading={ceLoading}
                   disabled={!ceName.trim() || !ceRole.trim() || !ceCompany.trim()}
-                  onClick={() => callWorkflow("cold_email", { prospect_name: ceName, prospect_role: ceRole, prospect_company: ceCompany, goal: ceGoal, ...(ceExtra.trim() ? { additional_context: ceExtra.trim() } : {}) }, setCeLoading, setCeOutput, setCeError)}
+                  onClick={() => callWorkflow("cold_email", { prospect_name: ceName, prospect_role: ceRole, prospect_company: ceCompany, goal: ceGoal, ...(ceExtra.trim() ? { additional_context: ceExtra.trim() } : {}) }, setCeLoading, setCeOutput, setCeError, setCeStreaming, ceStreamTextRef)}
                   label="Generate"
                 />
                 <ErrorMsg error={ceError} />
               </div>
               </div>
             </GlowCard>
-            {ceLoading && <LoadingSkeleton message="Writing your cold email..." />}
-            {!ceLoading && <OutputCards cards={splitCards(ceOutput)} copiedIdx={ceCopied} onCopy={(t, i) => handleCopy(t, i, setCeCopied)} accent={accent} accentLight={accentLight} contentType="cold_email" />}
+            {ceLoading && !ceStreaming && <LoadingSkeleton message="Writing your cold email..." />}
+            <StreamingCard ref={ceStreamTextRef} visible={ceStreaming} accent={accent} accentLight={accentLight} />
+            {!ceLoading && !ceStreaming && <OutputCards cards={splitCards(ceOutput)} copiedIdx={ceCopied} onCopy={(t, i) => handleCopy(t, i, setCeCopied)} accent={accent} accentLight={accentLight} contentType="cold_email" />}
           </>
         )}
 
@@ -434,15 +496,16 @@ export default function OutreachPage() {
                 <GenerateButton
                   loading={fuLoading}
                   disabled={!fuContext.trim()}
-                  onClick={() => callWorkflow("follow_up", { context: fuContext, days_since: fuDays }, setFuLoading, setFuOutput, setFuError)}
+                  onClick={() => callWorkflow("follow_up", { context: fuContext, days_since: fuDays }, setFuLoading, setFuOutput, setFuError, setFuStreaming, fuStreamTextRef)}
                   label="Generate"
                 />
                 <ErrorMsg error={fuError} />
               </div>
               </div>
             </GlowCard>
-            {fuLoading && <LoadingSkeleton message="Writing follow-up sequence..." />}
-            {!fuLoading && <OutputCards cards={splitCards(fuOutput)} copiedIdx={fuCopied} onCopy={(t, i) => handleCopy(t, i, setFuCopied)} accent={accent} accentLight={accentLight} contentType="follow_up" />}
+            {fuLoading && !fuStreaming && <LoadingSkeleton message="Writing follow-up sequence..." />}
+            <StreamingCard ref={fuStreamTextRef} visible={fuStreaming} accent={accent} accentLight={accentLight} />
+            {!fuLoading && !fuStreaming && <OutputCards cards={splitCards(fuOutput)} copiedIdx={fuCopied} onCopy={(t, i) => handleCopy(t, i, setFuCopied)} accent={accent} accentLight={accentLight} contentType="follow_up" />}
           </>
         )}
 
@@ -470,15 +533,16 @@ export default function OutreachPage() {
                 <GenerateButton
                   loading={prLoading}
                   disabled={!prType.trim() || !prClient.trim()}
-                  onClick={() => callWorkflow("proposal", { project_type: prType, client_name: prClient, ...(prBudget.trim() ? { budget_range: prBudget } : {}), ...(prExtra.trim() ? { additional_context: prExtra.trim() } : {}) }, setPrLoading, setPrOutput, setPrError)}
+                  onClick={() => callWorkflow("proposal", { project_type: prType, client_name: prClient, ...(prBudget.trim() ? { budget_range: prBudget } : {}), ...(prExtra.trim() ? { additional_context: prExtra.trim() } : {}) }, setPrLoading, setPrOutput, setPrError, setPrStreaming, prStreamTextRef)}
                   label="Generate"
                 />
                 <ErrorMsg error={prError} />
               </div>
               </div>
             </GlowCard>
-            {prLoading && <LoadingSkeleton message="Writing your proposal..." />}
-            {!prLoading && <OutputCards cards={splitCards(prOutput)} copiedIdx={prCopied} onCopy={(t, i) => handleCopy(t, i, setPrCopied)} accent={accent} accentLight={accentLight} contentType="proposal" />}
+            {prLoading && !prStreaming && <LoadingSkeleton message="Writing your proposal..." />}
+            <StreamingCard ref={prStreamTextRef} visible={prStreaming} accent={accent} accentLight={accentLight} />
+            {!prLoading && !prStreaming && <OutputCards cards={splitCards(prOutput)} copiedIdx={prCopied} onCopy={(t, i) => handleCopy(t, i, setPrCopied)} accent={accent} accentLight={accentLight} contentType="proposal" />}
           </>
         )}
 
@@ -506,15 +570,16 @@ export default function OutreachPage() {
                 <GenerateButton
                   loading={dpLoading}
                   disabled={!dpCompany.trim() || !dpIndustry.trim()}
-                  onClick={() => callWorkflow("discovery_prep", { prospect_company: dpCompany, industry: dpIndustry, call_goal: dpGoal, ...(dpExtra.trim() ? { additional_context: dpExtra.trim() } : {}) }, setDpLoading, setDpOutput, setDpError)}
+                  onClick={() => callWorkflow("discovery_prep", { prospect_company: dpCompany, industry: dpIndustry, call_goal: dpGoal, ...(dpExtra.trim() ? { additional_context: dpExtra.trim() } : {}) }, setDpLoading, setDpOutput, setDpError, setDpStreaming, dpStreamTextRef)}
                   label="Generate"
                 />
                 <ErrorMsg error={dpError} />
               </div>
               </div>
             </GlowCard>
-            {dpLoading && <LoadingSkeleton message="Preparing your call notes..." />}
-            {!dpLoading && <OutputCards cards={splitCards(dpOutput)} copiedIdx={dpCopied} onCopy={(t, i) => handleCopy(t, i, setDpCopied)} accent={accent} accentLight={accentLight} contentType="discovery_prep" />}
+            {dpLoading && !dpStreaming && <LoadingSkeleton message="Preparing your call notes..." />}
+            <StreamingCard ref={dpStreamTextRef} visible={dpStreaming} accent={accent} accentLight={accentLight} />
+            {!dpLoading && !dpStreaming && <OutputCards cards={splitCards(dpOutput)} copiedIdx={dpCopied} onCopy={(t, i) => handleCopy(t, i, setDpCopied)} accent={accent} accentLight={accentLight} contentType="discovery_prep" />}
           </>
         )}
       </div>

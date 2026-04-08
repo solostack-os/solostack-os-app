@@ -16,7 +16,11 @@
       "Bash(grep -E '\"\"\\(three|next-themes|@types/three\\)\"\"' package.json)",
       "Bash(npm install:*)",
       "Bash(ls:*)",
-      "Skill(commit-commands:commit)"
+      "Skill(commit-commands:commit)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:3742/)",
+      "Bash(curl:*)",
+      "Bash(node:*)",
+      "Bash(git add:*)"
     ]
   }
 }

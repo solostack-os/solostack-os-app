@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import { GlowCard } from "@/components/ui/glow-card";
 import { OutputCards } from "@/components/ui/output-cards";
+import { StreamingCard } from "@/components/ui/streaming-card";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -258,18 +259,22 @@ export default function OperationsPage() {
   const [sopDetail, setSopDetail] = useState<"summary" | "standard" | "detailed">("standard");
   const [sopExtra, setSopExtra] = useState("");
   const [sopLoading, setSopLoading] = useState(false);
+  const [sopStreaming, setSopStreaming] = useState(false);
   const [sopOutput, setSopOutput] = useState<string | null>(null);
   const [sopError, setSopError] = useState<string | null>(null);
   const [sopCopied, setSopCopied] = useState<number | null>(null);
+  const sopStreamTextRef = useRef<HTMLDivElement | null>(null);
 
   /* ── Weekly Plan state ── */
   const [wpFocus, setWpFocus] = useState("");
   const [wpPriorities, setWpPriorities] = useState("");
   const [wpStyle, setWpStyle] = useState<"deep_work" | "mixed" | "meetings_heavy">("mixed");
   const [wpLoading, setWpLoading] = useState(false);
+  const [wpStreaming, setWpStreaming] = useState(false);
   const [wpOutput, setWpOutput] = useState<string | null>(null);
   const [wpError, setWpError] = useState<string | null>(null);
   const [wpCopied, setWpCopied] = useState<number | null>(null);
+  const wpStreamTextRef = useRef<HTMLDivElement | null>(null);
 
   /* ── Onboarding Doc state ── */
   const [obClient, setObClient] = useState("");
@@ -277,18 +282,22 @@ export default function OperationsPage() {
   const [obDate, setObDate] = useState("");
   const [obDeliverables, setObDeliverables] = useState("");
   const [obLoading, setObLoading] = useState(false);
+  const [obStreaming, setObStreaming] = useState(false);
   const [obOutput, setObOutput] = useState<string | null>(null);
   const [obError, setObError] = useState<string | null>(null);
   const [obCopied, setObCopied] = useState<number | null>(null);
+  const obStreamTextRef = useRef<HTMLDivElement | null>(null);
 
   /* ── Process Notes state ── */
   const [pnTitle, setPnTitle] = useState("");
   const [pnNotes, setPnNotes] = useState("");
   const [pnFormat, setPnFormat] = useState<"bullet_summary" | "step_by_step" | "decision_tree">("bullet_summary");
   const [pnLoading, setPnLoading] = useState(false);
+  const [pnStreaming, setPnStreaming] = useState(false);
   const [pnOutput, setPnOutput] = useState<string | null>(null);
   const [pnError, setPnError] = useState<string | null>(null);
   const [pnCopied, setPnCopied] = useState<number | null>(null);
+  const pnStreamTextRef = useRef<HTMLDivElement | null>(null);
 
   /* ─── Generic helpers ─── */
   async function callWorkflow(
@@ -297,27 +306,79 @@ export default function OperationsPage() {
     setLoading: (b: boolean) => void,
     setOutput: (s: string | null) => void,
     setError: (s: string | null) => void,
+    setStreaming: (b: boolean) => void,
+    streamTextRef: React.RefObject<HTMLDivElement | null>,
   ) {
     setLoading(true);
     setOutput(null);
     setError(null);
+    // Clear any leftover text from a previous run on the always-mounted
+    // streaming card so the first paint of the new run starts empty.
+    if (streamTextRef.current) {
+      streamTextRef.current.textContent = "";
+    }
     try {
       const res = await fetch("/api/runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ module_key: "operations", workflow_key, input_json }),
       });
-      const data = await res.json();
+
+      // Error path — server returns JSON with a non-2xx status BEFORE
+      // any streaming begins (auth, workspace, cap, unknown workflow).
       if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
         setError(data.error ?? "Something went wrong");
-      } else {
-        setOutput(data.output_markdown);
-        window.dispatchEvent(new Event("recents:refresh"));
+        return;
       }
+
+      // Streaming path — write tokens directly to the StreamingCard's
+      // text element via the ref, bypassing React state entirely. No
+      // reconcile/commit/paint cycle per token, no splitCards reparse,
+      // and `contain: layout style` on the text box keeps each append
+      // from reflowing the whole page. setOutput is only called once
+      // at the end to commit the final string to React for OutputCards.
+      const reader = res.body?.getReader();
+      if (!reader) {
+        setError("Streaming not supported in this browser");
+        return;
+      }
+      const decoder = new TextDecoder();
+      let full = "";
+      let firstChunk = true;
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) {
+          full += decoder.decode(value, { stream: true });
+          if (streamTextRef.current) {
+            streamTextRef.current.textContent = full;
+          }
+          if (firstChunk) {
+            firstChunk = false;
+            // Swap the skeleton for the (already-populated) streaming
+            // card. These two setState calls are batched by React 18
+            // and commit in a single render.
+            setLoading(false);
+            setStreaming(true);
+          }
+        }
+      }
+      // Flush any remaining bytes from the TextDecoder and commit the
+      // final text to React state — that renders OutputCards with the
+      // fully split markdown and hides the StreamingCard.
+      full += decoder.decode();
+      if (streamTextRef.current) {
+        streamTextRef.current.textContent = full;
+      }
+      setStreaming(false);
+      setOutput(full);
+      window.dispatchEvent(new Event("recents:refresh"));
     } catch {
       setError("Network error");
     } finally {
       setLoading(false);
+      setStreaming(false);
     }
   }
 
@@ -405,15 +466,16 @@ export default function OperationsPage() {
                 <GenerateButton
                   loading={sopLoading}
                   disabled={!sopName.trim()}
-                  onClick={() => callWorkflow("sop_generator", { process_name: sopName, department: sopDept, detail_level: sopDetail, ...(sopExtra.trim() ? { additional_context: sopExtra.trim() } : {}) }, setSopLoading, setSopOutput, setSopError)}
+                  onClick={() => callWorkflow("sop_generator", { process_name: sopName, department: sopDept, detail_level: sopDetail, ...(sopExtra.trim() ? { additional_context: sopExtra.trim() } : {}) }, setSopLoading, setSopOutput, setSopError, setSopStreaming, sopStreamTextRef)}
                   label="Generate"
                 />
                 <ErrorMsg error={sopError} />
               </div>
               </div>
             </GlowCard>
-            {sopLoading && <LoadingSkeleton message="Generating your SOP..." />}
-            {!sopLoading && <OutputCards cards={wrapOutput(sopOutput)} copiedIdx={sopCopied} onCopy={(t, i) => handleCopy(t, i, setSopCopied)} accent={accent} accentLight={accentLight} contentType="sop_generator" />}
+            {sopLoading && !sopStreaming && <LoadingSkeleton message="Generating your SOP..." />}
+            <StreamingCard ref={sopStreamTextRef} visible={sopStreaming} accent={accent} accentLight={accentLight} />
+            {!sopLoading && !sopStreaming && <OutputCards cards={wrapOutput(sopOutput)} copiedIdx={sopCopied} onCopy={(t, i) => handleCopy(t, i, setSopCopied)} accent={accent} accentLight={accentLight} contentType="sop_generator" />}
           </>
         )}
 
@@ -438,15 +500,16 @@ export default function OperationsPage() {
                 <GenerateButton
                   loading={wpLoading}
                   disabled={!wpFocus.trim() || !wpPriorities.trim()}
-                  onClick={() => callWorkflow("weekly_plan", { focus_area: wpFocus, priorities: wpPriorities, work_style: wpStyle }, setWpLoading, setWpOutput, setWpError)}
+                  onClick={() => callWorkflow("weekly_plan", { focus_area: wpFocus, priorities: wpPriorities, work_style: wpStyle }, setWpLoading, setWpOutput, setWpError, setWpStreaming, wpStreamTextRef)}
                   label="Generate"
                 />
                 <ErrorMsg error={wpError} />
               </div>
               </div>
             </GlowCard>
-            {wpLoading && <LoadingSkeleton message="Planning your week..." />}
-            {!wpLoading && <OutputCards cards={wrapOutput(wpOutput)} copiedIdx={wpCopied} onCopy={(t, i) => handleCopy(t, i, setWpCopied)} accent={accent} accentLight={accentLight} contentType="weekly_plan" />}
+            {wpLoading && !wpStreaming && <LoadingSkeleton message="Planning your week..." />}
+            <StreamingCard ref={wpStreamTextRef} visible={wpStreaming} accent={accent} accentLight={accentLight} />
+            {!wpLoading && !wpStreaming && <OutputCards cards={wrapOutput(wpOutput)} copiedIdx={wpCopied} onCopy={(t, i) => handleCopy(t, i, setWpCopied)} accent={accent} accentLight={accentLight} contentType="weekly_plan" />}
           </>
         )}
 
@@ -472,15 +535,16 @@ export default function OperationsPage() {
                 <GenerateButton
                   loading={obLoading}
                   disabled={!obClient.trim() || !obService.trim() || !obDate.trim()}
-                  onClick={() => callWorkflow("onboarding_doc", { client_name: obClient, service_type: obService, start_date: obDate, key_deliverables: obDeliverables }, setObLoading, setObOutput, setObError)}
+                  onClick={() => callWorkflow("onboarding_doc", { client_name: obClient, service_type: obService, start_date: obDate, key_deliverables: obDeliverables }, setObLoading, setObOutput, setObError, setObStreaming, obStreamTextRef)}
                   label="Generate"
                 />
                 <ErrorMsg error={obError} />
               </div>
               </div>
             </GlowCard>
-            {obLoading && <LoadingSkeleton message="Creating onboarding doc..." />}
-            {!obLoading && <OutputCards cards={wrapOutput(obOutput)} copiedIdx={obCopied} onCopy={(t, i) => handleCopy(t, i, setObCopied)} accent={accent} accentLight={accentLight} contentType="onboarding_doc" />}
+            {obLoading && !obStreaming && <LoadingSkeleton message="Creating onboarding doc..." />}
+            <StreamingCard ref={obStreamTextRef} visible={obStreaming} accent={accent} accentLight={accentLight} />
+            {!obLoading && !obStreaming && <OutputCards cards={wrapOutput(obOutput)} copiedIdx={obCopied} onCopy={(t, i) => handleCopy(t, i, setObCopied)} accent={accent} accentLight={accentLight} contentType="onboarding_doc" />}
           </>
         )}
 
@@ -506,15 +570,16 @@ export default function OperationsPage() {
                 <GenerateButton
                   loading={pnLoading}
                   disabled={!pnTitle.trim() || !pnNotes.trim()}
-                  onClick={() => callWorkflow("process_notes", { process_title: pnTitle, raw_notes: pnNotes, output_format: pnFormat }, setPnLoading, setPnOutput, setPnError)}
+                  onClick={() => callWorkflow("process_notes", { process_title: pnTitle, raw_notes: pnNotes, output_format: pnFormat }, setPnLoading, setPnOutput, setPnError, setPnStreaming, pnStreamTextRef)}
                   label="Generate"
                 />
                 <ErrorMsg error={pnError} />
               </div>
               </div>
             </GlowCard>
-            {pnLoading && <LoadingSkeleton message="Structuring your notes..." />}
-            {!pnLoading && <OutputCards cards={wrapOutput(pnOutput)} copiedIdx={pnCopied} onCopy={(t, i) => handleCopy(t, i, setPnCopied)} accent={accent} accentLight={accentLight} contentType="process_notes" />}
+            {pnLoading && !pnStreaming && <LoadingSkeleton message="Structuring your notes..." />}
+            <StreamingCard ref={pnStreamTextRef} visible={pnStreaming} accent={accent} accentLight={accentLight} />
+            {!pnLoading && !pnStreaming && <OutputCards cards={wrapOutput(pnOutput)} copiedIdx={pnCopied} onCopy={(t, i) => handleCopy(t, i, setPnCopied)} accent={accent} accentLight={accentLight} contentType="process_notes" />}
           </>
         )}
       </div>
