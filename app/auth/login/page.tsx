@@ -93,6 +93,15 @@ export default function LoginPage() {
                   color: "#f1f5f9",
                 }}
               />
+              <div className="flex justify-end mt-1.5">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-xs hover:underline"
+                  style={{ color: "#94a3b8" }}
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
             {error && (
