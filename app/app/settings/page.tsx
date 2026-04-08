@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DottedSurface } from "@/components/ui/dotted-surface";
@@ -29,7 +29,23 @@ const upgradePaths: Record<string, { target: string; priceEnvKey: string; price:
 const inputClass = "w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#6c8cff]/50 transition-shadow";
 const inputStyle = { backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary };
 
+// Wrapped in <Suspense> below because the inner component reads
+// `useSearchParams()`, which Next.js 14 requires to sit inside a suspense
+// boundary so the page can be statically generated. The fallback mirrors
+// the page background so nothing flashes before hydration completes.
 export default function SettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen" style={{ backgroundColor: bg }} />
+      }
+    >
+      <SettingsPageInner />
+    </Suspense>
+  );
+}
+
+function SettingsPageInner() {
   const searchParams = useSearchParams();
   const upgraded = searchParams.get("upgraded") === "true";
   const canceled = searchParams.get("canceled") === "true";

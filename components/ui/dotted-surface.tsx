@@ -78,7 +78,10 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     scene.add(points);
 
     let count = 0;
-    let animationId: number;
+    // Initialised to 0 as a sentinel so TypeScript's flow analysis is happy;
+    // the real rAF handle is assigned on the first `animate()` tick below,
+    // which runs synchronously before this value is ever read.
+    let animationId = 0;
 
     const animate = () => {
       animationId = requestAnimationFrame(animate);
