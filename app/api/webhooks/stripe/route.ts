@@ -37,8 +37,14 @@ export async function POST(request: Request) {
       const workspaceId = session.metadata?.workspaceId;
       if (!workspaceId) break;
 
-      const subscription =
-        await stripe.subscriptions.retrieve(subscriptionId);
+      // Cast to include `current_period_end` — recent versions of the
+      // stripe npm types dropped it from the top-level Subscription type
+      // (the field still exists at runtime on the API response). Goes
+      // through `unknown` because Response<Subscription> doesn't overlap
+      // cleanly enough for a direct cast.
+      const subscription = (await stripe.subscriptions.retrieve(
+        subscriptionId
+      )) as unknown as Stripe.Subscription & { current_period_end: number };
       const priceId = subscription.items.data[0].price.id;
 
       let planKey = "trial";
@@ -63,7 +69,11 @@ export async function POST(request: Request) {
 
     // ── Subscription updated: sync status + period ──
     case "customer.subscription.updated": {
-      const subscription = event.data.object as Stripe.Subscription;
+      // See note above — current_period_end is missing from the current
+      // Stripe.Subscription type definition but still present at runtime.
+      const subscription = event.data.object as Stripe.Subscription & {
+        current_period_end: number;
+      };
       const customerId = subscription.customer as string;
 
       const { data: workspace } = await admin
