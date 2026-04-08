@@ -7,6 +7,7 @@ export interface DiscoveryPrepInput {
   prospect_company: string;
   industry: string;
   call_goal: "qualify" | "pitch" | "explore_fit";
+  additional_context?: string;
 }
 
 const goalGuidance: Record<DiscoveryPrepInput["call_goal"], string> = {
@@ -25,6 +26,10 @@ export async function runDiscoveryPrep(
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
+  const extraInstructions = input.additional_context?.trim()
+    ? `\n\nAdditional user instructions (treat these as high-priority and follow them carefully):\n${input.additional_context.trim()}`
+    : "";
+
   const systemPrompt = `${brandPrefix}You are an expert sales strategist. You prepare people for discovery calls so they walk in confident, well-researched, and ready to have a real conversation.
 
 Rules:
@@ -36,7 +41,7 @@ Rules:
 - Key Questions to Ask: 5-6 open-ended questions, ordered from rapport-building to business-critical.
 - Objections to Prepare For: 3-4 likely objections with a one-line suggested response for each.
 - Your Talking Points: 3-4 points that connect the seller's strengths to the prospect's likely needs.
-- Output only the prep notes. No preamble, no explanation.`;
+- Output only the prep notes. No preamble, no explanation.${extraInstructions}`;
 
   const userPrompt = `Prepare discovery call notes for a meeting with ${input.prospect_company} (${input.industry} industry). Call goal: ${input.call_goal.replace("_", " ")}.`;
 

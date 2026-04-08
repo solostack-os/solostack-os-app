@@ -125,18 +125,23 @@ function TextareaInput({
   onChange,
   placeholder,
   maxLen = 500,
+  optional,
+  hideCounter,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
   maxLen?: number;
+  optional?: boolean;
+  hideCounter?: boolean;
 }) {
   const warnAt = Math.round(maxLen * 0.9);
   return (
     <div className="mb-5">
       <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>
         {label}
+        {optional && <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>}
       </label>
       <textarea
         value={value}
@@ -147,11 +152,16 @@ function TextareaInput({
         className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 transition-shadow focus:ring-2 focus:ring-[#22c55e]/40 focus:shadow-[0_0_0_1px_rgba(34,197,94,0.3)] resize-none"
         style={{ backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary }}
       />
-      <div className="flex justify-end mt-1.5">
-        <span className="text-[11px] tabular-nums" style={{ color: value.length >= warnAt ? "#f87171" : textMuted }}>
-          {value.length}/{maxLen}
-        </span>
-      </div>
+      {hideCounter ? (
+        <p className="text-xs text-white/35 mt-1.5">Output language follows your input language</p>
+      ) : (
+        <div className="flex justify-between items-center mt-1.5 gap-3">
+          <span className="text-xs text-white/35">Output language follows your input language</span>
+          <span className="text-[11px] tabular-nums" style={{ color: value.length >= warnAt ? "#f87171" : textMuted }}>
+            {value.length}/{maxLen}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -299,6 +309,7 @@ export default function OutreachPage() {
   const [ceRole, setCeRole] = useState("");
   const [ceCompany, setCeCompany] = useState("");
   const [ceGoal, setCeGoal] = useState<"book_a_call" | "get_a_reply" | "share_a_resource">("book_a_call");
+  const [ceExtra, setCeExtra] = useState("");
   const [ceLoading, setCeLoading] = useState(false);
   const [ceOutput, setCeOutput] = useState<string | null>(null);
   const [ceError, setCeError] = useState<string | null>(null);
@@ -316,6 +327,7 @@ export default function OutreachPage() {
   const [prType, setPrType] = useState("");
   const [prClient, setPrClient] = useState("");
   const [prBudget, setPrBudget] = useState("");
+  const [prExtra, setPrExtra] = useState("");
   const [prLoading, setPrLoading] = useState(false);
   const [prOutput, setPrOutput] = useState<string | null>(null);
   const [prError, setPrError] = useState<string | null>(null);
@@ -325,6 +337,7 @@ export default function OutreachPage() {
   const [dpCompany, setDpCompany] = useState("");
   const [dpIndustry, setDpIndustry] = useState("");
   const [dpGoal, setDpGoal] = useState<"qualify" | "pitch" | "explore_fit">("qualify");
+  const [dpExtra, setDpExtra] = useState("");
   const [dpLoading, setDpLoading] = useState(false);
   const [dpOutput, setDpOutput] = useState<string | null>(null);
   const [dpError, setDpError] = useState<string | null>(null);
@@ -434,10 +447,19 @@ export default function OutreachPage() {
                 <TextInput label="Role" value={ceRole} onChange={setCeRole} placeholder="e.g. VP of Marketing" />
                 <TextInput label="Company" value={ceCompany} onChange={setCeCompany} placeholder="e.g. Acme Corp" />
                 <PillSelector label="Goal" options={coldEmailGoals} value={ceGoal} onChange={setCeGoal} />
+                <TextareaInput
+                  label="Additional context"
+                  value={ceExtra}
+                  onChange={setCeExtra}
+                  placeholder="e.g. Write in French, focus on design services, keep it under 100 words..."
+                  maxLen={1000}
+                  optional
+                  hideCounter
+                />
                 <GenerateButton
                   loading={ceLoading}
                   disabled={!ceName.trim() || !ceRole.trim() || !ceCompany.trim()}
-                  onClick={() => callWorkflow("cold_email", { prospect_name: ceName, prospect_role: ceRole, prospect_company: ceCompany, goal: ceGoal }, setCeLoading, setCeOutput, setCeError)}
+                  onClick={() => callWorkflow("cold_email", { prospect_name: ceName, prospect_role: ceRole, prospect_company: ceCompany, goal: ceGoal, ...(ceExtra.trim() ? { additional_context: ceExtra.trim() } : {}) }, setCeLoading, setCeOutput, setCeError)}
                   label="Generate"
                 />
                 <ErrorMsg error={ceError} />
@@ -489,10 +511,19 @@ export default function OutreachPage() {
                 <TextInput label="Project type" value={prType} onChange={setPrType} placeholder="e.g. Brand identity redesign" />
                 <TextInput label="Client name" value={prClient} onChange={setPrClient} placeholder="e.g. Bloom Skincare" />
                 <TextInput label="Budget range" value={prBudget} onChange={setPrBudget} placeholder="e.g. $3,000 - $5,000" optional />
+                <TextareaInput
+                  label="Additional context"
+                  value={prExtra}
+                  onChange={setPrExtra}
+                  placeholder="e.g. Write in French, focus on design services, keep it under 100 words..."
+                  maxLen={1000}
+                  optional
+                  hideCounter
+                />
                 <GenerateButton
                   loading={prLoading}
                   disabled={!prType.trim() || !prClient.trim()}
-                  onClick={() => callWorkflow("proposal", { project_type: prType, client_name: prClient, ...(prBudget.trim() ? { budget_range: prBudget } : {}) }, setPrLoading, setPrOutput, setPrError)}
+                  onClick={() => callWorkflow("proposal", { project_type: prType, client_name: prClient, ...(prBudget.trim() ? { budget_range: prBudget } : {}), ...(prExtra.trim() ? { additional_context: prExtra.trim() } : {}) }, setPrLoading, setPrOutput, setPrError)}
                   label="Generate"
                 />
                 <ErrorMsg error={prError} />
@@ -514,10 +545,19 @@ export default function OutreachPage() {
                 <TextInput label="Prospect company" value={dpCompany} onChange={setDpCompany} placeholder="e.g. Stripe" />
                 <TextInput label="Industry" value={dpIndustry} onChange={setDpIndustry} placeholder="e.g. Fintech / Payments" />
                 <PillSelector label="Call goal" options={callGoals} value={dpGoal} onChange={setDpGoal} />
+                <TextareaInput
+                  label="Additional context"
+                  value={dpExtra}
+                  onChange={setDpExtra}
+                  placeholder="e.g. Write in French, focus on design services, keep it under 100 words..."
+                  maxLen={1000}
+                  optional
+                  hideCounter
+                />
                 <GenerateButton
                   loading={dpLoading}
                   disabled={!dpCompany.trim() || !dpIndustry.trim()}
-                  onClick={() => callWorkflow("discovery_prep", { prospect_company: dpCompany, industry: dpIndustry, call_goal: dpGoal }, setDpLoading, setDpOutput, setDpError)}
+                  onClick={() => callWorkflow("discovery_prep", { prospect_company: dpCompany, industry: dpIndustry, call_goal: dpGoal, ...(dpExtra.trim() ? { additional_context: dpExtra.trim() } : {}) }, setDpLoading, setDpOutput, setDpError)}
                   label="Generate"
                 />
                 <ErrorMsg error={dpError} />

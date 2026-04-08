@@ -7,6 +7,7 @@ export interface SopGeneratorInput {
   process_name: string;
   department: "operations" | "marketing" | "sales" | "finance";
   detail_level: "summary" | "standard" | "detailed";
+  additional_context?: string;
 }
 
 const detailGuidance: Record<SopGeneratorInput["detail_level"], string> = {
@@ -25,6 +26,10 @@ export async function runSopGenerator(
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
+  const extraInstructions = input.additional_context?.trim()
+    ? `\n\nAdditional user instructions (treat these as high-priority and follow them carefully):\n${input.additional_context.trim()}`
+    : "";
+
   const systemPrompt = `${brandPrefix}You are an expert operations consultant who writes clear, actionable standard operating procedures. Your SOPs are practical, easy to follow, and tailored to the business.
 
 Rules:
@@ -34,7 +39,7 @@ Rules:
 - Label each section clearly.
 - Separate each section with a horizontal rule (---).
 - Use numbered steps in the Step-by-Step Process section.
-- Output only the SOP. No preamble, no explanation.`;
+- Output only the SOP. No preamble, no explanation.${extraInstructions}`;
 
   const userPrompt = `Write a standard operating procedure for: ${input.process_name}`;
 

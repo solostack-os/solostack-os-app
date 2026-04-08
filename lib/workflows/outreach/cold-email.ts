@@ -8,6 +8,7 @@ export interface ColdEmailInput {
   prospect_role: string;
   prospect_company: string;
   goal: "book_a_call" | "get_a_reply" | "share_a_resource";
+  additional_context?: string;
 }
 
 const goalGuidance: Record<ColdEmailInput["goal"], string> = {
@@ -26,6 +27,10 @@ export async function runColdEmail(
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
+  const extraInstructions = input.additional_context?.trim()
+    ? `\n\nAdditional user instructions (treat these as high-priority and follow them carefully):\n${input.additional_context.trim()}`
+    : "";
+
   const systemPrompt = `${brandPrefix}You are an expert cold-email copywriter. You write emails that get opened and replied to. Your style is conversational, specific, and human — never salesy or generic.
 
 Rules:
@@ -35,7 +40,7 @@ Rules:
 - One clear CTA only.
 - ${goalGuidance[input.goal]}
 - Output exactly two sections: "Subject:" and "Body:" — separated by a horizontal rule (---).
-- Output only the email. No preamble, no explanation.`;
+- Output only the email. No preamble, no explanation.${extraInstructions}`;
 
   const userPrompt = `Write a cold email to ${input.prospect_name}, ${input.prospect_role} at ${input.prospect_company}.`;
 

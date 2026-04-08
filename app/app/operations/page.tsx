@@ -130,6 +130,8 @@ function TextareaInput({
   placeholder,
   maxLen = 500,
   rows = 3,
+  optional,
+  hideCounter,
 }: {
   label: string;
   value: string;
@@ -137,12 +139,15 @@ function TextareaInput({
   placeholder: string;
   maxLen?: number;
   rows?: number;
+  optional?: boolean;
+  hideCounter?: boolean;
 }) {
   const warnAt = Math.round(maxLen * 0.9);
   return (
     <div className="mb-5">
       <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>
         {label}
+        {optional && <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>}
       </label>
       <textarea
         value={value}
@@ -153,11 +158,16 @@ function TextareaInput({
         className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#f97316]/40 focus:shadow-[0_0_0_1px_rgba(249,115,22,0.3)] transition-shadow resize-none"
         style={{ backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary }}
       />
-      <div className="flex justify-end mt-1.5">
-        <span className="text-[11px] tabular-nums" style={{ color: value.length >= warnAt ? "#f87171" : textMuted }}>
-          {value.length}/{maxLen}
-        </span>
-      </div>
+      {hideCounter ? (
+        <p className="text-xs text-white/35 mt-1.5">Output language follows your input language</p>
+      ) : (
+        <div className="flex justify-between items-center mt-1.5 gap-3">
+          <span className="text-xs text-white/35">Output language follows your input language</span>
+          <span className="text-[11px] tabular-nums" style={{ color: value.length >= warnAt ? "#f87171" : textMuted }}>
+            {value.length}/{maxLen}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -304,6 +314,7 @@ export default function OperationsPage() {
   const [sopName, setSopName] = useState("");
   const [sopDept, setSopDept] = useState<"operations" | "marketing" | "sales" | "finance">("operations");
   const [sopDetail, setSopDetail] = useState<"summary" | "standard" | "detailed">("standard");
+  const [sopExtra, setSopExtra] = useState("");
   const [sopLoading, setSopLoading] = useState(false);
   const [sopOutput, setSopOutput] = useState<string | null>(null);
   const [sopError, setSopError] = useState<string | null>(null);
@@ -439,10 +450,19 @@ export default function OperationsPage() {
                 <TextInput label="Process name" value={sopName} onChange={setSopName} placeholder="e.g. Client onboarding" />
                 <PillSelector label="Department" options={departments} value={sopDept} onChange={setSopDept} />
                 <PillSelector label="Detail level" options={detailLevels} value={sopDetail} onChange={setSopDetail} />
+                <TextareaInput
+                  label="Additional context"
+                  value={sopExtra}
+                  onChange={setSopExtra}
+                  placeholder="e.g. Write in French, focus on design services, keep it under 100 words..."
+                  maxLen={1000}
+                  optional
+                  hideCounter
+                />
                 <GenerateButton
                   loading={sopLoading}
                   disabled={!sopName.trim()}
-                  onClick={() => callWorkflow("sop_generator", { process_name: sopName, department: sopDept, detail_level: sopDetail }, setSopLoading, setSopOutput, setSopError)}
+                  onClick={() => callWorkflow("sop_generator", { process_name: sopName, department: sopDept, detail_level: sopDetail, ...(sopExtra.trim() ? { additional_context: sopExtra.trim() } : {}) }, setSopLoading, setSopOutput, setSopError)}
                   label="Generate"
                 />
                 <ErrorMsg error={sopError} />

@@ -389,7 +389,8 @@ export default function MarketingPage() {
             )}
           </button>
         </div>
-        <div className="flex justify-end mt-1.5">
+        <div className="flex justify-between items-center mt-1.5 gap-3">
+          <span className="text-xs text-white/35">Output language follows your input language</span>
           <span className="text-[11px] tabular-nums" style={{ color: value.length >= warnAt ? "#f87171" : textMuted }}>
             {value.length}/{maxLen}
           </span>

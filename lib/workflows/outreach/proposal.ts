@@ -7,6 +7,7 @@ export interface ProposalInput {
   project_type: string;
   client_name: string;
   budget_range?: string;
+  additional_context?: string;
 }
 
 export async function runProposal(
@@ -19,6 +20,10 @@ export async function runProposal(
   const budgetLine = input.budget_range
     ? `The client's indicated budget range is: ${input.budget_range}. Tailor the Investment section accordingly.`
     : "No budget was provided. Use placeholder ranges based on typical market rates for this type of work.";
+
+  const extraInstructions = input.additional_context?.trim()
+    ? `\n\nAdditional user instructions (treat these as high-priority and follow them carefully):\n${input.additional_context.trim()}`
+    : "";
 
   const systemPrompt = `${brandPrefix}You are an expert at writing concise, persuasive project proposals. You communicate value clearly and make it easy for the client to say yes.
 
@@ -33,7 +38,7 @@ Rules:
 - Timeline should give realistic phase-based milestones.
 - Investment should present pricing clearly, with a brief justification of value.
 - Next Steps should make it dead simple to move forward (1-2 action items).
-- Output only the proposal. No preamble, no explanation.`;
+- Output only the proposal. No preamble, no explanation.${extraInstructions}`;
 
   const userPrompt = `Write a project proposal for ${input.client_name}. Project type: ${input.project_type}.`;
 
