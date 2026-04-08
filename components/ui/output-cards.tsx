@@ -20,6 +20,14 @@ interface OutputCardsProps {
    * When omitted, the Export PDF button is hidden.
    */
   contentType?: string;
+  /**
+   * Optional callback that wipes the parent tab's session-only output
+   * state. When provided, a small "Clear" button is rendered next to
+   * the "Output" header so users can manually reset the view without a
+   * page refresh. Does NOT touch the database — history stays intact
+   * in the Recents panel.
+   */
+  onClear?: () => void;
 }
 
 export function OutputCards({
@@ -29,6 +37,7 @@ export function OutputCards({
   accent,
   accentLight,
   contentType,
+  onClear,
 }: OutputCardsProps) {
   const [exportingIdx, setExportingIdx] = useState<number | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -78,12 +87,26 @@ export function OutputCards({
 
   return (
     <div className="space-y-4">
-      <span
-        className="text-[11px] font-medium uppercase tracking-wider px-0.5"
-        style={{ color: textMuted }}
-      >
-        Output
-      </span>
+      <div className="flex items-center justify-between px-0.5">
+        <span
+          className="text-[11px] font-medium uppercase tracking-wider"
+          style={{ color: textMuted }}
+        >
+          Output
+        </span>
+        {onClear && (
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-[11px] font-medium uppercase tracking-wider transition-colors cursor-pointer hover:text-white/70"
+            style={{ color: textMuted }}
+            aria-label="Clear output"
+            title="Clear current outputs (history stays in Recents)"
+          >
+            Clear
+          </button>
+        )}
+      </div>
       {cards.map((card, idx) => {
         const isCopied = copiedIdx === idx;
         const isExporting = exportingIdx === idx;

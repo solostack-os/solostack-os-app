@@ -475,7 +475,7 @@ export default function OperationsPage() {
             </GlowCard>
             {sopLoading && !sopStreaming && <LoadingSkeleton message="Generating your SOP..." />}
             <StreamingCard ref={sopStreamTextRef} visible={sopStreaming} accent={accent} accentLight={accentLight} />
-            {!sopLoading && !sopStreaming && <OutputCards cards={wrapOutput(sopOutput)} copiedIdx={sopCopied} onCopy={(t, i) => handleCopy(t, i, setSopCopied)} accent={accent} accentLight={accentLight} contentType="sop_generator" />}
+            {!sopLoading && !sopStreaming && <OutputCards cards={wrapOutput(sopOutput)} copiedIdx={sopCopied} onCopy={(t, i) => handleCopy(t, i, setSopCopied)} accent={accent} accentLight={accentLight} contentType="sop_generator" onClear={() => { setSopOutput(null); setSopError(null); }} />}
           </>
         )}
 
@@ -509,7 +509,7 @@ export default function OperationsPage() {
             </GlowCard>
             {wpLoading && !wpStreaming && <LoadingSkeleton message="Planning your week..." />}
             <StreamingCard ref={wpStreamTextRef} visible={wpStreaming} accent={accent} accentLight={accentLight} />
-            {!wpLoading && !wpStreaming && <OutputCards cards={wrapOutput(wpOutput)} copiedIdx={wpCopied} onCopy={(t, i) => handleCopy(t, i, setWpCopied)} accent={accent} accentLight={accentLight} contentType="weekly_plan" />}
+            {!wpLoading && !wpStreaming && <OutputCards cards={wrapOutput(wpOutput)} copiedIdx={wpCopied} onCopy={(t, i) => handleCopy(t, i, setWpCopied)} accent={accent} accentLight={accentLight} contentType="weekly_plan" onClear={() => { setWpOutput(null); setWpError(null); }} />}
           </>
         )}
 
@@ -544,7 +544,7 @@ export default function OperationsPage() {
             </GlowCard>
             {obLoading && !obStreaming && <LoadingSkeleton message="Creating onboarding doc..." />}
             <StreamingCard ref={obStreamTextRef} visible={obStreaming} accent={accent} accentLight={accentLight} />
-            {!obLoading && !obStreaming && <OutputCards cards={wrapOutput(obOutput)} copiedIdx={obCopied} onCopy={(t, i) => handleCopy(t, i, setObCopied)} accent={accent} accentLight={accentLight} contentType="onboarding_doc" />}
+            {!obLoading && !obStreaming && <OutputCards cards={wrapOutput(obOutput)} copiedIdx={obCopied} onCopy={(t, i) => handleCopy(t, i, setObCopied)} accent={accent} accentLight={accentLight} contentType="onboarding_doc" onClear={() => { setObOutput(null); setObError(null); }} />}
           </>
         )}
 
@@ -579,7 +579,7 @@ export default function OperationsPage() {
             </GlowCard>
             {pnLoading && !pnStreaming && <LoadingSkeleton message="Structuring your notes..." />}
             <StreamingCard ref={pnStreamTextRef} visible={pnStreaming} accent={accent} accentLight={accentLight} />
-            {!pnLoading && !pnStreaming && <OutputCards cards={wrapOutput(pnOutput)} copiedIdx={pnCopied} onCopy={(t, i) => handleCopy(t, i, setPnCopied)} accent={accent} accentLight={accentLight} contentType="process_notes" />}
+            {!pnLoading && !pnStreaming && <OutputCards cards={wrapOutput(pnOutput)} copiedIdx={pnCopied} onCopy={(t, i) => handleCopy(t, i, setPnCopied)} accent={accent} accentLight={accentLight} contentType="process_notes" onClear={() => { setPnOutput(null); setPnError(null); }} />}
           </>
         )}
       </div>

@@ -9,16 +9,24 @@ const client = new Anthropic({
 export const CLAUDE_MODEL = "claude-sonnet-4-6";
 
 /**
- * Universal language rule appended to every system prompt. The platform
- * runs in English, so English is the default — we only switch when the
- * user's own input (topic, notes, etc.) is clearly in another language.
+ * Universal language rule appended to every system prompt.
  *
- * The topic field is the only language signal: no Accept-Language header
- * sniffing, no workspace/description heuristics, no locale detection. If
- * the topic parses as English or we can't tell, the model stays in
- * English.
+ * The bug this rule guards against: workspace brand context (company
+ * description, brand voice, etc.) gets prepended to the system prompt
+ * via buildContextPacket. If that context is in Romanian but the user
+ * types an English topic, Claude can pick up the Romanian language
+ * signal from the system prompt and respond in Romanian. The fix is to
+ * explicitly forbid using the system prompt for language detection —
+ * the user message is the ONLY signal that matters.
+ *
+ * English is the platform default. We only switch languages when the
+ * user message itself is clearly in another language.
  */
-const LANGUAGE_RULE = `IMPORTANT — Respond in the same language as the user's input. If the input is in English or no clear language is detected, respond in English.`;
+const LANGUAGE_RULE = `IMPORTANT — Output language detection rules:
+1. Determine your response language ONLY from the user's message (the message with role "user"). NEVER from this system prompt.
+2. The system prompt above may contain brand context, company descriptions, or brand voice notes written in any language (Romanian, French, English, etc.). IGNORE all of that text when deciding what language to respond in. The brand context exists only to inform tone, voice, and style — never the output language.
+3. Look at the actual text the user typed in their message (the topic, notes, or content fields). If that text is clearly in English, respond in English. If you cannot tell what language it's in, default to English.
+4. Only switch to a non-English language when the user's own typed text is unambiguously in that language. For example: a Romanian topic → Romanian response; an English topic → English response, even if the brand description is in Romanian.`;
 
 /**
  * Non-streaming call — used by topic_suggestions, which parses the result as

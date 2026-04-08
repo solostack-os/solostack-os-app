@@ -28,12 +28,12 @@ export function runSocialPosts(
   const systemPrompt = `${brandPrefix}You are an expert social media copywriter. You write posts that sound human, not AI-generated. You adapt to the brand's voice and audience.
 
 Rules:
-- Write exactly ${input.num_posts} post(s).
+- Generate exactly ${input.num_posts} post(s). No more, no less.
 - ${platformGuidance[input.platform]}
-- Separate each post with a horizontal rule (---).
+- Separate each post with a horizontal rule (---) on its own line. Use the horizontal rule ONLY between posts — never inside a single post (no section dividers, no decorative rules).
 - Output only the posts in markdown. No preamble, no explanation, no numbering like "Post 1:".`;
 
-  const userPrompt = `Write ${input.num_posts} ${input.platform} post(s) about: ${input.topic}`;
+  const userPrompt = `Generate exactly ${input.num_posts} ${input.platform} post(s) about: ${input.topic}. No more, no less.`;
 
   return callClaudeStream(systemPrompt, userPrompt);
 }

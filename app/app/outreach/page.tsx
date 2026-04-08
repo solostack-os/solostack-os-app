@@ -472,7 +472,7 @@ export default function OutreachPage() {
             </GlowCard>
             {ceLoading && !ceStreaming && <LoadingSkeleton message="Writing your cold email..." />}
             <StreamingCard ref={ceStreamTextRef} visible={ceStreaming} accent={accent} accentLight={accentLight} />
-            {!ceLoading && !ceStreaming && <OutputCards cards={splitCards(ceOutput)} copiedIdx={ceCopied} onCopy={(t, i) => handleCopy(t, i, setCeCopied)} accent={accent} accentLight={accentLight} contentType="cold_email" />}
+            {!ceLoading && !ceStreaming && <OutputCards cards={splitCards(ceOutput)} copiedIdx={ceCopied} onCopy={(t, i) => handleCopy(t, i, setCeCopied)} accent={accent} accentLight={accentLight} contentType="cold_email" onClear={() => { setCeOutput(null); setCeError(null); }} />}
           </>
         )}
 
@@ -505,7 +505,7 @@ export default function OutreachPage() {
             </GlowCard>
             {fuLoading && !fuStreaming && <LoadingSkeleton message="Writing follow-up sequence..." />}
             <StreamingCard ref={fuStreamTextRef} visible={fuStreaming} accent={accent} accentLight={accentLight} />
-            {!fuLoading && !fuStreaming && <OutputCards cards={splitCards(fuOutput)} copiedIdx={fuCopied} onCopy={(t, i) => handleCopy(t, i, setFuCopied)} accent={accent} accentLight={accentLight} contentType="follow_up" />}
+            {!fuLoading && !fuStreaming && <OutputCards cards={splitCards(fuOutput)} copiedIdx={fuCopied} onCopy={(t, i) => handleCopy(t, i, setFuCopied)} accent={accent} accentLight={accentLight} contentType="follow_up" onClear={() => { setFuOutput(null); setFuError(null); }} />}
           </>
         )}
 
@@ -542,7 +542,7 @@ export default function OutreachPage() {
             </GlowCard>
             {prLoading && !prStreaming && <LoadingSkeleton message="Writing your proposal..." />}
             <StreamingCard ref={prStreamTextRef} visible={prStreaming} accent={accent} accentLight={accentLight} />
-            {!prLoading && !prStreaming && <OutputCards cards={splitCards(prOutput)} copiedIdx={prCopied} onCopy={(t, i) => handleCopy(t, i, setPrCopied)} accent={accent} accentLight={accentLight} contentType="proposal" />}
+            {!prLoading && !prStreaming && <OutputCards cards={splitCards(prOutput)} copiedIdx={prCopied} onCopy={(t, i) => handleCopy(t, i, setPrCopied)} accent={accent} accentLight={accentLight} contentType="proposal" onClear={() => { setPrOutput(null); setPrError(null); }} />}
           </>
         )}
 
@@ -579,7 +579,7 @@ export default function OutreachPage() {
             </GlowCard>
             {dpLoading && !dpStreaming && <LoadingSkeleton message="Preparing your call notes..." />}
             <StreamingCard ref={dpStreamTextRef} visible={dpStreaming} accent={accent} accentLight={accentLight} />
-            {!dpLoading && !dpStreaming && <OutputCards cards={splitCards(dpOutput)} copiedIdx={dpCopied} onCopy={(t, i) => handleCopy(t, i, setDpCopied)} accent={accent} accentLight={accentLight} contentType="discovery_prep" />}
+            {!dpLoading && !dpStreaming && <OutputCards cards={splitCards(dpOutput)} copiedIdx={dpCopied} onCopy={(t, i) => handleCopy(t, i, setDpCopied)} accent={accent} accentLight={accentLight} contentType="discovery_prep" onClear={() => { setDpOutput(null); setDpError(null); }} />}
           </>
         )}
       </div>

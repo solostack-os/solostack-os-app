@@ -226,7 +226,17 @@ export default function MarketingPage() {
   const [spNumPosts, setSpNumPosts] = useState<number>(1);
   const [spLoading, setSpLoading] = useState(false);
   const [spStreaming, setSpStreaming] = useState(false);
-  const [spOutput, setSpOutput] = useState<string | null>(null);
+  // Output is tracked per platform so switching between Instagram /
+  // LinkedIn / Facebook preserves each one independently. Session-only
+  // React state — nothing persists past a page refresh.
+  const [spOutputs, setSpOutputs] = useState<Record<"instagram" | "linkedin" | "facebook", string | null>>({
+    instagram: null,
+    linkedin: null,
+    facebook: null,
+  });
+  // Derived: the output for the currently-selected platform. Used by
+  // the render path below exactly like the old `spOutput` state was.
+  const spOutput = spOutputs[spPlatform];
   const [spError, setSpError] = useState<string | null>(null);
   const [spCopied, setSpCopied] = useState<number | null>(null);
   const spStreamTextRef = useRef<HTMLDivElement | null>(null);
@@ -405,7 +415,14 @@ export default function MarketingPage() {
   /* ─── Social Posts handlers ─── */
   function handleSpGenerate() {
     if (!spTopic.trim()) return;
-    callWorkflow("social_posts", { platform: spPlatform, topic: spTopic, num_posts: spNumPosts }, setSpLoading, setSpOutput, setSpError, setSpStreaming, spStreamTextRef);
+    // Capture the platform at click time so if the user switches
+    // platforms mid-stream the completed output still lands on the
+    // platform they actually generated for.
+    const platform = spPlatform;
+    const setOutputForPlatform = (value: string | null) => {
+      setSpOutputs((prev) => ({ ...prev, [platform]: value }));
+    };
+    callWorkflow("social_posts", { platform, topic: spTopic, num_posts: spNumPosts }, setSpLoading, setOutputForPlatform, setSpError, setSpStreaming, spStreamTextRef);
   }
 
   function handleSpTopicChange(value: string) {
@@ -565,7 +582,7 @@ export default function MarketingPage() {
             </GlowCard>
             {spLoading && !spStreaming && <LoadingSkeleton message="Generating your posts..." />}
             <StreamingCard ref={spStreamTextRef} visible={spStreaming} accent={accent} accentLight={accentLight} />
-            {!spLoading && !spStreaming && <OutputCards cards={splitCards(spOutput)} copiedIdx={spCopied} onCopy={(t, i) => handleCopy(t, i, setSpCopied)} accent={accent} accentLight={accentLight} contentType="social_posts" />}
+            {!spLoading && !spStreaming && <OutputCards cards={splitCards(spOutput)} copiedIdx={spCopied} onCopy={(t, i) => handleCopy(t, i, setSpCopied)} accent={accent} accentLight={accentLight} contentType="social_posts" onClear={() => { setSpOutputs({ instagram: null, linkedin: null, facebook: null }); setSpError(null); }} />}
           </>
         )}
 
@@ -593,7 +610,7 @@ export default function MarketingPage() {
             </GlowCard>
             {acLoading && !acStreaming && <LoadingSkeleton message="Generating ad variations..." />}
             <StreamingCard ref={acStreamTextRef} visible={acStreaming} accent={accent} accentLight={accentLight} />
-            {!acLoading && !acStreaming && <OutputCards cards={splitCards(acOutput)} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} accent={accent} accentLight={accentLight} contentType="ad_copy" />}
+            {!acLoading && !acStreaming && <OutputCards cards={splitCards(acOutput)} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} accent={accent} accentLight={accentLight} contentType="ad_copy" onClear={() => { setAcOutput(null); setAcError(null); }} />}
           </>
         )}
 
@@ -621,7 +638,7 @@ export default function MarketingPage() {
             </GlowCard>
             {lpLoading && !lpStreaming && <LoadingSkeleton message="Generating landing page copy..." />}
             <StreamingCard ref={lpStreamTextRef} visible={lpStreaming} accent={accent} accentLight={accentLight} />
-            {!lpLoading && !lpStreaming && <OutputCards cards={splitCards(lpOutput)} copiedIdx={lpCopied} onCopy={(t, i) => handleCopy(t, i, setLpCopied)} accent={accent} accentLight={accentLight} contentType="landing_page" />}
+            {!lpLoading && !lpStreaming && <OutputCards cards={splitCards(lpOutput)} copiedIdx={lpCopied} onCopy={(t, i) => handleCopy(t, i, setLpCopied)} accent={accent} accentLight={accentLight} contentType="landing_page" onClear={() => { setLpOutput(null); setLpError(null); }} />}
           </>
         )}
 
@@ -648,7 +665,7 @@ export default function MarketingPage() {
             </GlowCard>
             {ecLoading && !ecStreaming && <LoadingSkeleton message="Generating your email..." />}
             <StreamingCard ref={ecStreamTextRef} visible={ecStreaming} accent={accent} accentLight={accentLight} />
-            {!ecLoading && !ecStreaming && <OutputCards cards={splitCards(ecOutput)} copiedIdx={ecCopied} onCopy={(t, i) => handleCopy(t, i, setEcCopied)} accent={accent} accentLight={accentLight} contentType="email_campaign" />}
+            {!ecLoading && !ecStreaming && <OutputCards cards={splitCards(ecOutput)} copiedIdx={ecCopied} onCopy={(t, i) => handleCopy(t, i, setEcCopied)} accent={accent} accentLight={accentLight} contentType="email_campaign" onClear={() => { setEcOutput(null); setEcError(null); }} />}
           </>
         )}
 
@@ -675,7 +692,7 @@ export default function MarketingPage() {
             </GlowCard>
             {cbLoading && !cbStreaming && <LoadingSkeleton message="Generating your brief..." />}
             <StreamingCard ref={cbStreamTextRef} visible={cbStreaming} accent={accent} accentLight={accentLight} />
-            {!cbLoading && !cbStreaming && <OutputCards cards={splitCards(cbOutput)} copiedIdx={cbCopied} onCopy={(t, i) => handleCopy(t, i, setCbCopied)} accent={accent} accentLight={accentLight} contentType="content_brief" />}
+            {!cbLoading && !cbStreaming && <OutputCards cards={splitCards(cbOutput)} copiedIdx={cbCopied} onCopy={(t, i) => handleCopy(t, i, setCbCopied)} accent={accent} accentLight={accentLight} contentType="content_brief" onClear={() => { setCbOutput(null); setCbError(null); }} />}
           </>
         )}
       </div>
