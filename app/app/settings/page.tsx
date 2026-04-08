@@ -55,6 +55,13 @@ export default function SettingsPage() {
   const [brandPrimary, setBrandPrimary] = useState("#6c8cff");
   const [brandSecondary, setBrandSecondary] = useState("#22c55e");
   const [logoUrl, setLogoUrl] = useState("");
+  const [legalName, setLegalName] = useState("");
+  const [cui, setCui] = useState("");
+  const [registrationNumber, setRegistrationNumber] = useState("");
+  const [companyAddress, setCompanyAddress] = useState("");
+  const [companyPhone, setCompanyPhone] = useState("");
+  const [companyEmail, setCompanyEmail] = useState("");
+  const [includeCompanyDetails, setIncludeCompanyDetails] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -73,10 +80,12 @@ export default function SettingsPage() {
           return;
         }
 
-        // Try fetching with the newest brand-context columns first, then fall
-        // back to the older profile columns, then to id only. This mirrors the
-        // tiered fallback used by the runs API for forward compatibility with
-        // migrations that haven't been applied yet.
+        // Tiered fallback (newest → oldest migrations) so the page keeps
+        // working even if a migration hasn't been applied yet.
+        //   tier 1: export details + brand context + profile
+        //   tier 2: brand context + profile (pre export-details migration)
+        //   tier 3: profile only (pre brand-context migration)
+        //   tier 4: id only (pre workspace-profile migration)
         type WorkspaceRow = {
           id: string;
           company_name?: string | null;
@@ -88,25 +97,42 @@ export default function SettingsPage() {
           logo_url?: string | null;
           brand_voice?: string | null;
           use_brand_context?: boolean | null;
+          legal_name?: string | null;
+          cui?: string | null;
+          registration_number?: string | null;
+          company_address?: string | null;
+          company_phone?: string | null;
+          company_email?: string | null;
+          include_company_details?: boolean | null;
         };
 
         let workspace: WorkspaceRow | null = null;
 
-        const { data: wsWithBrand } = await supabase
+        const { data: wsWithExport } = await supabase
           .from("workspaces")
-          .select("id, company_name, website, industry, description, brand_color_primary, brand_color_secondary, logo_url, brand_voice, use_brand_context")
+          .select("id, company_name, website, industry, description, brand_color_primary, brand_color_secondary, logo_url, brand_voice, use_brand_context, legal_name, cui, registration_number, company_address, company_phone, company_email, include_company_details")
           .eq("owner_user_id", user.id)
           .single();
 
-        if (wsWithBrand) {
-          workspace = wsWithBrand;
+        if (wsWithExport) {
+          workspace = wsWithExport;
         } else {
-          const { data: wsProfile } = await supabase
+          const { data: wsWithBrand } = await supabase
             .from("workspaces")
-            .select("id, company_name, website, industry, description, brand_color_primary, brand_color_secondary, logo_url")
+            .select("id, company_name, website, industry, description, brand_color_primary, brand_color_secondary, logo_url, brand_voice, use_brand_context")
             .eq("owner_user_id", user.id)
             .single();
-          if (wsProfile) workspace = wsProfile;
+
+          if (wsWithBrand) {
+            workspace = wsWithBrand;
+          } else {
+            const { data: wsProfile } = await supabase
+              .from("workspaces")
+              .select("id, company_name, website, industry, description, brand_color_primary, brand_color_secondary, logo_url")
+              .eq("owner_user_id", user.id)
+              .single();
+            if (wsProfile) workspace = wsProfile;
+          }
         }
 
         if (!workspace) {
@@ -150,6 +176,13 @@ export default function SettingsPage() {
         setBrandPrimary(workspace.brand_color_primary ?? "#6c8cff");
         setBrandSecondary(workspace.brand_color_secondary ?? "#22c55e");
         setLogoUrl(workspace.logo_url ?? "");
+        setLegalName(workspace.legal_name ?? "");
+        setCui(workspace.cui ?? "");
+        setRegistrationNumber(workspace.registration_number ?? "");
+        setCompanyAddress(workspace.company_address ?? "");
+        setCompanyPhone(workspace.company_phone ?? "");
+        setCompanyEmail(workspace.company_email ?? "");
+        setIncludeCompanyDetails(workspace.include_company_details ?? true);
 
         const { data: sub } = await supabase
           .from("subscriptions")
@@ -205,37 +238,52 @@ export default function SettingsPage() {
     setSaved(false);
 
     const supabase = createClient();
-    // Try the full update (including brand context fields) first. If the
-    // columns don't exist yet, retry without them so the rest of the profile
-    // still saves cleanly.
-    const { error: fullErr } = await supabase
+    // Tiered save to mirror the tiered load — if a migration hasn't been
+    // applied yet, drop that tier's columns and retry, so the rest of the
+    // profile still persists cleanly.
+    const baseProfile = {
+      company_name: companyName || null,
+      website: website || null,
+      industry: industry || null,
+      description: description || null,
+      brand_color_primary: brandPrimary || "#6c8cff",
+      brand_color_secondary: brandSecondary || "#22c55e",
+      logo_url: logoUrl || null,
+    };
+    const brandContextFields = {
+      brand_voice: brandVoice || null,
+      use_brand_context: useBrandContext,
+    };
+    const exportDetailsFields = {
+      legal_name: legalName || null,
+      cui: cui || null,
+      registration_number: registrationNumber || null,
+      company_address: companyAddress || null,
+      company_phone: companyPhone || null,
+      company_email: companyEmail || null,
+      include_company_details: includeCompanyDetails,
+    };
+
+    // Tier 1: everything
+    const { error: tier1Err } = await supabase
       .from("workspaces")
-      .update({
-        company_name: companyName || null,
-        website: website || null,
-        industry: industry || null,
-        description: description || null,
-        brand_voice: brandVoice || null,
-        use_brand_context: useBrandContext,
-        brand_color_primary: brandPrimary || "#6c8cff",
-        brand_color_secondary: brandSecondary || "#22c55e",
-        logo_url: logoUrl || null,
-      })
+      .update({ ...baseProfile, ...brandContextFields, ...exportDetailsFields })
       .eq("id", workspaceId);
 
-    if (fullErr) {
-      await supabase
+    if (tier1Err) {
+      // Tier 2: drop export details
+      const { error: tier2Err } = await supabase
         .from("workspaces")
-        .update({
-          company_name: companyName || null,
-          website: website || null,
-          industry: industry || null,
-          description: description || null,
-          brand_color_primary: brandPrimary || "#6c8cff",
-          brand_color_secondary: brandSecondary || "#22c55e",
-          logo_url: logoUrl || null,
-        })
+        .update({ ...baseProfile, ...brandContextFields })
         .eq("id", workspaceId);
+
+      if (tier2Err) {
+        // Tier 3: base profile only
+        await supabase
+          .from("workspaces")
+          .update(baseProfile)
+          .eq("id", workspaceId);
+      }
     }
 
     setSaving(false);
@@ -629,6 +677,143 @@ export default function SettingsPage() {
                     </p>
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* ─── Export Details ─── */}
+            <div
+              className="mb-6 pt-6 border-t"
+              style={{ borderColor: border }}
+            >
+              <h3 className="text-sm font-semibold uppercase tracking-wider mb-1" style={{ color: textMuted }}>
+                Export Details
+              </h3>
+              <p className="text-xs mb-5" style={{ color: textMuted }}>
+                Shown on PDF exports like invoices and proposals.
+              </p>
+
+              {/* Legal name */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Legal name</label>
+                <input
+                  type="text"
+                  value={legalName}
+                  onChange={(e) => setLegalName(e.target.value)}
+                  placeholder='e.g. S.C. Advanguard Media S.R.L.'
+                  className={inputClass}
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* CUI */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>CUI</label>
+                <input
+                  type="text"
+                  value={cui}
+                  onChange={(e) => setCui(e.target.value)}
+                  placeholder="e.g. 50500118"
+                  className={inputClass}
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* Registration number */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Registration number</label>
+                <input
+                  type="text"
+                  value={registrationNumber}
+                  onChange={(e) => setRegistrationNumber(e.target.value)}
+                  placeholder="e.g. J2024019811002"
+                  className={inputClass}
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* Address (optional) */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>
+                  Address
+                  <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={companyAddress}
+                  onChange={(e) => setCompanyAddress(e.target.value)}
+                  placeholder="e.g. Str. Principală 1, Bucharest"
+                  className={inputClass}
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* Phone (optional) */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>
+                  Phone
+                  <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>
+                </label>
+                <input
+                  type="tel"
+                  value={companyPhone}
+                  onChange={(e) => setCompanyPhone(e.target.value)}
+                  placeholder="e.g. +40 700 000 000"
+                  className={inputClass}
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* Email (optional) */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>
+                  Email
+                  <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>
+                </label>
+                <input
+                  type="email"
+                  value={companyEmail}
+                  onChange={(e) => setCompanyEmail(e.target.value)}
+                  placeholder="e.g. hello@advanguard.ro"
+                  className={inputClass}
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* Include company details toggle */}
+              <div
+                className="flex items-start justify-between gap-4 rounded-lg px-4 py-3 border"
+                style={{ backgroundColor: bg, borderColor: border }}
+              >
+                <div className="min-w-0">
+                  <label
+                    htmlFor="include-company-details"
+                    className="block text-sm font-medium cursor-pointer"
+                    style={{ color: textPrimary }}
+                  >
+                    Include company details in PDF exports
+                  </label>
+                  <p className="text-xs mt-0.5" style={{ color: textMuted }}>
+                    When enabled, the fields above are rendered into exported documents.
+                  </p>
+                </div>
+                <button
+                  id="include-company-details"
+                  type="button"
+                  role="switch"
+                  aria-checked={includeCompanyDetails}
+                  onClick={() => setIncludeCompanyDetails((v) => !v)}
+                  className="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#6c8cff]/50 cursor-pointer mt-0.5"
+                  style={{
+                    backgroundColor: includeCompanyDetails ? accent : "rgba(255,255,255,0.1)",
+                  }}
+                >
+                  <span
+                    className="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform"
+                    style={{
+                      transform: includeCompanyDetails ? "translateX(22px)" : "translateX(2px)",
+                    }}
+                  />
+                </button>
               </div>
             </div>
 
