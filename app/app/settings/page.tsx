@@ -536,7 +536,7 @@ export default function SettingsPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
                 placeholder="Describe what you do, who you serve, and your brand voice. This is used by AI to personalize all outputs."
-                className={`${inputClass} resize-none`}
+                className={`${inputClass} resize-none custom-scrollbar`}
                 style={inputStyle}
               />
             </div>
@@ -549,7 +549,7 @@ export default function SettingsPage() {
                 onChange={(e) => setBrandVoice(e.target.value)}
                 rows={3}
                 placeholder="Describe your tone of voice. e.g. Warm but direct. Confident, never pushy. Use plain language — avoid jargon."
-                className={`${inputClass} resize-none`}
+                className={`${inputClass} resize-none custom-scrollbar`}
                 style={inputStyle}
               />
             </div>
@@ -699,20 +699,20 @@ export default function SettingsPage() {
                   type="text"
                   value={legalName}
                   onChange={(e) => setLegalName(e.target.value)}
-                  placeholder='e.g. S.C. Advanguard Media S.R.L.'
+                  placeholder="e.g. Your Company "
                   className={inputClass}
                   style={inputStyle}
                 />
               </div>
 
-              {/* CUI */}
+              {/* VAT / TIN / CUI Number */}
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>CUI</label>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>VAT/TIN/CUI Number</label>
                 <input
                   type="text"
                   value={cui}
                   onChange={(e) => setCui(e.target.value)}
-                  placeholder="e.g. 50500118"
+                  placeholder="e.g. RO12345678"
                   className={inputClass}
                   style={inputStyle}
                 />
@@ -725,7 +725,7 @@ export default function SettingsPage() {
                   type="text"
                   value={registrationNumber}
                   onChange={(e) => setRegistrationNumber(e.target.value)}
-                  placeholder="e.g. J2024019811002"
+                  placeholder="e.g. J40/1234/2024"
                   className={inputClass}
                   style={inputStyle}
                 />
@@ -741,7 +741,7 @@ export default function SettingsPage() {
                   type="text"
                   value={companyAddress}
                   onChange={(e) => setCompanyAddress(e.target.value)}
-                  placeholder="e.g. Str. Principală 1, Bucharest"
+                  placeholder="e.g. Fifth Avenue Street"
                   className={inputClass}
                   style={inputStyle}
                 />
@@ -773,7 +773,7 @@ export default function SettingsPage() {
                   type="email"
                   value={companyEmail}
                   onChange={(e) => setCompanyEmail(e.target.value)}
-                  placeholder="e.g. hello@advanguard.ro"
+                  placeholder="e.g. office@yourcompany.com"
                   className={inputClass}
                   style={inputStyle}
                 />

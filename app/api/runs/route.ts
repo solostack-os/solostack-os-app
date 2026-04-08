@@ -105,11 +105,12 @@ export async function POST(request: Request) {
     input_json: Record<string, unknown>;
   };
 
-  // 3a. Helper workflows bypass usage gate and run tracking
+  // 3a. Helper workflows bypass usage gate and run tracking.
+  // Topic suggestions are intentionally brand-agnostic — they don't receive
+  // the workspace context so they can't accidentally personalise the ideas.
   if (module_key === "marketing" && workflow_key === "topic_suggestions") {
     try {
       const result = await runTopicSuggestions(
-        context ?? {},
         input_json as unknown as TopicSuggestionsInput
       );
       return NextResponse.json({ output_markdown: result.text });

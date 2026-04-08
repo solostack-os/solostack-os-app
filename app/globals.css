@@ -16,3 +16,31 @@ body {
   background-color: #0a0f1e;
   color: #f1f5f9;
 }
+
+/*
+ * Custom scrollbar — matches the Recents panel scrollbar in the sidebar so
+ * every scrollable surface across the app (textareas, lists, modals,
+ * panels) shares the same thin, brand-tinted treatment. Apply by adding
+ * `className="custom-scrollbar"` (merged with any other classes).
+ */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(108, 140, 255, 0.3) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(108, 140, 255, 0.3);
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(108, 140, 255, 0.5);
+}
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}

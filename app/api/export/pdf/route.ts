@@ -6,7 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 import {
   ExportTemplate,
   type ExportWorkspaceData,
+  type HeaderVariant,
 } from "@/components/pdf/export-template";
+import { getLogoBrightness } from "@/lib/pdf/logo-brightness";
 
 // React-PDF needs Node APIs (Buffer, stream, native modules), so this route
 // must run on the Node runtime rather than edge.
@@ -100,7 +102,15 @@ export async function POST(request: Request) {
     include_company_details: workspaceRow?.include_company_details ?? true,
   };
 
-  // 4. Render the PDF to a buffer. We use React.createElement rather than
+  // 4. Pick the header variant based on the logo's average brightness:
+  //    a light logo reads best on a dark header and vice versa. If we can't
+  //    analyse the logo (no URL, fetch failed, unsupported format), fall
+  //    through to the default "dark" header.
+  const brightness = await getLogoBrightness(workspace.logo_url);
+  const headerVariant: HeaderVariant =
+    brightness !== null && brightness > 128 ? "dark" : brightness !== null ? "light" : "dark";
+
+  // 5. Render the PDF to a buffer. We use React.createElement rather than
   //    JSX so this file can stay as route.ts (matches the convention used by
   //    every other API route in this app). The cast is needed because TS
   //    can't narrow the return type of a function component down to the
@@ -111,6 +121,7 @@ export async function POST(request: Request) {
       content,
       contentType,
       workspace,
+      headerVariant,
     }) as unknown as React.ReactElement<DocumentProps>;
     pdfBuffer = await renderToBuffer(element);
   } catch (err) {

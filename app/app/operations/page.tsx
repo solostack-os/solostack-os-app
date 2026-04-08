@@ -157,7 +157,7 @@ function TextareaInput({
         maxLength={maxLen}
         rows={rows}
         placeholder={placeholder}
-        className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#f97316]/40 focus:shadow-[0_0_0_1px_rgba(249,115,22,0.3)] transition-shadow resize-none"
+        className="w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#f97316]/40 focus:shadow-[0_0_0_1px_rgba(249,115,22,0.3)] transition-shadow resize-none custom-scrollbar"
         style={{ backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary }}
       />
       {hideCounter ? (

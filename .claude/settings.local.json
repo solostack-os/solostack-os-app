@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/drago/.claude/plugins/marketplaces/ui-ux-pro-max-skill/.claude/skills/ui-ux-pro-max/**)",
+      "Bash(python scripts/search.py \"SaaS dashboard dark mode premium minimal\" --design-system -p \"SoloStack OS\")",
+      "WebFetch(domain:app.mysolostack.eu)",
+      "Bash(npx next:*)",
+      "Bash(npx tsc:*)",
+      "Bash(python scripts/search.py \"SaaS AI tool dashboard dark futuristic premium\" --design-system -p \"SoloStack OS\")",
+      "Bash(curl -s http://localhost:3000/app/dashboard)",
+      "Bash(node -e \"try { require.resolve\\(''framer-motion''\\); console.log\\(''framer-motion: OK''\\); } catch\\(e\\) { console.log\\(''framer-motion: MISSING''\\); }\")",
+      "Bash(grep '\"\"next\"\"' package.json)",
+      "Bash(node -e \":*)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl -s -L http://localhost:3000/app/dashboard)",
+      "Bash(grep -E '\"\"\\(three|next-themes|@types/three\\)\"\"' package.json)",
+      "Bash(npm install:*)",
+      "Bash(ls:*)",
+      "Skill(commit-commands:commit)"
+    ]
+  }
+}

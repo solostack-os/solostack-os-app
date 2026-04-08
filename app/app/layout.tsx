@@ -125,6 +125,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [modalRun, setModalRun] = useState<SidebarRun | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [recentsOpen, setRecentsOpen] = useState(true);
+  const [exportingRunId, setExportingRunId] = useState<string | null>(null);
 
   const loadRuns = useCallback(async () => {
     const supabase = createClient();
@@ -172,6 +173,56 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     await fetch(`/api/runs/${runId}`, { method: "DELETE" });
     if (modalRun?.id === runId) setModalRun(null);
     loadRuns();
+  }
+
+  /**
+   * Re-exports a past run's output as a PDF on demand. The output text is
+   * already loaded in memory (via the sidebar's loadRuns query) so we just
+   * POST it to the existing PDF endpoint — no extra fetch round-trip, no
+   * server-side storage of generated PDFs.
+   */
+  async function handleExportRun(e: React.MouseEvent, run: SidebarRun) {
+    e.stopPropagation();
+    const content = run.outputs?.[0]?.output_markdown ?? "";
+    if (!content) return;
+
+    setExportingRunId(run.id);
+    try {
+      const res = await fetch("/api/export/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, content_type: run.workflow_key }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || `Export failed (${res.status})`);
+      }
+
+      // Reuse the server's slugged filename when available.
+      const disposition = res.headers.get("content-disposition") || "";
+      const match = /filename="?([^"]+)"?/i.exec(disposition);
+      const filename = match?.[1] || `${run.workflow_key}.pdf`;
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      // Sidebar rows are too cramped for a permanent error slot. Surface
+      // the failure via alert() so the user gets unambiguous feedback;
+      // if they dismiss and retry, state is already reset in `finally`.
+      const message = err instanceof Error ? err.message : "Export failed";
+      // eslint-disable-next-line no-alert
+      window.alert(`PDF export failed: ${message}`);
+    } finally {
+      setExportingRunId(null);
+    }
   }
 
   const handleCopyModalPost = useCallback(async (text: string, idx: number) => {
@@ -318,14 +369,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </button>
             )}
           </div>
-          <style>{`
-            .recents-scroll::-webkit-scrollbar { width: 5px; }
-            .recents-scroll::-webkit-scrollbar-track { background: transparent; }
-            .recents-scroll::-webkit-scrollbar-thumb { background: rgba(108,140,255,0.3); border-radius: 3px; }
-            .recents-scroll::-webkit-scrollbar-thumb:hover { background: rgba(108,140,255,0.5); }
-          `}</style>
           {recentsOpen && (
-            <div className="recents-scroll overflow-y-auto space-y-0.5 flex-1 pb-4">
+            <div className="custom-scrollbar overflow-y-auto space-y-0.5 flex-1 pb-4">
               {recentRuns.length === 0 && (
                 <p className="px-4 text-sm" style={{ color: textMuted }}>
                   No credits yet
@@ -347,6 +392,30 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <span className="text-sm truncate flex-1" style={{ color: textPrimary }}>
                     {getRunTitle(run)}
                   </span>
+                  <button
+                    onClick={(e) => handleExportRun(e, run)}
+                    disabled={exportingRunId === run.id || !run.outputs?.[0]?.output_markdown}
+                    className={`flex-shrink-0 p-1 rounded-lg transition-opacity cursor-pointer hover:!opacity-100 disabled:cursor-not-allowed ${
+                      exportingRunId === run.id
+                        ? "opacity-100"
+                        : "opacity-0 group-hover:opacity-60"
+                    }`}
+                    aria-label="Export as PDF"
+                    title="Export as PDF"
+                  >
+                    {exportingRunId === run.id ? (
+                      <div
+                        className="h-3 w-3 rounded-full border-2 border-t-transparent animate-spin"
+                        style={{ borderColor: accent, borderTopColor: "transparent" }}
+                      />
+                    ) : (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                    )}
+                  </button>
                   <button
                     onClick={(e) => handleDeleteRun(e, run.id)}
                     className="flex-shrink-0 p-1 rounded-lg transition-opacity opacity-0 group-hover:opacity-60 hover:!opacity-100 cursor-pointer"
@@ -455,20 +524,51 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   {formatShortDate(modalRun.started_at)}
                 </span>
               </div>
-              <button
-                onClick={() => setModalRun(null)}
-                className="p-1.5 rounded-lg transition-colors hover:bg-white/10 flex-shrink-0 cursor-pointer"
-                aria-label="Close"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Export PDF — reuses the same handler as the sidebar list;
+                    same visual language as the button on fresh output cards. */}
+                <button
+                  onClick={(e) => handleExportRun(e, modalRun)}
+                  disabled={exportingRunId === modalRun.id || !modalOutput}
+                  className="group flex flex-col items-center gap-1 rounded-md px-2 py-1.5 transition-all opacity-60 hover:opacity-100 disabled:opacity-40 cursor-pointer"
+                  style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                  aria-label="Export as PDF"
+                  title="Export as PDF"
+                >
+                  {exportingRunId === modalRun.id ? (
+                    <div
+                      className="h-4 w-4 rounded-full border-2 border-t-transparent animate-spin"
+                      style={{ borderColor: accent, borderTopColor: "transparent" }}
+                    />
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                  )}
+                  <span
+                    className="text-[10px] leading-none transition-opacity opacity-0 group-hover:opacity-100"
+                    style={{ color: textMuted }}
+                  >
+                    {exportingRunId === modalRun.id ? "..." : "PDF"}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setModalRun(null)}
+                  className="p-1.5 rounded-lg transition-colors hover:bg-white/10 cursor-pointer"
+                  aria-label="Close"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             {/* Body — per-post cards */}
-            <div className="overflow-y-auto px-6 py-5 space-y-3">
+            <div className="custom-scrollbar overflow-y-auto px-6 py-5 space-y-3">
               {modalPosts.length > 0 ? (
                 modalPosts.map((post, idx) => {
                   const isCopied = copiedIdx === idx;
