@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { GlowCard } from "@/components/ui/glow-card";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -444,8 +445,9 @@ export default function OperationsPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "sop_generator" && (
           <>
-            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <GlowCard glowColor="orange" className="mb-6">
+              <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <TextInput label="Process name" value={sopName} onChange={setSopName} placeholder="e.g. Client onboarding" />
                 <PillSelector label="Department" options={departments} value={sopDept} onChange={setSopDept} />
@@ -467,7 +469,8 @@ export default function OperationsPage() {
                 />
                 <ErrorMsg error={sopError} />
               </div>
-            </div>
+              </div>
+            </GlowCard>
             {sopLoading && <LoadingSkeleton message="Generating your SOP..." />}
             {!sopLoading && <OutputCards cards={wrapOutput(sopOutput)} copiedIdx={sopCopied} onCopy={(t, i) => handleCopy(t, i, setSopCopied)} />}
           </>
@@ -478,8 +481,9 @@ export default function OperationsPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "weekly_plan" && (
           <>
-            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <GlowCard glowColor="orange" className="mb-6">
+              <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <TextInput label="Focus area" value={wpFocus} onChange={setWpFocus} placeholder="e.g. Product launch prep" />
                 <TextareaInput
@@ -498,7 +502,8 @@ export default function OperationsPage() {
                 />
                 <ErrorMsg error={wpError} />
               </div>
-            </div>
+              </div>
+            </GlowCard>
             {wpLoading && <LoadingSkeleton message="Planning your week..." />}
             {!wpLoading && <OutputCards cards={wrapOutput(wpOutput)} copiedIdx={wpCopied} onCopy={(t, i) => handleCopy(t, i, setWpCopied)} />}
           </>
@@ -509,8 +514,9 @@ export default function OperationsPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "onboarding_doc" && (
           <>
-            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <GlowCard glowColor="orange" className="mb-6">
+              <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <TextInput label="Client name" value={obClient} onChange={setObClient} placeholder="e.g. Bloom Skincare" />
                 <TextInput label="Service type" value={obService} onChange={setObService} placeholder="e.g. Brand identity" />
@@ -530,7 +536,8 @@ export default function OperationsPage() {
                 />
                 <ErrorMsg error={obError} />
               </div>
-            </div>
+              </div>
+            </GlowCard>
             {obLoading && <LoadingSkeleton message="Creating onboarding doc..." />}
             {!obLoading && <OutputCards cards={wrapOutput(obOutput)} copiedIdx={obCopied} onCopy={(t, i) => handleCopy(t, i, setObCopied)} />}
           </>
@@ -541,8 +548,9 @@ export default function OperationsPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "process_notes" && (
           <>
-            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <GlowCard glowColor="orange" className="mb-6">
+              <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <TextInput label="Process title" value={pnTitle} onChange={setPnTitle} placeholder="e.g. Monthly reporting" />
                 <TextareaInput
@@ -562,7 +570,8 @@ export default function OperationsPage() {
                 />
                 <ErrorMsg error={pnError} />
               </div>
-            </div>
+              </div>
+            </GlowCard>
             {pnLoading && <LoadingSkeleton message="Structuring your notes..." />}
             {!pnLoading && <OutputCards cards={wrapOutput(pnOutput)} copiedIdx={pnCopied} onCopy={(t, i) => handleCopy(t, i, setPnCopied)} />}
           </>

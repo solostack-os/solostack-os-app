@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { GlowCard } from "@/components/ui/glow-card";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -516,8 +517,9 @@ export default function MarketingPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "social_posts" && (
           <>
-            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <GlowCard glowColor="blue" className="mb-6">
+              <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Platform" options={socialPlatforms} value={spPlatform} onChange={setSpPlatform} />
                 <TopicInput
@@ -547,7 +549,8 @@ export default function MarketingPage() {
                 <GenerateButton loading={spLoading} disabled={!spTopic.trim()} onClick={handleSpGenerate} label="Generate" />
                 <ErrorMsg error={spError} />
               </div>
-            </div>
+              </div>
+            </GlowCard>
             {spLoading && <LoadingSkeleton message="Generating your posts..." />}
             {!spLoading && <OutputCards cards={splitCards(spOutput)} copiedIdx={spCopied} onCopy={(t, i) => handleCopy(t, i, setSpCopied)} />}
           </>
@@ -558,8 +561,9 @@ export default function MarketingPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "ad_copy" && (
           <>
-            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <GlowCard glowColor="blue" className="mb-6">
+              <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Platform" options={adPlatforms} value={acPlatform} onChange={setAcPlatform} />
                 <PillSelector label="Goal" options={adGoals} value={acGoal} onChange={setAcGoal} />
@@ -572,7 +576,8 @@ export default function MarketingPage() {
                 />
                 <ErrorMsg error={acError} />
               </div>
-            </div>
+              </div>
+            </GlowCard>
             {acLoading && <LoadingSkeleton message="Generating ad variations..." />}
             {!acLoading && <OutputCards cards={splitCards(acOutput)} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} />}
           </>
@@ -583,8 +588,9 @@ export default function MarketingPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "landing_page" && (
           <>
-            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <GlowCard glowColor="blue" className="mb-6">
+              <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Section" options={landingSections} value={lpSection} onChange={setLpSection} />
                 <PillSelector label="Goal" options={landingGoals} value={lpGoal} onChange={setLpGoal} />
@@ -597,7 +603,8 @@ export default function MarketingPage() {
                 />
                 <ErrorMsg error={lpError} />
               </div>
-            </div>
+              </div>
+            </GlowCard>
             {lpLoading && <LoadingSkeleton message="Generating landing page copy..." />}
             {!lpLoading && <OutputCards cards={splitCards(lpOutput)} copiedIdx={lpCopied} onCopy={(t, i) => handleCopy(t, i, setLpCopied)} />}
           </>
@@ -608,8 +615,9 @@ export default function MarketingPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "email_campaign" && (
           <>
-            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <GlowCard glowColor="blue" className="mb-6">
+              <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Email type" options={emailTypes} value={ecType} onChange={setEcType} />
                 <TopicInput value={ecTopic} onChange={(v) => { setEcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. New feature launch announcement" maxLen={300} />
@@ -621,7 +629,8 @@ export default function MarketingPage() {
                 />
                 <ErrorMsg error={ecError} />
               </div>
-            </div>
+              </div>
+            </GlowCard>
             {ecLoading && <LoadingSkeleton message="Generating your email..." />}
             {!ecLoading && <OutputCards cards={splitCards(ecOutput)} copiedIdx={ecCopied} onCopy={(t, i) => handleCopy(t, i, setEcCopied)} />}
           </>
@@ -632,8 +641,9 @@ export default function MarketingPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "content_brief" && (
           <>
-            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <GlowCard glowColor="blue" className="mb-6">
+              <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Content type" options={contentTypes} value={cbType} onChange={setCbType} />
                 <TopicInput value={cbTopic} onChange={(v) => { setCbTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. How to build a personal brand in 2025" maxLen={2000} />
@@ -645,7 +655,8 @@ export default function MarketingPage() {
                 />
                 <ErrorMsg error={cbError} />
               </div>
-            </div>
+              </div>
+            </GlowCard>
             {cbLoading && <LoadingSkeleton message="Generating your brief..." />}
             {!cbLoading && <OutputCards cards={splitCards(cbOutput)} copiedIdx={cbCopied} onCopy={(t, i) => handleCopy(t, i, setCbCopied)} />}
           </>

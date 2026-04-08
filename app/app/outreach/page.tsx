@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { GlowCard } from "@/components/ui/glow-card";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -440,8 +441,9 @@ export default function OutreachPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "cold_email" && (
           <>
-            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <GlowCard glowColor="green" className="mb-6">
+              <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <TextInput label="Prospect name" value={ceName} onChange={setCeName} placeholder="e.g. Sarah Chen" />
                 <TextInput label="Role" value={ceRole} onChange={setCeRole} placeholder="e.g. VP of Marketing" />
@@ -464,7 +466,8 @@ export default function OutreachPage() {
                 />
                 <ErrorMsg error={ceError} />
               </div>
-            </div>
+              </div>
+            </GlowCard>
             {ceLoading && <LoadingSkeleton message="Writing your cold email..." />}
             {!ceLoading && <OutputCards cards={splitCards(ceOutput)} copiedIdx={ceCopied} onCopy={(t, i) => handleCopy(t, i, setCeCopied)} />}
           </>
@@ -475,8 +478,9 @@ export default function OutreachPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "follow_up" && (
           <>
-            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <GlowCard glowColor="green" className="mb-6">
+              <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <TextareaInput
                   label="What was the original email about?"
@@ -494,7 +498,8 @@ export default function OutreachPage() {
                 />
                 <ErrorMsg error={fuError} />
               </div>
-            </div>
+              </div>
+            </GlowCard>
             {fuLoading && <LoadingSkeleton message="Writing follow-up sequence..." />}
             {!fuLoading && <OutputCards cards={splitCards(fuOutput)} copiedIdx={fuCopied} onCopy={(t, i) => handleCopy(t, i, setFuCopied)} />}
           </>
@@ -505,8 +510,9 @@ export default function OutreachPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "proposal" && (
           <>
-            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <GlowCard glowColor="green" className="mb-6">
+              <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <TextInput label="Project type" value={prType} onChange={setPrType} placeholder="e.g. Brand identity redesign" />
                 <TextInput label="Client name" value={prClient} onChange={setPrClient} placeholder="e.g. Bloom Skincare" />
@@ -528,7 +534,8 @@ export default function OutreachPage() {
                 />
                 <ErrorMsg error={prError} />
               </div>
-            </div>
+              </div>
+            </GlowCard>
             {prLoading && <LoadingSkeleton message="Writing your proposal..." />}
             {!prLoading && <OutputCards cards={splitCards(prOutput)} copiedIdx={prCopied} onCopy={(t, i) => handleCopy(t, i, setPrCopied)} />}
           </>
@@ -539,8 +546,9 @@ export default function OutreachPage() {
             ════════════════════════════════════════════════ */}
         {activeTab === "discovery_prep" && (
           <>
-            <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
-              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
+            <GlowCard glowColor="green" className="mb-6">
+              <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <TextInput label="Prospect company" value={dpCompany} onChange={setDpCompany} placeholder="e.g. Stripe" />
                 <TextInput label="Industry" value={dpIndustry} onChange={setDpIndustry} placeholder="e.g. Fintech / Payments" />
@@ -562,7 +570,8 @@ export default function OutreachPage() {
                 />
                 <ErrorMsg error={dpError} />
               </div>
-            </div>
+              </div>
+            </GlowCard>
             {dpLoading && <LoadingSkeleton message="Preparing your call notes..." />}
             {!dpLoading && <OutputCards cards={splitCards(dpOutput)} copiedIdx={dpCopied} onCopy={(t, i) => handleCopy(t, i, setDpCopied)} />}
           </>
