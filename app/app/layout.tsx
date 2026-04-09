@@ -462,7 +462,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* ─── Mobile Bottom Nav ─── */}
       <nav
         className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t"
-        style={{ backgroundColor: sidebarBg, borderColor: border }}
+        style={{
+          backgroundColor: sidebarBg,
+          borderColor: border,
+          // translateZ(0) promotes the nav to its own GPU compositor layer.
+          // This prevents the subtle "jiggle" on Android Chrome caused by the
+          // browser address bar appearing/disappearing during scroll, which
+          // would otherwise resize the visual viewport and shift bottom:0 elements.
+          transform: "translateZ(0)",
+          WebkitTransform: "translateZ(0)",
+          willChange: "transform",
+        }}
       >
         <div className="flex items-center justify-around py-3 px-1">
           {navItems.map((item) => {
