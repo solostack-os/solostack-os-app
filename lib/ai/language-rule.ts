@@ -1,15 +1,28 @@
 /**
- * Universal language rule appended to every AI system prompt.
+ * Universal language rule appended to every AI system prompt (both Anthropic
+ * and OpenAI providers). Applied once here so the logic is a single source of
+ * truth across the whole platform.
  *
- * User prompts are wrapped in English template sentences (e.g. "Structure
- * these process notes for 'X':\n\n<user content>"). Without this rule the
- * model can pick up the English framing and reply in English even when the
- * user's own content is in another language (e.g. Romanian).
- *
- * The fix: detect language from the USER'S CONTENT, not the template.
+ * Schema agreed with product:
+ *   - The ONLY signal for response language is the raw text the user typed
+ *     directly into the module's input field (the "user content" below).
+ *   - Everything else is explicitly excluded: workspace settings, brand voice,
+ *     company description, industry, previous interactions, the system prompt
+ *     language, and the English template sentences that wrap the user content.
+ *   - If the user typed nothing, or the language cannot be identified,
+ *     English is the default.
  */
-export const LANGUAGE_RULE = `IMPORTANT — Output language rules:
-1. Your response language must match the language of the USER'S INPUT CONTENT — that is, the notes, text, topic, or other material the user provided, not the template sentence that introduces it (e.g. ignore "Structure these process notes for …" or "Write a SOP for …").
-2. NEVER use the system prompt language for language detection. Brand context, company descriptions, and voice notes may be in any language — they are purely for tone and style.
-3. If the user's content is in Romanian → respond entirely in Romanian. If in English → respond in English. Match the dominant language of the input content.
-4. When the user's content is a mix of languages, default to the language that makes up the majority of the text.`;
+export const LANGUAGE_RULE = `IMPORTANT — Output language:
+Detect the response language from ONE source only: the raw text the user typed into the module's input field (their notes, topic, content, or instructions). Nothing else.
+
+Explicitly ignore when deciding language:
+- The system prompt and all brand/settings context (company name, industry, brand voice, description — these inform tone and style only, never language)
+- English template framing like "Structure these process notes for …", "Write a SOP for …", "Draft a cold email to …" etc.
+- Any previous conversation history or platform interactions
+
+Rules:
+1. If the user's typed text is clearly in Romanian → respond entirely in Romanian.
+2. If the user's typed text is clearly in English → respond in English.
+3. Apply the same logic for any other language (French, Spanish, German, etc.).
+4. If the user typed nothing, or the language cannot be determined → default to English.
+5. Never mix languages in the response. Pick one and use it throughout.`;
