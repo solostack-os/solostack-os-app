@@ -18,10 +18,20 @@ export default function SignupPage() {
     setError(null);
     setLoading(true);
 
+    // Derive the absolute callback URL from the public app URL so Supabase
+    // sends confirmation emails that point at the live domain, not at the
+    // Dashboard "Site URL" fallback (which was still localhost). Falls back
+    // to window.location.origin only if the env var is missing.
+    const origin =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (typeof window !== "undefined" ? window.location.origin : "");
+    const emailRedirectTo = `${origin}/auth/callback`;
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo,
         data: {
           full_name: fullName,
         },

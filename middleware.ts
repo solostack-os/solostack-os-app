@@ -34,10 +34,24 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const pathname = request.nextUrl.pathname;
+  const isAppRoute = pathname.startsWith("/app");
+
   // Protect /app/* routes — redirect to login if unauthenticated
-  if (!user && request.nextUrl.pathname.startsWith("/app")) {
+  if (!user && isAppRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
+    return NextResponse.redirect(url);
+  }
+
+  // Enforce email confirmation as a defense-in-depth check: even if a
+  // session exists, block access to /app/* until the user has confirmed
+  // their email. Supabase sets `email_confirmed_at` once the confirm
+  // link is clicked.
+  if (user && isAppRoute && !user.email_confirmed_at) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/confirm-pending";
+    url.search = "";
     return NextResponse.redirect(url);
   }
 
