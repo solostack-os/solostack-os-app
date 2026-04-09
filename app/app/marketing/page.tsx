@@ -247,6 +247,8 @@ export default function MarketingPage() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  // Persists for the entire session once credit limit is hit — never resets on modal dismiss.
+  const [creditLimitReached, setCreditLimitReached] = useState(false);
 
   /* ── Ad Copy state ── */
   const [acPlatform, setAcPlatform] = useState<"google_ads" | "facebook" | "instagram">("google_ads");
@@ -321,7 +323,10 @@ export default function MarketingPage() {
         const data = await res.json().catch(() => ({}));
         const errorMsg = data.error ?? "Something went wrong";
         setError(errorMsg);
-        if (errorMsg === CREDIT_LIMIT_ERROR) setShowUpgradeModal(true);
+        if (errorMsg === CREDIT_LIMIT_ERROR) {
+          setCreditLimitReached(true);
+          setShowUpgradeModal(true);
+        }
         return;
       }
 
@@ -408,6 +413,11 @@ export default function MarketingPage() {
   }
 
   async function handleSuggest() {
+    // Don't allow sparkle when credit limit has been reached.
+    if (creditLimitReached) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setLoadingSuggestions(true);
     setSuggestions([]);
     // Abort after 20 s so the spinner never gets stuck forever.
@@ -590,7 +600,7 @@ export default function MarketingPage() {
                   loadingSuggestions={loadingSuggestions}
                   onSuggest={handleSuggest}
                   suggestions={suggestions}
-                  suggestDisabled={showUpgradeModal}
+                  suggestDisabled={creditLimitReached}
                 />
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>Number of posts</label>
@@ -633,7 +643,7 @@ export default function MarketingPage() {
               <div className="p-7">
                 <PillSelector label="Platform" options={adPlatforms} value={acPlatform} onChange={setAcPlatform} />
                 <PillSelector label="Goal" options={adGoals} value={acGoal} onChange={setAcGoal} />
-                <TopicInput value={acTopic} onChange={(v) => { setAcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. Summer sale on premium headphones" loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={showUpgradeModal} />
+                <TopicInput value={acTopic} onChange={(v) => { setAcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. Summer sale on premium headphones" loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached} />
                 <GenerateButton
                   loading={acLoading}
                   disabled={!acTopic.trim()}
@@ -661,7 +671,7 @@ export default function MarketingPage() {
               <div className="p-7">
                 <PillSelector label="Section" options={landingSections} value={lpSection} onChange={setLpSection} />
                 <PillSelector label="Goal" options={landingGoals} value={lpGoal} onChange={setLpGoal} />
-                <TopicInput value={lpTopic} onChange={(v) => { setLpTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. AI-powered project management tool" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={showUpgradeModal} />
+                <TopicInput value={lpTopic} onChange={(v) => { setLpTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. AI-powered project management tool" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached} />
                 <GenerateButton
                   loading={lpLoading}
                   disabled={!lpTopic.trim()}
@@ -688,7 +698,7 @@ export default function MarketingPage() {
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Email type" options={emailTypes} value={ecType} onChange={setEcType} />
-                <TopicInput value={ecTopic} onChange={(v) => { setEcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. New feature launch announcement" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={showUpgradeModal} />
+                <TopicInput value={ecTopic} onChange={(v) => { setEcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. New feature launch announcement" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached} />
                 <GenerateButton
                   loading={ecLoading}
                   disabled={!ecTopic.trim()}
@@ -715,7 +725,7 @@ export default function MarketingPage() {
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Content type" options={contentTypes} value={cbType} onChange={setCbType} />
-                <TopicInput value={cbTopic} onChange={(v) => { setCbTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. How to build a personal brand in 2025" maxLen={2000} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={showUpgradeModal} />
+                <TopicInput value={cbTopic} onChange={(v) => { setCbTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. How to build a personal brand in 2025" maxLen={2000} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached} />
                 <GenerateButton
                   loading={cbLoading}
                   disabled={!cbTopic.trim()}
