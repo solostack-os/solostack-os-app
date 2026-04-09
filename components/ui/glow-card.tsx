@@ -108,7 +108,7 @@ const GlowCard: React.FC<GlowCardProps> = ({
           backgroundAttachment: 'fixed',
           border: 'var(--border-size) solid var(--backup-border)',
           position: 'relative',
-          touchAction: 'none',
+          touchAction: 'manipulation',
         } as React.CSSProperties}
         className={`rounded-2xl relative shadow-[0_1rem_2rem_-1rem_black] backdrop-blur-[5px] ${className}`}
       >

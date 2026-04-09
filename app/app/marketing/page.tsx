@@ -489,7 +489,7 @@ export default function MarketingPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: bg }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: bg }}>
       <style>{`
         @keyframes skel-shimmer {
           0% { background-position: -200% 0; }

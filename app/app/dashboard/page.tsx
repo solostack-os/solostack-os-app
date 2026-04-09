@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -8,11 +8,21 @@ import { createClient } from "@/lib/supabase/client";
 import { GlowCard } from "@/components/ui/glow-card";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { DottedSurface } from "@/components/ui/dotted-surface";
+import { CREDITS_PER_RUN } from "@/lib/constants";
+
+interface RecentRun {
+  id: string;
+  workflow_key: string;
+  module_key: string;
+  created_at: string;
+  outputs: { title: string | null; output_markdown: string }[];
+}
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
 const surface = "#111827";
 const accent = "#6c8cff";
+const textPrimary = "#f1f5f9";
 const textMuted = "#94a3b8";
 
 /* ─── Per-module themes ─── */
@@ -80,8 +90,12 @@ const modules: {
     colorKey: "operations",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+        <path d="M12 11h4" />
+        <path d="M12 16h4" />
+        <path d="M8 11h.01" />
+        <path d="M8 16h.01" />
       </svg>
     ),
   },
@@ -112,6 +126,9 @@ export default function DashboardPage() {
   const [planKey, setPlanKey] = useState("trial");
   const [runsUsed, setRunsUsed] = useState(0);
   const [runCap, setRunCap] = useState<number | null>(null);
+  const [recentRuns, setRecentRuns] = useState<RecentRun[]>([]);
+  const [selectedRun, setSelectedRun] = useState<RecentRun | null>(null);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -185,11 +202,27 @@ export default function DashboardPage() {
         if (plan) setRunCap(plan.run_cap);
       }
 
+      const { data: runs } = await supabase
+        .from("runs")
+        .select("id, workflow_key, module_key, created_at, outputs(title, output_markdown)")
+        .eq("workspace_id", workspace.id)
+        .eq("status", "completed")
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (runs) setRecentRuns(runs as unknown as RecentRun[]);
+
       setLoading(false);
     }
 
     bootstrap();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleCopy = useCallback(async (text: string, idx: number) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
+  }, []);
 
   /* ─── Skeleton loading ─── */
   if (loading) {
@@ -251,7 +284,9 @@ export default function DashboardPage() {
   }
 
   const planLabel = planKey === "pro" ? "Pro" : planKey === "starter" ? "Starter" : "Trial";
-  const usagePercent = runCap ? Math.min((runsUsed / runCap) * 100, 100) : 0;
+  const creditsUsed = runsUsed * CREDITS_PER_RUN;
+  const creditsRemaining = runCap ? Math.max(0, runCap - creditsUsed) : 0;
+  const usagePercent = runCap ? Math.min((creditsUsed / runCap) * 100, 100) : 0;
 
   return (
     <div className="relative min-h-screen isolate" style={{ backgroundColor: bg }}>
@@ -415,7 +450,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-base font-medium text-white">Usage</span>
                   <span className="text-sm" style={{ color: textMuted, fontVariantNumeric: "tabular-nums" }}>
-                    {runsUsed} / {runCap} credits
+                    {creditsRemaining} credits remaining
                   </span>
                 </div>
                 <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.06)" }}>
@@ -447,7 +482,128 @@ export default function DashboardPage() {
             </GlowCard>
           </motion.div>
         )}
+
+        {/* ─── Recent Outputs ─── */}
+        {recentRuns.length > 0 && (
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            custom={7}
+            variants={fadeUp}
+            className="mt-16"
+          >
+            <p
+              className="text-xs font-medium uppercase tracking-widest mb-6 px-1"
+              style={{ color: textMuted }}
+            >
+              Recent outputs
+            </p>
+            <div className="space-y-2">
+              {recentRuns.map((run) => {
+                const title = run.outputs?.[0]?.title ?? run.workflow_key.replace(/_/g, " ");
+                const moduleColor =
+                  run.module_key === "outreach" ? "#22c55e" :
+                  run.module_key === "operations" ? "#f97316" : "#6c8cff";
+                return (
+                  <button
+                    key={run.id}
+                    onClick={() => { setSelectedRun(run); setCopiedIdx(null); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all hover:bg-white/[0.03] cursor-pointer"
+                    style={{ backgroundColor: surface, borderColor: "rgba(255,255,255,0.06)" }}
+                  >
+                    <span
+                      className="flex-shrink-0 w-2 h-2 rounded-full"
+                      style={{ backgroundColor: moduleColor, boxShadow: `0 0 6px ${moduleColor}60` }}
+                    />
+                    <span className="text-sm truncate flex-1" style={{ color: textPrimary }}>
+                      {title}
+                    </span>
+                    <span className="text-xs flex-shrink-0" style={{ color: textMuted, fontVariantNumeric: "tabular-nums" }}>
+                      {new Date(run.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
       </div>
+
+      {/* ─── Run Output Modal ─── */}
+      {selectedRun && (() => {
+        const output = selectedRun.outputs?.[0]?.output_markdown ?? "";
+        const title = selectedRun.outputs?.[0]?.title ?? selectedRun.workflow_key.replace(/_/g, " ");
+        const sections = output ? output.split(/\n---\n/).map((p: string) => p.trim()).filter(Boolean) : [];
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedRun(null)}
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div
+              className="relative w-full max-w-lg max-h-[80vh] flex flex-col rounded-2xl border overflow-hidden"
+              style={{ backgroundColor: surface, borderColor: "rgba(255,255,255,0.06)" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, #818cf8)` }} />
+              <div
+                className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0"
+                style={{ borderColor: "rgba(255,255,255,0.06)" }}
+              >
+                <span className="text-base font-medium truncate mr-3" style={{ color: textPrimary }}>
+                  {title}
+                </span>
+                <button
+                  onClick={() => setSelectedRun(null)}
+                  className="p-1.5 rounded-lg transition-colors hover:bg-white/10 cursor-pointer flex-shrink-0"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+              <div className="overflow-y-auto px-6 py-5 space-y-3">
+                {sections.length > 0 ? sections.map((section, idx) => (
+                  <div
+                    key={idx}
+                    className="relative rounded-xl border overflow-hidden group"
+                    style={{ backgroundColor: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}
+                  >
+                    <button
+                      onClick={() => handleCopy(section, idx)}
+                      className="absolute top-3 right-3 p-2 rounded-lg transition-all opacity-60 hover:opacity-100 cursor-pointer"
+                      style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                    >
+                      {copiedIdx === idx ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5eead4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                      )}
+                    </button>
+                    <div
+                      className="px-5 py-4 pr-14 text-sm leading-relaxed whitespace-pre-wrap"
+                      style={{ color: textPrimary }}
+                    >
+                      {section}
+                    </div>
+                  </div>
+                )) : (
+                  <p className="text-sm" style={{ color: textMuted }}>No output available.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

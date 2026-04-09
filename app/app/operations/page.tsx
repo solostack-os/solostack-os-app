@@ -394,7 +394,7 @@ export default function OperationsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: bg }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: bg }}>
       <style>{`
         @keyframes skel-shimmer {
           0% { background-position: 200% center; }
@@ -408,7 +408,7 @@ export default function OperationsPage() {
       `}</style>
       <div className="max-w-2xl mx-auto px-6 lg:px-8 py-12">
         {/* ── Tab navigation ── */}
-        <div className="mb-8 -mx-6 px-6 overflow-x-auto scrollbar-hide">
+        <div className="mb-8 -mx-6 px-6 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-x pan-y" }}>
           <div className="flex gap-1 min-w-max border-b" style={{ borderColor: border }}>
             {tabs.map((t) => (
               <button

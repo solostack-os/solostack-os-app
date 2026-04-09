@@ -1,9 +1,10 @@
 "use client";
 
 import { Suspense, useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DottedSurface } from "@/components/ui/dotted-surface";
+import { CREDITS_PER_RUN } from "@/lib/constants";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -47,6 +48,7 @@ export default function SettingsPage() {
 
 function SettingsPageInner() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const upgraded = searchParams.get("upgraded") === "true";
   const canceled = searchParams.get("canceled") === "true";
 
@@ -55,7 +57,13 @@ function SettingsPageInner() {
   const [planKey, setPlanKey] = useState("trial");
   const [status, setStatus] = useState("trialing");
   const [periodEnd, setPeriodEnd] = useState<string | null>(null);
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
+  const [creditsUsed, setCreditsUsed] = useState(0);
+  const [runCap, setRunCap] = useState<number | null>(null);
   const [upgrading, setUpgrading] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
+  const [hasStripeCustomer, setHasStripeCustomer] = useState(false);
   const [profileAvailable, setProfileAvailable] = useState(true);
 
   /* ── Profile state ── */
@@ -166,16 +174,26 @@ function SettingsPageInner() {
           setWorkspaceId(basicWs.id);
           setProfileAvailable(false);
 
-          const { data: sub } = await supabase
-            .from("subscriptions")
-            .select("plan_key, status, current_period_end")
-            .eq("workspace_id", basicWs.id)
-            .single();
-          if (sub) {
-            setPlanKey(sub.plan_key);
-            setStatus(sub.status);
-            setPeriodEnd(sub.current_period_end);
+          const [subRes, countRes] = await Promise.all([
+            supabase
+              .from("subscriptions")
+              .select("plan_key, status, current_period_end, trial_ends_at")
+              .eq("workspace_id", basicWs.id)
+              .single(),
+            supabase
+              .from("runs")
+              .select("id", { count: "exact", head: true })
+              .eq("workspace_id", basicWs.id),
+          ]);
+          if (subRes.data) {
+            setPlanKey(subRes.data.plan_key);
+            setStatus(subRes.data.status);
+            setPeriodEnd(subRes.data.current_period_end);
+            setTrialEndsAt(subRes.data.trial_ends_at);
+            const { data: planRow } = await supabase.from("plans").select("run_cap").eq("key", subRes.data.plan_key).single();
+            if (planRow) setRunCap(planRow.run_cap);
           }
+          setCreditsUsed((countRes.count ?? 0) * CREDITS_PER_RUN);
           setLoading(false);
           return;
         }
@@ -198,17 +216,33 @@ function SettingsPageInner() {
         setCompanyEmail(workspace.company_email ?? "");
         setIncludeCompanyDetails(workspace.include_company_details ?? true);
 
-        const { data: sub } = await supabase
-          .from("subscriptions")
-          .select("plan_key, status, current_period_end")
-          .eq("workspace_id", workspace.id)
-          .single();
+        const [subRes2, countRes2, custRes] = await Promise.all([
+          supabase
+            .from("subscriptions")
+            .select("plan_key, status, current_period_end, trial_ends_at")
+            .eq("workspace_id", workspace.id)
+            .single(),
+          supabase
+            .from("runs")
+            .select("id", { count: "exact", head: true })
+            .eq("workspace_id", workspace.id),
+          supabase
+            .from("workspaces")
+            .select("stripe_customer_id")
+            .eq("id", workspace.id)
+            .single(),
+        ]);
 
-        if (sub) {
-          setPlanKey(sub.plan_key);
-          setStatus(sub.status);
-          setPeriodEnd(sub.current_period_end);
+        if (subRes2.data) {
+          setPlanKey(subRes2.data.plan_key);
+          setStatus(subRes2.data.status);
+          setPeriodEnd(subRes2.data.current_period_end);
+          setTrialEndsAt(subRes2.data.trial_ends_at);
+          const { data: planRow } = await supabase.from("plans").select("run_cap").eq("key", subRes2.data.plan_key).single();
+          if (planRow) setRunCap(planRow.run_cap);
         }
+        setCreditsUsed((countRes2.count ?? 0) * CREDITS_PER_RUN);
+        setHasStripeCustomer(!!custRes.data?.stripe_customer_id);
         setLoading(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load settings");
@@ -243,6 +277,26 @@ function SettingsPageInner() {
       window.location.href = data.url;
     } else {
       setUpgrading(false);
+    }
+  }
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
+  }
+
+  async function handleManageBilling() {
+    setOpeningPortal(true);
+    try {
+      const res = await fetch("/api/billing/portal", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } finally {
+      setOpeningPortal(false);
     }
   }
 
@@ -855,13 +909,13 @@ function SettingsPageInner() {
         </div>
         )}
 
-        {/* ─── Current Plan ─── */}
+        {/* ─── Plan & Billing ─── */}
         <div className="rounded-xl border overflow-hidden mb-6" style={{ backgroundColor: surface, borderColor: border }}>
           <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
           <div className="p-7">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: textMuted }}>
-                Current Plan
+                Plan & Billing
               </h2>
               <span
                 className="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full border"
@@ -876,20 +930,50 @@ function SettingsPageInner() {
             </div>
 
             <p className="text-2xl font-bold text-white mb-1">{plan.name}</p>
-            <p className="text-sm mb-3" style={{ color: textMuted }}>{plan.credits}</p>
+
+            {/* Credits remaining */}
+            {runCap !== null && (
+              <p className="text-sm mb-1" style={{ color: textMuted, fontVariantNumeric: "tabular-nums" }}>
+                {Math.max(0, runCap - creditsUsed)} / {runCap} credits remaining
+              </p>
+            )}
+
+            {/* Trial days remaining */}
+            {status === "trialing" && trialEndsAt && (() => {
+              const days = Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+              return (
+                <p className="text-xs mt-1" style={{ color: days <= 2 ? "#fbbf24" : textMuted }}>
+                  {days === 0 ? "Trial expires today" : `${days} day${days !== 1 ? "s" : ""} left in trial`}
+                </p>
+              );
+            })()}
 
             {periodEnd && status === "active" && (
-              <p className="text-xs" style={{ color: textMuted, fontVariantNumeric: "tabular-nums" }}>
+              <p className="text-xs mt-1" style={{ color: textMuted, fontVariantNumeric: "tabular-nums" }}>
                 Renews {new Date(periodEnd).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
               </p>
             )}
+
+            {/* Billing actions */}
+            <div className="flex flex-wrap gap-3 mt-5">
+              {hasStripeCustomer && (
+                <button
+                  onClick={handleManageBilling}
+                  disabled={openingPortal}
+                  className="px-4 py-2.5 text-sm font-medium rounded-lg border transition-colors hover:bg-white/[0.04] cursor-pointer disabled:opacity-50"
+                  style={{ color: textPrimary, borderColor: border }}
+                >
+                  {openingPortal ? "Opening..." : "Manage Billing"}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
         {/* ─── Upgrade Card ─── */}
         {upgrade && targetPlan && (
           <div
-            className="rounded-xl border overflow-hidden"
+            className="rounded-xl border overflow-hidden mb-6"
             style={{ backgroundColor: surface, borderColor: `${accent}33` }}
           >
             <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
@@ -926,6 +1010,18 @@ function SettingsPageInner() {
             </div>
           </div>
         )}
+
+        {/* ─── Sign Out ─── */}
+        <div className="pt-6 mt-2 border-t" style={{ borderColor: border }}>
+          <button
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="w-full py-3 text-sm font-medium rounded-xl border transition-colors hover:bg-white/[0.04] cursor-pointer disabled:opacity-50"
+            style={{ color: "#f87171", borderColor: "rgba(248,113,113,0.2)" }}
+          >
+            {signingOut ? "Signing out..." : "Sign Out"}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { CLAUDE_MODEL } from "@/lib/ai/providers/anthropic";
+import { CREDITS_PER_RUN } from "@/lib/constants";
 import { runSocialPosts, type SocialPostsInput } from "@/lib/workflows/marketing/social-posts";
 import { runTopicSuggestions, type TopicSuggestionsInput } from "@/lib/workflows/marketing/topic-suggestions";
 import { runAdCopy, type AdCopyInput } from "@/lib/workflows/marketing/ad-copy";
@@ -134,8 +135,9 @@ export async function POST(request: Request) {
     use_brand_context: workspace.use_brand_context ?? true,
   };
 
-  // 6. Usage gate — count runs vs plan cap. Only runs for paid subscriptions
-  //    with a configured cap; free/uncapped plans skip this block entirely.
+  // 6. Usage gate — each run costs CREDITS_PER_RUN credits. Compare total
+  //    credits consumed (runs × CREDITS_PER_RUN) against the plan cap.
+  //    Block when remaining credits are less than one run's cost.
   if (subscription) {
     const { data: plan } = await admin
       .from("plans")
@@ -149,7 +151,10 @@ export async function POST(request: Request) {
         .select("id", { count: "exact", head: true })
         .eq("workspace_id", workspace.id);
 
-      if (count !== null && count >= plan.run_cap) {
+      const creditsUsed = (count ?? 0) * CREDITS_PER_RUN;
+      const remaining = plan.run_cap - creditsUsed;
+
+      if (remaining < CREDITS_PER_RUN) {
         return NextResponse.json(
           { error: "Credit limit reached. Please upgrade your plan." },
           { status: 403 }
