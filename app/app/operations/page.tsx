@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { GlowCard } from "@/components/ui/glow-card";
 import { OutputCards } from "@/components/ui/output-cards";
 import { StreamingCard } from "@/components/ui/streaming-card";
+import { UpgradeModal, CREDIT_LIMIT_ERROR } from "@/components/upgrade-modal";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -252,6 +253,7 @@ function ErrorMsg({ error }: { error: string | null }) {
    ═══════════════════════════════════════════════════════════════ */
 export default function OperationsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("sop_generator");
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   /* ── SOP Generator state ── */
   const [sopName, setSopName] = useState("");
@@ -328,7 +330,9 @@ export default function OperationsPage() {
       // any streaming begins (auth, workspace, cap, unknown workflow).
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error ?? "Something went wrong");
+        const errorMsg = data.error ?? "Something went wrong";
+        setError(errorMsg);
+        if (errorMsg === CREDIT_LIMIT_ERROR) setShowUpgradeModal(true);
         return;
       }
 
@@ -583,6 +587,7 @@ export default function OperationsPage() {
           </>
         )}
       </div>
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { GlowCard } from "@/components/ui/glow-card";
 import { OutputCards } from "@/components/ui/output-cards";
 import { StreamingCard } from "@/components/ui/streaming-card";
 import { MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
+import { UpgradeModal, CREDIT_LIMIT_ERROR } from "@/components/upgrade-modal";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -145,6 +146,7 @@ function TopicInput({
   loadingSuggestions,
   onSuggest,
   suggestions,
+  suggestDisabled = false,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -153,6 +155,7 @@ function TopicInput({
   loadingSuggestions: boolean;
   onSuggest: () => void;
   suggestions: string[];
+  suggestDisabled?: boolean;
 }) {
   const warnAt = Math.round(maxLen * 0.9);
   return (
@@ -172,11 +175,11 @@ function TopicInput({
         />
         <button
           type="button"
-          onClick={onSuggest}
-          disabled={loadingSuggestions}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors hover:bg-white/10 disabled:opacity-40 cursor-pointer"
+          onClick={suggestDisabled ? undefined : onSuggest}
+          disabled={loadingSuggestions || suggestDisabled}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
           aria-label="Suggest topics"
-          title="Get AI topic ideas"
+          title={suggestDisabled ? "Upgrade to continue" : "Get AI topic ideas"}
         >
           {loadingSuggestions ? (
             <div
@@ -243,6 +246,7 @@ export default function MarketingPage() {
   const spStreamTextRef = useRef<HTMLDivElement | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   /* ── Ad Copy state ── */
   const [acPlatform, setAcPlatform] = useState<"google_ads" | "facebook" | "instagram">("google_ads");
@@ -315,7 +319,9 @@ export default function MarketingPage() {
       // any streaming begins (auth, workspace, cap, unknown workflow).
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error ?? "Something went wrong");
+        const errorMsg = data.error ?? "Something went wrong";
+        setError(errorMsg);
+        if (errorMsg === CREDIT_LIMIT_ERROR) setShowUpgradeModal(true);
         return;
       }
 
@@ -584,6 +590,7 @@ export default function MarketingPage() {
                   loadingSuggestions={loadingSuggestions}
                   onSuggest={handleSuggest}
                   suggestions={suggestions}
+                  suggestDisabled={showUpgradeModal}
                 />
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>Number of posts</label>
@@ -626,7 +633,7 @@ export default function MarketingPage() {
               <div className="p-7">
                 <PillSelector label="Platform" options={adPlatforms} value={acPlatform} onChange={setAcPlatform} />
                 <PillSelector label="Goal" options={adGoals} value={acGoal} onChange={setAcGoal} />
-                <TopicInput value={acTopic} onChange={(v) => { setAcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. Summer sale on premium headphones" loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} />
+                <TopicInput value={acTopic} onChange={(v) => { setAcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. Summer sale on premium headphones" loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={showUpgradeModal} />
                 <GenerateButton
                   loading={acLoading}
                   disabled={!acTopic.trim()}
@@ -654,7 +661,7 @@ export default function MarketingPage() {
               <div className="p-7">
                 <PillSelector label="Section" options={landingSections} value={lpSection} onChange={setLpSection} />
                 <PillSelector label="Goal" options={landingGoals} value={lpGoal} onChange={setLpGoal} />
-                <TopicInput value={lpTopic} onChange={(v) => { setLpTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. AI-powered project management tool" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} />
+                <TopicInput value={lpTopic} onChange={(v) => { setLpTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. AI-powered project management tool" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={showUpgradeModal} />
                 <GenerateButton
                   loading={lpLoading}
                   disabled={!lpTopic.trim()}
@@ -681,7 +688,7 @@ export default function MarketingPage() {
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Email type" options={emailTypes} value={ecType} onChange={setEcType} />
-                <TopicInput value={ecTopic} onChange={(v) => { setEcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. New feature launch announcement" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} />
+                <TopicInput value={ecTopic} onChange={(v) => { setEcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. New feature launch announcement" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={showUpgradeModal} />
                 <GenerateButton
                   loading={ecLoading}
                   disabled={!ecTopic.trim()}
@@ -708,7 +715,7 @@ export default function MarketingPage() {
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Content type" options={contentTypes} value={cbType} onChange={setCbType} />
-                <TopicInput value={cbTopic} onChange={(v) => { setCbTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. How to build a personal brand in 2025" maxLen={2000} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} />
+                <TopicInput value={cbTopic} onChange={(v) => { setCbTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. How to build a personal brand in 2025" maxLen={2000} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={showUpgradeModal} />
                 <GenerateButton
                   loading={cbLoading}
                   disabled={!cbTopic.trim()}
@@ -725,6 +732,7 @@ export default function MarketingPage() {
           </>
         )}
       </div>
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </div>
   );
 }
