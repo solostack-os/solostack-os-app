@@ -358,8 +358,15 @@ export default function MarketingPage() {
         streamTextRef.current.textContent = full;
       }
       setStreaming(false);
-      setOutput(full);
-      window.dispatchEvent(new Event("recents:refresh"));
+      if (!full.trim()) {
+        // Stream closed with zero content — the Claude API was overloaded
+        // or returned an error silently. Surface it so the user knows to
+        // retry rather than staring at a frozen screen.
+        setError("Claude is currently overloaded — please wait a moment and try again.");
+      } else {
+        setOutput(full);
+        window.dispatchEvent(new Event("recents:refresh"));
+      }
     } catch {
       setError("Network error");
     } finally {

@@ -184,90 +184,99 @@ export async function POST(request: Request) {
     .select("id")
     .single();
 
-  // 8. Dispatch the workflow. Each runX function now returns a
-  //    MessageStream synchronously (the underlying HTTP request to Claude
-  //    is initiated during construction), so dispatch is sync and we can
-  //    start the stream immediately. The "unknown workflow" path throws
-  //    synchronously — that gets caught below and returned as a JSON 400.
-  let anthropicStream;
+  // 8. Dispatch helper — creates a fresh MessageStream for the requested
+  //    workflow. Extracted into a function so the stream layer can call it
+  //    again on retry without duplicating the dispatch table.
+  //    Throws synchronously for unknown workflows (caught below → 400).
   let outputTitle: string;
-  try {
+  function createStream() {
     if (module_key === "marketing" && workflow_key === "social_posts") {
-      anthropicStream = runSocialPosts(context, input_json as unknown as SocialPostsInput);
       outputTitle = `Social posts — ${input_json.platform}`;
+      return runSocialPosts(context, input_json as unknown as SocialPostsInput);
     } else if (module_key === "marketing" && workflow_key === "ad_copy") {
-      anthropicStream = runAdCopy(context, input_json as unknown as AdCopyInput);
       outputTitle = `Ad copy — ${input_json.platform}`;
+      return runAdCopy(context, input_json as unknown as AdCopyInput);
     } else if (module_key === "marketing" && workflow_key === "landing_page") {
-      anthropicStream = runLandingPage(context, input_json as unknown as LandingPageInput);
       outputTitle = `Landing page — ${input_json.section}`;
+      return runLandingPage(context, input_json as unknown as LandingPageInput);
     } else if (module_key === "marketing" && workflow_key === "email_campaign") {
-      anthropicStream = runEmailCampaign(context, input_json as unknown as EmailCampaignInput);
       outputTitle = `Email — ${input_json.email_type}`;
+      return runEmailCampaign(context, input_json as unknown as EmailCampaignInput);
     } else if (module_key === "marketing" && workflow_key === "content_brief") {
-      anthropicStream = runContentBrief(context, input_json as unknown as ContentBriefInput);
       outputTitle = `Content brief — ${input_json.content_type}`;
+      return runContentBrief(context, input_json as unknown as ContentBriefInput);
     } else if (module_key === "outreach" && workflow_key === "cold_email") {
-      anthropicStream = runColdEmail(context, input_json as unknown as ColdEmailInput);
       outputTitle = `Cold email — ${input_json.prospect_company}`;
+      return runColdEmail(context, input_json as unknown as ColdEmailInput);
     } else if (module_key === "outreach" && workflow_key === "follow_up") {
-      anthropicStream = runFollowUp(context, input_json as unknown as FollowUpInput);
       outputTitle = `Follow-up — ${input_json.days_since}`;
+      return runFollowUp(context, input_json as unknown as FollowUpInput);
     } else if (module_key === "outreach" && workflow_key === "proposal") {
-      anthropicStream = runProposal(context, input_json as unknown as ProposalInput);
       outputTitle = `Proposal — ${input_json.client_name}`;
+      return runProposal(context, input_json as unknown as ProposalInput);
     } else if (module_key === "outreach" && workflow_key === "discovery_prep") {
-      anthropicStream = runDiscoveryPrep(context, input_json as unknown as DiscoveryPrepInput);
       outputTitle = `Discovery prep — ${input_json.prospect_company}`;
+      return runDiscoveryPrep(context, input_json as unknown as DiscoveryPrepInput);
     } else if (module_key === "operations" && workflow_key === "sop_generator") {
-      anthropicStream = runSopGenerator(context, input_json as unknown as SopGeneratorInput);
       outputTitle = `SOP — ${input_json.process_name}`;
+      return runSopGenerator(context, input_json as unknown as SopGeneratorInput);
     } else if (module_key === "operations" && workflow_key === "weekly_plan") {
-      anthropicStream = runWeeklyPlan(context, input_json as unknown as WeeklyPlanInput);
       outputTitle = `Weekly plan — ${input_json.focus_area}`;
+      return runWeeklyPlan(context, input_json as unknown as WeeklyPlanInput);
     } else if (module_key === "operations" && workflow_key === "onboarding_doc") {
-      anthropicStream = runOnboardingDoc(context, input_json as unknown as OnboardingDocInput);
       outputTitle = `Onboarding — ${input_json.client_name}`;
+      return runOnboardingDoc(context, input_json as unknown as OnboardingDocInput);
     } else if (module_key === "operations" && workflow_key === "process_notes") {
-      anthropicStream = runProcessNotes(context, input_json as unknown as ProcessNotesInput);
       outputTitle = `Process notes — ${input_json.process_title}`;
+      return runProcessNotes(context, input_json as unknown as ProcessNotesInput);
     } else {
       throw new Error(`Unknown workflow: ${module_key}/${workflow_key}`);
     }
+  }
+
+  // Validate workflow key before opening the response stream.
+  let currentStream: ReturnType<typeof createStream>;
+  try {
+    currentStream = createStream();
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
   // 9. Build the ReadableStream that pipes Claude text deltas straight to
-  //    the client. Once the Claude stream ends, we await the in-flight
-  //    run INSERT, then do the output INSERT and runs UPDATE in parallel
-  //    before closing the response stream. Closing the stream *after* the
-  //    DB writes is important: the frontend fires a `recents:refresh`
-  //    event on close, and we want the new row visible by then.
+  //    the client. Includes automatic retry on overloaded_error (up to
+  //    MAX_RETRIES attempts with exponential backoff) so a temporary spike
+  //    in Anthropic API load doesn't silently return an empty response.
+  //    Once the Claude stream ends, we await the in-flight run INSERT, then
+  //    do the output INSERT and runs UPDATE in parallel before closing the
+  //    response stream. Closing the stream *after* the DB writes is
+  //    important: the frontend fires a `recents:refresh` event on close,
+  //    and we want the new row visible by then.
+  const MAX_RETRIES = 2;
   const encoder = new TextEncoder();
   const responseStream = new ReadableStream<Uint8Array>({
     start(controller) {
       let fullText = "";
+      let retryCount = 0;
 
-      // Register the text listener synchronously — no deltas can have
-      // fired yet because we're still on the current tick.
-      anthropicStream.on("text", (delta) => {
-        fullText += delta;
-        try {
-          controller.enqueue(encoder.encode(delta));
-        } catch {
-          // Controller already closed (client aborted). Ignore and let
-          // finalMessage() resolve so we can still persist what we have.
-        }
-      });
+      // Attach text listener to a stream instance and drive it to completion.
+      // Returns the final Message on success; throws on unrecoverable error.
+      // On overloaded_error with no tokens yet, waits and retries automatically.
+      async function driveStream(stream: ReturnType<typeof createStream>): Promise<void> {
+        let gotTokens = false;
 
-      // Drive the stream to completion and persist the result. This is
-      // an IIFE because start() itself must return synchronously for
-      // the stream to begin emitting.
-      (async () => {
+        stream.on("text", (delta) => {
+          gotTokens = true;
+          fullText += delta;
+          try {
+            controller.enqueue(encoder.encode(delta));
+          } catch {
+            // Controller already closed (client aborted).
+          }
+        });
+
         try {
-          const final = await anthropicStream.finalMessage();
+          const final = await stream.finalMessage();
           const promptTokens = final.usage.input_tokens;
           const completionTokens = final.usage.output_tokens;
 
@@ -296,6 +305,25 @@ export async function POST(request: Request) {
               .eq("id", run.id),
           ]);
         } catch (err) {
+          // Retry on overloaded_error if we haven't received any tokens yet
+          // (retrying mid-stream would duplicate content).
+          const isOverloaded =
+            !gotTokens &&
+            retryCount < MAX_RETRIES &&
+            (err as { type?: string })?.type === "overloaded_error";
+
+          if (isOverloaded) {
+            retryCount++;
+            const delayMs = retryCount * 2000; // 2 s, 4 s
+            console.warn(
+              `[api/runs] overloaded — retry ${retryCount}/${MAX_RETRIES} in ${delayMs}ms`
+            );
+            await new Promise((r) => setTimeout(r, delayMs));
+            currentStream = createStream();
+            return driveStream(currentStream);
+          }
+
+          // Unrecoverable — log and mark run as failed.
           console.error("[api/runs stream error]", err);
           const message = err instanceof Error ? err.message : "Unknown error";
           try {
@@ -311,22 +339,28 @@ export async function POST(request: Request) {
                 .eq("id", insertResult.data.id);
             }
           } catch {
-            // Best-effort — the stream is already closing.
+            // Best-effort.
           }
+        }
+      }
+
+      // Kick off the drive loop, then always close the controller.
+      (async () => {
+        try {
+          await driveStream(currentStream);
         } finally {
           try {
             controller.close();
           } catch {
-            // Already closed by a prior error path.
+            // Already closed.
           }
         }
       })();
     },
 
     cancel() {
-      // Client disconnected before the stream finished. Abort the Claude
-      // request so we don't keep generating tokens into the void.
-      anthropicStream.abort();
+      // Client disconnected — abort the current Claude request.
+      currentStream.abort();
     },
   });
 
