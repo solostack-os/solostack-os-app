@@ -55,11 +55,11 @@ export default function PrivacyPage() {
               AI productivity platform. If you have questions about this policy,
               contact us at{" "}
               <a
-                href="mailto:dragos.nicolae.stanescu@gmail.com"
+                href="mailto:hello@mysolostack.eu"
                 className="underline"
                 style={{ color: accent }}
               >
-                dragos.nicolae.stanescu@gmail.com
+                hello@mysolostack.eu
               </a>
               .
             </p>
@@ -147,11 +147,11 @@ export default function PrivacyPage() {
             <p className="mt-3">
               To exercise any of these rights, email us at{" "}
               <a
-                href="mailto:dragos.nicolae.stanescu@gmail.com"
+                href="mailto:hello@mysolostack.eu"
                 className="underline"
                 style={{ color: accent }}
               >
-                dragos.nicolae.stanescu@gmail.com
+                hello@mysolostack.eu
               </a>
               .
             </p>
@@ -177,7 +177,7 @@ export default function PrivacyPage() {
         <div className="mt-16 pt-8 border-t flex gap-6 text-xs" style={{ borderColor: border, color: textMuted }}>
           <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
           <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-          <a href="mailto:dragos.nicolae.stanescu@gmail.com" className="hover:text-white transition-colors">Contact</a>
+          <a href="mailto:hello@mysolostack.eu" className="hover:text-white transition-colors">Contact</a>
         </div>
       </div>
     </div>

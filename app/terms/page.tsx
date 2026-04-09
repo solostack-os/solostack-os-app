@@ -162,11 +162,11 @@ export default function TermsPage() {
             <p>
               Questions about these terms? Email us at{" "}
               <a
-                href="mailto:dragos.nicolae.stanescu@gmail.com"
+                href="mailto:hello@mysolostack.eu"
                 className="underline"
                 style={{ color: accent }}
               >
-                dragos.nicolae.stanescu@gmail.com
+                hello@mysolostack.eu
               </a>
               .
             </p>
@@ -178,7 +178,7 @@ export default function TermsPage() {
         <div className="mt-16 pt-8 border-t flex gap-6 text-xs" style={{ borderColor: border, color: textMuted }}>
           <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
           <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-          <a href="mailto:dragos.nicolae.stanescu@gmail.com" className="hover:text-white transition-colors">Contact</a>
+          <a href="mailto:hello@mysolostack.eu" className="hover:text-white transition-colors">Contact</a>
         </div>
       </div>
     </div>
