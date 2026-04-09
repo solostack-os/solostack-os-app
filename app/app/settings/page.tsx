@@ -2,9 +2,14 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
-import { DottedSurface } from "@/components/ui/dotted-surface";
 import { CREDITS_PER_RUN } from "@/lib/constants";
+
+const DottedSurface = dynamic(
+  () => import("@/components/ui/dotted-surface").then((m) => ({ default: m.DottedSurface })),
+  { ssr: false, loading: () => null }
+);
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";

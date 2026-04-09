@@ -3,12 +3,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { GlowCard } from "@/components/ui/glow-card";
 import { ShinyButton } from "@/components/ui/shiny-button";
-import { DottedSurface } from "@/components/ui/dotted-surface";
 import { CREDITS_PER_RUN, MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
+
+// Lazy-load Three.js/WebGL background — loads after page renders so it
+// doesn't block the initial bundle parse or first contentful paint.
+const DottedSurface = dynamic(
+  () => import("@/components/ui/dotted-surface").then((m) => ({ default: m.DottedSurface })),
+  { ssr: false, loading: () => null }
+);
 
 interface RecentRun {
   id: string;
@@ -108,16 +114,15 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-/* ─── Animation variants ─── */
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    transition: { delay: 0.05 + i * 0.07, duration: 0.45, ease: [0.25, 1, 0.5, 1] as any },
-  }),
-};
+/* ─── Animation helper ─── */
+// Replicates the framer-motion fadeUp variant with pure CSS animation.
+// delay formula matches the original: 0.05 + i * 0.07 seconds.
+function fadeUp(i: number): React.CSSProperties {
+  return {
+    animation: `du-fadeUp 0.45s cubic-bezier(0.25,1,0.5,1) both`,
+    animationDelay: `${0.05 + i * 0.07}s`,
+  };
+}
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -292,12 +297,17 @@ export default function DashboardPage() {
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-10 py-8 sm:py-12 lg:py-20">
+        {/* ─── CSS keyframe for fade-up animations (replaces framer-motion) ─── */}
+        <style>{`
+          @keyframes du-fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0);    }
+          }
+        `}</style>
+
         {/* ─── Header ─── */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          custom={0}
-          variants={fadeUp}
+        <div
+          style={fadeUp(0)}
           className="flex items-start justify-between mb-16"
         >
           <div>
@@ -319,16 +329,10 @@ export default function DashboardPage() {
           >
             {planLabel}
           </span>
-        </motion.div>
+        </div>
 
         {/* ─── Quick Generate CTA ─── */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          custom={1}
-          variants={fadeUp}
-          className="mb-16"
-        >
+        <div style={fadeUp(1)} className="mb-16">
           <GlowCard glowColor="blue">
             <div className="p-8 sm:p-10" style={{ backgroundColor: "rgba(17,24,39,0.8)", borderRadius: "inherit" }}>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
@@ -356,32 +360,22 @@ export default function DashboardPage() {
               </div>
             </div>
           </GlowCard>
-        </motion.div>
+        </div>
 
         {/* ─── Section label ─── */}
-        <motion.p
-          initial="hidden"
-          animate="visible"
-          custom={2}
-          variants={fadeUp}
+        <p
+          style={{ ...fadeUp(2), color: textMuted }}
           className="text-xs font-medium uppercase tracking-widest mb-6 px-1"
-          style={{ color: textMuted }}
         >
           Modules
-        </motion.p>
+        </p>
 
         {/* ─── Module Cards ─── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-16">
           {modules.map((mod, idx) => {
             const theme = moduleThemes[mod.colorKey];
             return (
-              <motion.div
-                key={mod.name}
-                initial="hidden"
-                animate="visible"
-                custom={3 + idx}
-                variants={fadeUp}
-              >
+              <div key={mod.name} style={fadeUp(3 + idx)}>
                 <Link href={mod.href} className="block h-full">
                   <GlowCard glowColor={theme.glowColor} className="group cursor-pointer h-full">
                     <div className="h-full flex flex-col" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
@@ -421,19 +415,14 @@ export default function DashboardPage() {
                     </div>
                   </GlowCard>
                 </Link>
-              </motion.div>
+              </div>
             );
           })}
         </div>
 
         {/* ─── Usage Bar ─── */}
         {runCap !== null && (
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            custom={6}
-            variants={fadeUp}
-          >
+          <div style={fadeUp(6)}>
             <GlowCard glowColor="blue">
               <div className="p-7" style={{ backgroundColor: "rgba(17,24,39,0.8)", borderRadius: "inherit" }}>
                 <div className="flex items-center justify-between mb-4">
@@ -469,18 +458,12 @@ export default function DashboardPage() {
                 )}
               </div>
             </GlowCard>
-          </motion.div>
+          </div>
         )}
 
         {/* ─── Recent Outputs ─── */}
         {recentRuns.length > 0 && (
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            custom={7}
-            variants={fadeUp}
-            className="mt-16"
-          >
+          <div style={fadeUp(7)} className="mt-16">
             <p
               className="text-xs font-medium uppercase tracking-widest mb-6 px-1"
               style={{ color: textMuted }}
@@ -517,7 +500,7 @@ export default function DashboardPage() {
                 );
               })}
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
 
