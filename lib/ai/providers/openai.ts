@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { LANGUAGE_RULE } from "@/lib/ai/language-rule";
 
 export const OPENAI_MODEL = "gpt-4o";
 
@@ -34,7 +35,7 @@ export class OpenAIStreamWrapper {
       model: OPENAI_MODEL,
       max_tokens: 2048,
       messages: [
-        { role: "system", content: systemPrompt },
+        { role: "system", content: `${systemPrompt}\n\n${LANGUAGE_RULE}` },
         { role: "user", content: userPrompt },
       ],
     });

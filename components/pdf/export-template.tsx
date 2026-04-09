@@ -1,4 +1,5 @@
 import React from "react";
+import path from "path";
 import {
   Document,
   Page,
@@ -37,8 +38,31 @@ export interface ExportTemplateProps {
   headerVariant?: HeaderVariant;
 }
 
-// React-PDF ships with Helvetica built in, so we avoid any network font
-// fetches that would slow down or fail during server-side rendering.
+/**
+ * Register Liberation Sans — a metrically identical Arial/Helvetica substitute
+ * with full Latin + Latin Extended coverage. This ensures Romanian diacritics
+ * (ă â î ș ț) and other non-ASCII Latin characters render correctly in PDFs.
+ *
+ * The TTF files live in /public/fonts/ so they're deployed as static assets
+ * alongside the app. We use absolute file-system paths (via process.cwd()) so
+ * this works in both local dev and the Vercel Node.js runtime.
+ *
+ * Helvetica (the react-pdf built-in) only covers Latin-1 and silently drops
+ * any character outside that range, which is why diacritics were missing.
+ */
+const FONTS_DIR = path.join(process.cwd(), "public", "fonts");
+
+Font.register({
+  family: "LiberationSans",
+  fonts: [
+    { src: path.join(FONTS_DIR, "LiberationSans-Regular.ttf"), fontWeight: "normal", fontStyle: "normal" },
+    { src: path.join(FONTS_DIR, "LiberationSans-Bold.ttf"), fontWeight: "bold", fontStyle: "normal" },
+    { src: path.join(FONTS_DIR, "LiberationSans-Italic.ttf"), fontWeight: "normal", fontStyle: "italic" },
+    { src: path.join(FONTS_DIR, "LiberationSans-BoldItalic.ttf"), fontWeight: "bold", fontStyle: "italic" },
+  ],
+});
+
+// Disable hyphenation so words aren't broken mid-word across lines.
 Font.registerHyphenationCallback((word) => [word]);
 
 const DEFAULT_PRIMARY = "#6c8cff";
@@ -275,7 +299,7 @@ export function ExportTemplate({
 
   const styles = StyleSheet.create({
     page: {
-      fontFamily: "Helvetica",
+      fontFamily: "LiberationSans",
       fontSize: 11,
       color: INK,
       paddingTop: PAGE_TOP_PADDING,
@@ -324,7 +348,7 @@ export function ExportTemplate({
     },
     legalName: {
       fontSize: 10,
-      fontFamily: "Helvetica-Bold",
+      fontFamily: "LiberationSans", fontWeight: "bold",
       color: palette.primaryText,
       marginBottom: 2,
       textAlign: "right",
@@ -355,7 +379,7 @@ export function ExportTemplate({
     },
     title: {
       fontSize: 18,
-      fontFamily: "Helvetica-Bold",
+      fontFamily: "LiberationSans", fontWeight: "bold",
       color: INK,
       marginBottom: 20,
     },
@@ -364,21 +388,21 @@ export function ExportTemplate({
     },
     h1: {
       fontSize: 15,
-      fontFamily: "Helvetica-Bold",
+      fontFamily: "LiberationSans", fontWeight: "bold",
       color: primary,
       marginTop: 16,
       marginBottom: 8,
     },
     h2: {
       fontSize: 13,
-      fontFamily: "Helvetica-Bold",
+      fontFamily: "LiberationSans", fontWeight: "bold",
       color: primary,
       marginTop: 14,
       marginBottom: 7,
     },
     h3: {
       fontSize: 12,
-      fontFamily: "Helvetica-Bold",
+      fontFamily: "LiberationSans", fontWeight: "bold",
       color: primary,
       marginTop: 12,
       marginBottom: 6,
@@ -390,10 +414,10 @@ export function ExportTemplate({
       marginBottom: 10,
     },
     bold: {
-      fontFamily: "Helvetica-Bold",
+      fontFamily: "LiberationSans", fontWeight: "bold",
     },
     italic: {
-      fontFamily: "Helvetica-Oblique",
+      fontFamily: "LiberationSans", fontStyle: "italic",
     },
     listItem: {
       flexDirection: "row",
