@@ -393,21 +393,39 @@ export default function MarketingPage() {
   async function handleSuggest() {
     setLoadingSuggestions(true);
     setSuggestions([]);
+    // Abort after 20 s so the spinner never gets stuck forever.
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20_000);
     try {
       const res = await fetch("/api/runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ module_key: "marketing", workflow_key: "topic_suggestions", input_json: { platform: getSuggestPlatform() } }),
+        signal: controller.signal,
       });
       const data = await res.json();
       if (res.ok && data.output_markdown) {
-        const cleaned = data.output_markdown.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
-        const parsed = JSON.parse(cleaned);
-        if (Array.isArray(parsed)) setSuggestions(parsed);
+        // Strip markdown code fences that the model may wrap around the JSON.
+        // Handles ```json ... ```, ``` ... ```, and bare arrays.
+        const raw = data.output_markdown.trim();
+        const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+        const cleaned = (fenceMatch ? fenceMatch[1] : raw).trim();
+        try {
+          const parsed = JSON.parse(cleaned);
+          if (Array.isArray(parsed)) setSuggestions(parsed);
+        } catch {
+          // Model returned non-JSON — silently ignore, user can type manually.
+          console.warn("[topic_suggestions] could not parse response:", cleaned.slice(0, 100));
+        }
       }
     } catch (err) {
-      console.error("[topic_suggestions] error:", err);
+      if (err instanceof Error && err.name === "AbortError") {
+        console.warn("[topic_suggestions] timed out after 20 s");
+      } else {
+        console.error("[topic_suggestions] error:", err);
+      }
     } finally {
+      clearTimeout(timeout);
       setLoadingSuggestions(false);
     }
   }
