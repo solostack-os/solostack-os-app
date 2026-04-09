@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaudeStream } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "cold_email";
 
@@ -22,7 +22,8 @@ const goalGuidance: Record<ColdEmailInput["goal"], string> = {
 
 export function runColdEmail(
   context: WorkspaceContext,
-  input: ColdEmailInput
+  input: ColdEmailInput,
+  callStream: StreamFn = callClaudeStream
 ) {
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
@@ -44,5 +45,5 @@ Rules:
 
   const userPrompt = `Write a cold email to ${input.prospect_name}, ${input.prospect_role} at ${input.prospect_company}.`;
 
-  return callClaudeStream(systemPrompt, userPrompt);
+  return callStream(systemPrompt, userPrompt);
 }

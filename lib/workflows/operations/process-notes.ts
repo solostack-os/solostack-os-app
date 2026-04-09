@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaudeStream } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "process_notes";
 
@@ -20,7 +20,8 @@ const formatGuidance: Record<ProcessNotesInput["output_format"], string> = {
 
 export function runProcessNotes(
   context: WorkspaceContext,
-  input: ProcessNotesInput
+  input: ProcessNotesInput,
+  callStream: StreamFn = callClaudeStream
 ) {
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
@@ -36,5 +37,5 @@ Rules:
 
   const userPrompt = `Structure these process notes for "${input.process_title}":\n\n${input.raw_notes}`;
 
-  return callClaudeStream(systemPrompt, userPrompt);
+  return callStream(systemPrompt, userPrompt);
 }

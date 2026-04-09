@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaudeStream } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "follow_up";
 
@@ -19,7 +19,8 @@ const timingGuidance: Record<FollowUpInput["days_since"], string> = {
 
 export function runFollowUp(
   context: WorkspaceContext,
-  input: FollowUpInput
+  input: FollowUpInput,
+  callStream: StreamFn = callClaudeStream
 ) {
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
@@ -37,5 +38,5 @@ Rules:
 
   const userPrompt = `Write 3 follow-up emails. The original outreach was about: ${input.context}. It has been ${input.days_since.replace("_", " ")} since the last email.`;
 
-  return callClaudeStream(systemPrompt, userPrompt);
+  return callStream(systemPrompt, userPrompt);
 }

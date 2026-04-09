@@ -4,6 +4,18 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 });
 
+/**
+ * Shared type for the stream factory function used by all workflows.
+ * Allows route.ts to swap the underlying AI provider at runtime (e.g.
+ * falling back to OpenAI when Anthropic is overloaded) without changing
+ * any workflow file.
+ */
+export type StreamFn = (systemPrompt: string, userPrompt: string) => {
+  on(event: "text", listener: (delta: string) => void): unknown;
+  finalMessage(): Promise<{ usage: { input_tokens: number; output_tokens: number } }>;
+  abort(): void;
+};
+
 // Single source of truth for the model ID. When swapping models, change
 // this and the matching `model_name` column written in app/api/runs/route.ts.
 export const CLAUDE_MODEL = "claude-sonnet-4-6";

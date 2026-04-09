@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaudeStream } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "weekly_plan";
 
@@ -20,7 +20,8 @@ const styleGuidance: Record<WeeklyPlanInput["work_style"], string> = {
 
 export function runWeeklyPlan(
   context: WorkspaceContext,
-  input: WeeklyPlanInput
+  input: WeeklyPlanInput,
+  callStream: StreamFn = callClaudeStream
 ) {
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
@@ -38,5 +39,5 @@ Rules:
 
   const userPrompt = `Create a weekly plan focused on: ${input.focus_area}\n\nPriorities:\n${input.priorities}`;
 
-  return callClaudeStream(systemPrompt, userPrompt);
+  return callStream(systemPrompt, userPrompt);
 }

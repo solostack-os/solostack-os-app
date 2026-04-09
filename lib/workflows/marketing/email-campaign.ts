@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaudeStream } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "email_campaign";
 
@@ -21,7 +21,8 @@ const typeGuidance: Record<EmailCampaignInput["email_type"], string> = {
 
 export function runEmailCampaign(
   context: WorkspaceContext,
-  input: EmailCampaignInput
+  input: EmailCampaignInput,
+  callStream: StreamFn = callClaudeStream
 ) {
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
@@ -38,5 +39,5 @@ Rules:
 
   const userPrompt = `Write a ${input.email_type.replace("_", " ")} email about: ${input.topic}`;
 
-  return callClaudeStream(systemPrompt, userPrompt);
+  return callStream(systemPrompt, userPrompt);
 }

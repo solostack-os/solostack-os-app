@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaudeStream } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "onboarding_doc";
 
@@ -12,7 +12,8 @@ export interface OnboardingDocInput {
 
 export function runOnboardingDoc(
   context: WorkspaceContext,
-  input: OnboardingDocInput
+  input: OnboardingDocInput,
+  callStream: StreamFn = callClaudeStream
 ) {
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
@@ -35,5 +36,5 @@ Rules:
 
   const userPrompt = `Create a client onboarding document.\n\nKey deliverables:\n${input.key_deliverables}`;
 
-  return callClaudeStream(systemPrompt, userPrompt);
+  return callStream(systemPrompt, userPrompt);
 }

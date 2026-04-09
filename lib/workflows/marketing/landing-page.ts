@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaudeStream } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "landing_page";
 
@@ -33,7 +33,8 @@ const goalGuidance: Record<LandingPageInput["goal"], string> = {
 
 export function runLandingPage(
   context: WorkspaceContext,
-  input: LandingPageInput
+  input: LandingPageInput,
+  callStream: StreamFn = callClaudeStream
 ) {
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
@@ -47,5 +48,5 @@ Rules:
 
   const userPrompt = `Write ${input.section.replace("_", " ")} section copy about: ${input.topic}`;
 
-  return callClaudeStream(systemPrompt, userPrompt);
+  return callStream(systemPrompt, userPrompt);
 }

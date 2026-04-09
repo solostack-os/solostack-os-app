@@ -289,7 +289,7 @@ export default function DashboardPage() {
   const usagePercent = runCap ? Math.min((creditsUsed / runCap) * 100, 100) : 0;
 
   return (
-    <div className="relative min-h-screen isolate" style={{ backgroundColor: bg }}>
+    <div className="relative min-h-screen isolate overflow-x-hidden" style={{ backgroundColor: bg }}>
       {/* ─── Animated dotted surface background ─── */}
       <DottedSurface className="opacity-35" />
 
@@ -302,7 +302,7 @@ export default function DashboardPage() {
         }}
       />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-10 py-12 lg:py-20">
+      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-12 lg:py-20">
         {/* ─── Header ─── */}
         <motion.div
           initial="hidden"

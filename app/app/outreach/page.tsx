@@ -402,9 +402,9 @@ export default function OutreachPage() {
         }
       `}</style>
 
-      <div className="max-w-2xl mx-auto px-6 lg:px-8 py-12">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* ── Tab navigation ── */}
-        <div className="mb-8 -mx-6 px-6 lg:-mx-8 lg:px-8 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-x pan-y" }}>
+        <div className="mb-8 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-x pan-y" }}>
           <div className="flex gap-1 min-w-max border-b" style={{ borderColor: border }}>
             {tabs.map((t) => (
               <button
@@ -446,7 +446,7 @@ export default function OutreachPage() {
             <GlowCard glowColor="green" className="mb-6">
               <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
-              <div className="p-7">
+              <div className="p-5 sm:p-7">
                 <TextInput label="Prospect name" value={ceName} onChange={setCeName} placeholder="e.g. Sarah Chen" />
                 <TextInput label="Role" value={ceRole} onChange={setCeRole} placeholder="e.g. VP of Marketing" />
                 <TextInput label="Company" value={ceCompany} onChange={setCeCompany} placeholder="e.g. Acme Corp" />
@@ -484,7 +484,7 @@ export default function OutreachPage() {
             <GlowCard glowColor="green" className="mb-6">
               <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
-              <div className="p-7">
+              <div className="p-5 sm:p-7">
                 <TextareaInput
                   label="What was the original email about?"
                   value={fuContext}
@@ -517,7 +517,7 @@ export default function OutreachPage() {
             <GlowCard glowColor="green" className="mb-6">
               <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
-              <div className="p-7">
+              <div className="p-5 sm:p-7">
                 <TextInput label="Project type" value={prType} onChange={setPrType} placeholder="e.g. Brand identity redesign" />
                 <TextInput label="Client name" value={prClient} onChange={setPrClient} placeholder="e.g. Bloom Skincare" />
                 <TextInput label="Budget range" value={prBudget} onChange={setPrBudget} placeholder="e.g. $3,000 - $5,000" optional />
@@ -554,7 +554,7 @@ export default function OutreachPage() {
             <GlowCard glowColor="green" className="mb-6">
               <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
-              <div className="p-7">
+              <div className="p-5 sm:p-7">
                 <TextInput label="Prospect company" value={dpCompany} onChange={setDpCompany} placeholder="e.g. Stripe" />
                 <TextInput label="Industry" value={dpIndustry} onChange={setDpIndustry} placeholder="e.g. Fintech / Payments" />
                 <PillSelector label="Call goal" options={callGoals} value={dpGoal} onChange={setDpGoal} />

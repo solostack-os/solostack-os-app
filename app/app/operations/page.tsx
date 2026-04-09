@@ -406,9 +406,9 @@ export default function OperationsPage() {
           animation: skel-shimmer 1.5s ease-in-out infinite;
         }
       `}</style>
-      <div className="max-w-2xl mx-auto px-6 lg:px-8 py-12">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* ── Tab navigation ── */}
-        <div className="mb-8 -mx-6 px-6 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-x pan-y" }}>
+        <div className="mb-8 -mx-4 px-4 sm:-mx-6 sm:px-6 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-x pan-y" }}>
           <div className="flex gap-1 min-w-max border-b" style={{ borderColor: border }}>
             {tabs.map((t) => (
               <button
@@ -450,7 +450,7 @@ export default function OperationsPage() {
             <GlowCard glowColor="orange" className="mb-6">
               <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
-              <div className="p-7">
+              <div className="p-5 sm:p-7">
                 <TextInput label="Process name" value={sopName} onChange={setSopName} placeholder="e.g. Client onboarding" />
                 <PillSelector label="Department" options={departments} value={sopDept} onChange={setSopDept} />
                 <PillSelector label="Detail level" options={detailLevels} value={sopDetail} onChange={setSopDetail} />
@@ -487,7 +487,7 @@ export default function OperationsPage() {
             <GlowCard glowColor="orange" className="mb-6">
               <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
-              <div className="p-7">
+              <div className="p-5 sm:p-7">
                 <TextInput label="Focus area" value={wpFocus} onChange={setWpFocus} placeholder="e.g. Product launch prep" />
                 <TextareaInput
                   label="Priorities"
@@ -521,7 +521,7 @@ export default function OperationsPage() {
             <GlowCard glowColor="orange" className="mb-6">
               <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
-              <div className="p-7">
+              <div className="p-5 sm:p-7">
                 <TextInput label="Client name" value={obClient} onChange={setObClient} placeholder="e.g. Bloom Skincare" />
                 <TextInput label="Service type" value={obService} onChange={setObService} placeholder="e.g. Brand identity" />
                 <TextInput label="Start date" value={obDate} onChange={setObDate} placeholder="e.g. May 1, 2025" />
@@ -556,7 +556,7 @@ export default function OperationsPage() {
             <GlowCard glowColor="orange" className="mb-6">
               <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
-              <div className="p-7">
+              <div className="p-5 sm:p-7">
                 <TextInput label="Process title" value={pnTitle} onChange={setPnTitle} placeholder="e.g. Monthly reporting" />
                 <TextareaInput
                   label="Raw notes"

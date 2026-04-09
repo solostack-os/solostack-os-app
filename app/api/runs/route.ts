@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import { CLAUDE_MODEL } from "@/lib/ai/providers/anthropic";
+import { CLAUDE_MODEL, callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
+import { OPENAI_MODEL, callOpenAIStream } from "@/lib/ai/providers/openai";
 import { CREDITS_PER_RUN } from "@/lib/constants";
 import { runSocialPosts, type SocialPostsInput } from "@/lib/workflows/marketing/social-posts";
 import { runTopicSuggestions, type TopicSuggestionsInput } from "@/lib/workflows/marketing/topic-suggestions";
@@ -167,6 +168,13 @@ export async function POST(request: Request) {
   //    Neither the stream open nor the first token require run.id, so we
   //    kick off the INSERT first and recover it when we need it for the
   //    post-stream writes.
+  // Track which provider is active so the completion update reflects any fallback.
+  let activeProvider: "anthropic" | "openai" = "anthropic";
+  let activeModel: string = CLAUDE_MODEL;
+
+  // Fire the run INSERT immediately (before stream starts) for performance.
+  // model_provider starts as "anthropic"; if we fall back to OpenAI, the
+  // completion update below will correct it.
   const insertRunPromise = admin
     .from("runs")
     .insert({
@@ -177,58 +185,58 @@ export async function POST(request: Request) {
       status: "running",
       input_json,
       context_snapshot_json: context ?? {},
-      model_provider: "anthropic",
-      model_name: CLAUDE_MODEL,
+      model_provider: activeProvider,
+      model_name: activeModel,
       started_at: new Date().toISOString(),
     })
     .select("id")
     .single();
 
-  // 8. Dispatch helper — creates a fresh MessageStream for the requested
-  //    workflow. Extracted into a function so the stream layer can call it
-  //    again on retry without duplicating the dispatch table.
+  // 8. Dispatch helper — creates a fresh stream for the requested workflow.
+  //    Accepts an optional streamFn to swap the underlying AI provider
+  //    (e.g. callOpenAIStream when Anthropic is overloaded).
   //    Throws synchronously for unknown workflows (caught below → 400).
   let outputTitle: string;
-  function createStream() {
+  function createStream(streamFn: StreamFn = callClaudeStream) {
     if (module_key === "marketing" && workflow_key === "social_posts") {
       outputTitle = `Social posts — ${input_json.platform}`;
-      return runSocialPosts(context, input_json as unknown as SocialPostsInput);
+      return runSocialPosts(context, input_json as unknown as SocialPostsInput, streamFn);
     } else if (module_key === "marketing" && workflow_key === "ad_copy") {
       outputTitle = `Ad copy — ${input_json.platform}`;
-      return runAdCopy(context, input_json as unknown as AdCopyInput);
+      return runAdCopy(context, input_json as unknown as AdCopyInput, streamFn);
     } else if (module_key === "marketing" && workflow_key === "landing_page") {
       outputTitle = `Landing page — ${input_json.section}`;
-      return runLandingPage(context, input_json as unknown as LandingPageInput);
+      return runLandingPage(context, input_json as unknown as LandingPageInput, streamFn);
     } else if (module_key === "marketing" && workflow_key === "email_campaign") {
       outputTitle = `Email — ${input_json.email_type}`;
-      return runEmailCampaign(context, input_json as unknown as EmailCampaignInput);
+      return runEmailCampaign(context, input_json as unknown as EmailCampaignInput, streamFn);
     } else if (module_key === "marketing" && workflow_key === "content_brief") {
       outputTitle = `Content brief — ${input_json.content_type}`;
-      return runContentBrief(context, input_json as unknown as ContentBriefInput);
+      return runContentBrief(context, input_json as unknown as ContentBriefInput, streamFn);
     } else if (module_key === "outreach" && workflow_key === "cold_email") {
       outputTitle = `Cold email — ${input_json.prospect_company}`;
-      return runColdEmail(context, input_json as unknown as ColdEmailInput);
+      return runColdEmail(context, input_json as unknown as ColdEmailInput, streamFn);
     } else if (module_key === "outreach" && workflow_key === "follow_up") {
       outputTitle = `Follow-up — ${input_json.days_since}`;
-      return runFollowUp(context, input_json as unknown as FollowUpInput);
+      return runFollowUp(context, input_json as unknown as FollowUpInput, streamFn);
     } else if (module_key === "outreach" && workflow_key === "proposal") {
       outputTitle = `Proposal — ${input_json.client_name}`;
-      return runProposal(context, input_json as unknown as ProposalInput);
+      return runProposal(context, input_json as unknown as ProposalInput, streamFn);
     } else if (module_key === "outreach" && workflow_key === "discovery_prep") {
       outputTitle = `Discovery prep — ${input_json.prospect_company}`;
-      return runDiscoveryPrep(context, input_json as unknown as DiscoveryPrepInput);
+      return runDiscoveryPrep(context, input_json as unknown as DiscoveryPrepInput, streamFn);
     } else if (module_key === "operations" && workflow_key === "sop_generator") {
       outputTitle = `SOP — ${input_json.process_name}`;
-      return runSopGenerator(context, input_json as unknown as SopGeneratorInput);
+      return runSopGenerator(context, input_json as unknown as SopGeneratorInput, streamFn);
     } else if (module_key === "operations" && workflow_key === "weekly_plan") {
       outputTitle = `Weekly plan — ${input_json.focus_area}`;
-      return runWeeklyPlan(context, input_json as unknown as WeeklyPlanInput);
+      return runWeeklyPlan(context, input_json as unknown as WeeklyPlanInput, streamFn);
     } else if (module_key === "operations" && workflow_key === "onboarding_doc") {
       outputTitle = `Onboarding — ${input_json.client_name}`;
-      return runOnboardingDoc(context, input_json as unknown as OnboardingDocInput);
+      return runOnboardingDoc(context, input_json as unknown as OnboardingDocInput, streamFn);
     } else if (module_key === "operations" && workflow_key === "process_notes") {
       outputTitle = `Process notes — ${input_json.process_title}`;
-      return runProcessNotes(context, input_json as unknown as ProcessNotesInput);
+      return runProcessNotes(context, input_json as unknown as ProcessNotesInput, streamFn);
     } else {
       throw new Error(`Unknown workflow: ${module_key}/${workflow_key}`);
     }
@@ -243,15 +251,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
-  // 9. Build the ReadableStream that pipes Claude text deltas straight to
-  //    the client. Includes automatic retry on overloaded_error (up to
-  //    MAX_RETRIES attempts with exponential backoff) so a temporary spike
-  //    in Anthropic API load doesn't silently return an empty response.
-  //    Once the Claude stream ends, we await the in-flight run INSERT, then
-  //    do the output INSERT and runs UPDATE in parallel before closing the
-  //    response stream. Closing the stream *after* the DB writes is
-  //    important: the frontend fires a `recents:refresh` event on close,
-  //    and we want the new row visible by then.
+  // 9. Build the ReadableStream that pipes AI text deltas straight to the
+  //    client. Strategy:
+  //      1. Try Anthropic (claude-sonnet-4-6) — up to MAX_RETRIES with
+  //         exponential backoff on overloaded_error.
+  //      2. If still overloaded after MAX_RETRIES, automatically fall back
+  //         to OpenAI (gpt-4o) for this request.
+  //      3. Any other error → mark run as failed and surface to the client.
+  //    Once the stream ends, we await the in-flight run INSERT, then do the
+  //    output INSERT and run UPDATE in parallel before closing the response
+  //    stream. Closing *after* the DB writes ensures the frontend's
+  //    `recents:refresh` event sees the new row immediately.
   const MAX_RETRIES = 2;
   const encoder = new TextEncoder();
   const responseStream = new ReadableStream<Uint8Array>({
@@ -260,8 +270,8 @@ export async function POST(request: Request) {
       let retryCount = 0;
 
       // Attach text listener to a stream instance and drive it to completion.
-      // Returns the final Message on success; throws on unrecoverable error.
-      // On overloaded_error with no tokens yet, waits and retries automatically.
+      // Throws on unrecoverable errors; auto-retries on overloaded_error up to
+      // MAX_RETRIES, then transparently switches to OpenAI.
       async function driveStream(stream: ReturnType<typeof createStream>): Promise<void> {
         let gotTokens = false;
 
@@ -301,29 +311,40 @@ export async function POST(request: Request) {
                 prompt_tokens: promptTokens,
                 completion_tokens: completionTokens,
                 completed_at: new Date().toISOString(),
+                // Correct the model fields if an OpenAI fallback was used.
+                model_provider: activeProvider,
+                model_name: activeModel,
               })
               .eq("id", run.id),
           ]);
         } catch (err) {
-          // Retry on overloaded_error if we haven't received any tokens yet
-          // (retrying mid-stream would duplicate content).
-          const isOverloaded =
-            !gotTokens &&
-            retryCount < MAX_RETRIES &&
-            (err as { type?: string })?.type === "overloaded_error";
+          const errType = (err as { type?: string })?.type;
+          const isOverloaded = !gotTokens && errType === "overloaded_error";
 
-          if (isOverloaded) {
+          // ── Anthropic retry with backoff ──────────────────────────────
+          if (isOverloaded && retryCount < MAX_RETRIES) {
             retryCount++;
             const delayMs = retryCount * 2000; // 2 s, 4 s
             console.warn(
-              `[api/runs] overloaded — retry ${retryCount}/${MAX_RETRIES} in ${delayMs}ms`
+              `[api/runs] Anthropic overloaded — retry ${retryCount}/${MAX_RETRIES} in ${delayMs}ms`
             );
             await new Promise((r) => setTimeout(r, delayMs));
-            currentStream = createStream();
+            currentStream = createStream(); // callClaudeStream (default)
             return driveStream(currentStream);
           }
 
-          // Unrecoverable — log and mark run as failed.
+          // ── OpenAI fallback after MAX_RETRIES ─────────────────────────
+          if (isOverloaded && retryCount >= MAX_RETRIES && process.env.OPENAI_API_KEY) {
+            console.warn(
+              `[api/runs] Anthropic overloaded after ${MAX_RETRIES} retries — falling back to OpenAI`
+            );
+            activeProvider = "openai";
+            activeModel = OPENAI_MODEL;
+            currentStream = createStream(callOpenAIStream);
+            return driveStream(currentStream);
+          }
+
+          // ── Unrecoverable — log and mark run as failed ────────────────
           console.error("[api/runs stream error]", err);
           const message = err instanceof Error ? err.message : "Unknown error";
           try {

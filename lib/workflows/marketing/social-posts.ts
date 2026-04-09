@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaudeStream } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "social_posts";
 
@@ -20,7 +20,8 @@ const platformGuidance: Record<SocialPostsInput["platform"], string> = {
 
 export function runSocialPosts(
   context: WorkspaceContext,
-  input: SocialPostsInput
+  input: SocialPostsInput,
+  callStream: StreamFn = callClaudeStream
 ) {
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
@@ -35,5 +36,5 @@ Rules:
 
   const userPrompt = `Generate exactly ${input.num_posts} ${input.platform} post(s) about: ${input.topic}. No more, no less.`;
 
-  return callClaudeStream(systemPrompt, userPrompt);
+  return callStream(systemPrompt, userPrompt);
 }

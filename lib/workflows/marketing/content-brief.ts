@@ -1,5 +1,5 @@
 import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
-import { callClaudeStream } from "@/lib/ai/providers/anthropic";
+import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "content_brief";
 
@@ -19,7 +19,8 @@ const typeGuidance: Record<ContentBriefInput["content_type"], string> = {
 
 export function runContentBrief(
   context: WorkspaceContext,
-  input: ContentBriefInput
+  input: ContentBriefInput,
+  callStream: StreamFn = callClaudeStream
 ) {
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
@@ -35,5 +36,5 @@ Rules:
 
   const userPrompt = `Create a ${input.content_type.replace(/_/g, " ")} brief about: ${input.topic}`;
 
-  return callClaudeStream(systemPrompt, userPrompt);
+  return callStream(systemPrompt, userPrompt);
 }
