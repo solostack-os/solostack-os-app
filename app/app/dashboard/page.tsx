@@ -134,19 +134,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function bootstrap() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        setError("Not authenticated");
-        setLoading(false);
-        return;
-      }
-
-      const bootstrapRes = await fetch("/api/workspace/bootstrap", {
-        method: "POST",
-      });
+      // ── Step 1: Bootstrap (auth is validated server-side, returns workspace_id) ──
+      // We skip a client-side auth.getUser() call here — the POST endpoint reads
+      // the session cookie directly, saving one full network roundtrip.
+      const bootstrapRes = await fetch("/api/workspace/bootstrap", { method: "POST" });
 
       if (!bootstrapRes.ok) {
         const body = await bootstrapRes.json();
@@ -155,17 +146,42 @@ export default function DashboardPage() {
         return;
       }
 
-      const { is_new } = await bootstrapRes.json();
+      const { is_new, workspace_id } = await bootstrapRes.json();
+
       if (is_new) {
         router.push("/app/onboarding");
         return;
       }
 
-      const { data: workspace } = await supabase
-        .from("workspaces")
-        .select("id, name")
-        .eq("owner_user_id", user.id)
-        .single();
+      if (!workspace_id) {
+        setError("Workspace not found");
+        setLoading(false);
+        return;
+      }
+
+      // ── Step 2: All dashboard data in ONE parallel batch ──────────────────────
+      // Previously these were 5 sequential awaits; now they fire simultaneously.
+      // We fetch all plans upfront (tiny table, 3 rows) so we don't need a
+      // second sequential round-trip after learning the subscription plan_key.
+      const [
+        { data: workspace },
+        { data: subscription },
+        { count: runsCount },
+        { data: runs },
+        { data: plans },
+      ] = await Promise.all([
+        supabase.from("workspaces").select("name").eq("id", workspace_id).single(),
+        supabase.from("subscriptions").select("plan_key").eq("workspace_id", workspace_id).single(),
+        supabase.from("runs").select("id", { count: "exact", head: true }).eq("workspace_id", workspace_id),
+        supabase
+          .from("runs")
+          .select("id, workflow_key, module_key, created_at, outputs(title, output_markdown)")
+          .eq("workspace_id", workspace_id)
+          .eq("status", "completed")
+          .order("created_at", { ascending: false })
+          .limit(10),
+        supabase.from("plans").select("key, run_cap"),
+      ]);
 
       if (!workspace) {
         setError("Workspace not found");
@@ -174,43 +190,14 @@ export default function DashboardPage() {
       }
 
       setWorkspaceName(workspace.name ?? "My Workspace");
-
-      const { data: subscription } = await supabase
-        .from("subscriptions")
-        .select("plan_key")
-        .eq("workspace_id", workspace.id)
-        .single();
+      setRunsUsed(runsCount ?? 0);
+      if (runs) setRecentRuns(runs as unknown as RecentRun[]);
 
       if (subscription) {
         setPlanKey(subscription.plan_key);
+        const plan = plans?.find((p) => p.key === subscription.plan_key);
+        if (plan?.run_cap != null) setRunCap(plan.run_cap);
       }
-
-      const { count } = await supabase
-        .from("runs")
-        .select("id", { count: "exact", head: true })
-        .eq("workspace_id", workspace.id);
-
-      setRunsUsed(count ?? 0);
-
-      if (subscription) {
-        const { data: plan } = await supabase
-          .from("plans")
-          .select("run_cap")
-          .eq("key", subscription.plan_key)
-          .single();
-
-        if (plan) setRunCap(plan.run_cap);
-      }
-
-      const { data: runs } = await supabase
-        .from("runs")
-        .select("id, workflow_key, module_key, created_at, outputs(title, output_markdown)")
-        .eq("workspace_id", workspace.id)
-        .eq("status", "completed")
-        .order("created_at", { ascending: false })
-        .limit(10);
-
-      if (runs) setRecentRuns(runs as unknown as RecentRun[]);
 
       setLoading(false);
     }
