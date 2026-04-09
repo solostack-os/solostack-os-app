@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { GlowCard } from "@/components/ui/glow-card";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { DottedSurface } from "@/components/ui/dotted-surface";
-import { CREDITS_PER_RUN } from "@/lib/constants";
+import { CREDITS_PER_RUN, MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
 
 interface RecentRun {
   id: string;
@@ -525,7 +525,11 @@ export default function DashboardPage() {
       {selectedRun && (() => {
         const output = selectedRun.outputs?.[0]?.output_markdown ?? "";
         const title = selectedRun.outputs?.[0]?.title ?? selectedRun.workflow_key.replace(/_/g, " ");
-        const sections = output ? output.split(/\n---\n/).map((p: string) => p.trim()).filter(Boolean) : [];
+        const sections = output
+          ? MULTI_OUTPUT_WORKFLOWS.has(selectedRun.workflow_key)
+            ? output.split(/\n---\n/).map((p: string) => p.trim()).filter(Boolean)
+            : [output.trim()]
+          : [];
         return (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4"

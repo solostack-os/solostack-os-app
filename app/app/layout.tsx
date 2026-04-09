@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -247,7 +248,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const modalOutput = modalRun?.outputs?.[0]?.output_markdown ?? "";
   const modalPosts = modalOutput
-    ? modalOutput.split(/\n---\n/).map((p: string) => p.trim()).filter(Boolean)
+    ? MULTI_OUTPUT_WORKFLOWS.has(modalRun?.workflow_key ?? "")
+      ? modalOutput.split(/\n---\n/).map((p: string) => p.trim()).filter(Boolean)
+      : [modalOutput.trim()]
     : [];
 
   return (

@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { GlowCard } from "@/components/ui/glow-card";
 import { OutputCards } from "@/components/ui/output-cards";
 import { StreamingCard } from "@/components/ui/streaming-card";
+import { MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -375,9 +376,12 @@ export default function MarketingPage() {
     }
   }
 
-  function splitCards(raw: string | null) {
+  function splitCards(raw: string | null, workflowKey: string) {
     if (!raw) return [];
-    return raw.split(/\n---\n/).map((p) => p.trim()).filter(Boolean);
+    if (MULTI_OUTPUT_WORKFLOWS.has(workflowKey)) {
+      return raw.split(/\n---\n/).map((p) => p.trim()).filter(Boolean);
+    }
+    return [raw.trim()]; // single-document workflows — one card
   }
 
   const handleCopy = useCallback(async (text: string, idx: number, setter: (n: number | null) => void) => {
@@ -607,7 +611,7 @@ export default function MarketingPage() {
             </GlowCard>
             {spLoading && !spStreaming && <LoadingSkeleton message="Generating your posts..." />}
             <StreamingCard ref={spStreamTextRef} visible={spStreaming} accent={accent} accentLight={accentLight} />
-            {!spLoading && !spStreaming && <OutputCards cards={splitCards(spOutput)} copiedIdx={spCopied} onCopy={(t, i) => handleCopy(t, i, setSpCopied)} accent={accent} accentLight={accentLight} contentType="social_posts" onClear={() => { setSpOutputs({ instagram: null, linkedin: null, facebook: null }); setSpError(null); }} />}
+            {!spLoading && !spStreaming && <OutputCards cards={splitCards(spOutput, 'social_posts')} copiedIdx={spCopied} onCopy={(t, i) => handleCopy(t, i, setSpCopied)} accent={accent} accentLight={accentLight} contentType="social_posts" onClear={() => { setSpOutputs({ instagram: null, linkedin: null, facebook: null }); setSpError(null); }} />}
           </>
         )}
 
@@ -635,7 +639,7 @@ export default function MarketingPage() {
             </GlowCard>
             {acLoading && !acStreaming && <LoadingSkeleton message="Generating ad variations..." />}
             <StreamingCard ref={acStreamTextRef} visible={acStreaming} accent={accent} accentLight={accentLight} />
-            {!acLoading && !acStreaming && <OutputCards cards={splitCards(acOutput)} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} accent={accent} accentLight={accentLight} contentType="ad_copy" onClear={() => { setAcOutput(null); setAcError(null); }} />}
+            {!acLoading && !acStreaming && <OutputCards cards={splitCards(acOutput, 'ad_copy')} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} accent={accent} accentLight={accentLight} contentType="ad_copy" onClear={() => { setAcOutput(null); setAcError(null); }} />}
           </>
         )}
 
@@ -663,7 +667,7 @@ export default function MarketingPage() {
             </GlowCard>
             {lpLoading && !lpStreaming && <LoadingSkeleton message="Generating landing page copy..." />}
             <StreamingCard ref={lpStreamTextRef} visible={lpStreaming} accent={accent} accentLight={accentLight} />
-            {!lpLoading && !lpStreaming && <OutputCards cards={splitCards(lpOutput)} copiedIdx={lpCopied} onCopy={(t, i) => handleCopy(t, i, setLpCopied)} accent={accent} accentLight={accentLight} contentType="landing_page" onClear={() => { setLpOutput(null); setLpError(null); }} />}
+            {!lpLoading && !lpStreaming && <OutputCards cards={splitCards(lpOutput, 'landing_page')} copiedIdx={lpCopied} onCopy={(t, i) => handleCopy(t, i, setLpCopied)} accent={accent} accentLight={accentLight} contentType="landing_page" onClear={() => { setLpOutput(null); setLpError(null); }} />}
           </>
         )}
 
@@ -690,7 +694,7 @@ export default function MarketingPage() {
             </GlowCard>
             {ecLoading && !ecStreaming && <LoadingSkeleton message="Generating your email..." />}
             <StreamingCard ref={ecStreamTextRef} visible={ecStreaming} accent={accent} accentLight={accentLight} />
-            {!ecLoading && !ecStreaming && <OutputCards cards={splitCards(ecOutput)} copiedIdx={ecCopied} onCopy={(t, i) => handleCopy(t, i, setEcCopied)} accent={accent} accentLight={accentLight} contentType="email_campaign" onClear={() => { setEcOutput(null); setEcError(null); }} />}
+            {!ecLoading && !ecStreaming && <OutputCards cards={splitCards(ecOutput, 'email_campaign')} copiedIdx={ecCopied} onCopy={(t, i) => handleCopy(t, i, setEcCopied)} accent={accent} accentLight={accentLight} contentType="email_campaign" onClear={() => { setEcOutput(null); setEcError(null); }} />}
           </>
         )}
 
@@ -717,7 +721,7 @@ export default function MarketingPage() {
             </GlowCard>
             {cbLoading && !cbStreaming && <LoadingSkeleton message="Generating your brief..." />}
             <StreamingCard ref={cbStreamTextRef} visible={cbStreaming} accent={accent} accentLight={accentLight} />
-            {!cbLoading && !cbStreaming && <OutputCards cards={splitCards(cbOutput)} copiedIdx={cbCopied} onCopy={(t, i) => handleCopy(t, i, setCbCopied)} accent={accent} accentLight={accentLight} contentType="content_brief" onClear={() => { setCbOutput(null); setCbError(null); }} />}
+            {!cbLoading && !cbStreaming && <OutputCards cards={splitCards(cbOutput, 'content_brief')} copiedIdx={cbCopied} onCopy={(t, i) => handleCopy(t, i, setCbCopied)} accent={accent} accentLight={accentLight} contentType="content_brief" onClear={() => { setCbOutput(null); setCbError(null); }} />}
           </>
         )}
       </div>

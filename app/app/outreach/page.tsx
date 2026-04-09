@@ -379,7 +379,7 @@ export default function OutreachPage() {
 
   function splitCards(raw: string | null) {
     if (!raw) return [];
-    return raw.split(/\n---\n/).map((p) => p.trim()).filter(Boolean);
+    return [raw.trim()]; // all outreach outputs are single documents
   }
 
   const handleCopy = useCallback(async (text: string, idx: number, setter: (n: number | null) => void) => {
