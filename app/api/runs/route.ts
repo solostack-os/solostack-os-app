@@ -275,7 +275,7 @@ export async function POST(request: Request) {
       async function driveStream(stream: ReturnType<typeof createStream>): Promise<void> {
         let gotTokens = false;
 
-        stream.on("text", (delta) => {
+        stream.on("text", (delta: string) => {
           gotTokens = true;
           fullText += delta;
           try {
