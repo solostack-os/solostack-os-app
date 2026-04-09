@@ -35,12 +35,18 @@ export async function GET(request: Request) {
       // set via cookies().set() would be lost without this step.
       const response = NextResponse.redirect(`${origin}${next}`);
       cookiesToSet.forEach(({ name, value, options }) => {
-        response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        response.cookies.set(name, value, options as any);
       });
       return response;
     }
+
+    // Log error for debugging — visible in Vercel function logs
+    console.error("[auth/callback] exchangeCodeForSession error:", JSON.stringify(error));
+    const errMsg = encodeURIComponent((error as { message?: string })?.message ?? "unknown");
+    return NextResponse.redirect(`${origin}/auth/login?oauth_error=${errMsg}`);
   }
 
-  // Code missing or exchange failed — send back to login
-  return NextResponse.redirect(`${origin}/auth/login`);
+  // Code missing — send back to login
+  return NextResponse.redirect(`${origin}/auth/login?oauth_error=no_code`);
 }

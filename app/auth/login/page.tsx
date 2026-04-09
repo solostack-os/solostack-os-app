@@ -1,28 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  useEffect(() => {
+    const oauthError = searchParams.get("oauth_error");
+    if (oauthError) setError(decodeURIComponent(oauthError));
+  }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       setError(error.message);
@@ -41,9 +44,7 @@ export default function LoginPage() {
       (typeof window !== "undefined" ? window.location.origin : "");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `${origin}/auth/callback`,
-      },
+      options: { redirectTo: `${origin}/auth/callback` },
     });
     if (error) {
       setError(error.message);
@@ -68,10 +69,7 @@ export default function LoginPage() {
         {/* Card */}
         <div
           className="rounded-xl p-6 border"
-          style={{
-            backgroundColor: "#111827",
-            borderColor: "rgba(255,255,255,0.08)",
-          }}
+          style={{ backgroundColor: "#111827", borderColor: "rgba(255,255,255,0.08)" }}
         >
           {/* Google */}
           <button
@@ -117,11 +115,7 @@ export default function LoginPage() {
                 required
                 placeholder="you@example.com"
                 className="w-full px-3 py-2 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#6c8cff]/50"
-                style={{
-                  backgroundColor: "#0a0f1e",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "#f1f5f9",
-                }}
+                style={{ backgroundColor: "#0a0f1e", border: "1px solid rgba(255,255,255,0.1)", color: "#f1f5f9" }}
               />
             </div>
 
@@ -137,27 +131,17 @@ export default function LoginPage() {
                 required
                 placeholder="••••••••"
                 className="w-full px-3 py-2 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#6c8cff]/50"
-                style={{
-                  backgroundColor: "#0a0f1e",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "#f1f5f9",
-                }}
+                style={{ backgroundColor: "#0a0f1e", border: "1px solid rgba(255,255,255,0.1)", color: "#f1f5f9" }}
               />
               <div className="flex justify-end mt-1.5">
-                <Link
-                  href="/auth/forgot-password"
-                  className="text-xs hover:underline"
-                  style={{ color: "#94a3b8" }}
-                >
+                <Link href="/auth/forgot-password" className="text-xs hover:underline" style={{ color: "#94a3b8" }}>
                   Forgot password?
                 </Link>
               </div>
             </div>
 
             {error && (
-              <p className="text-sm" style={{ color: "#f87171" }}>
-                {error}
-              </p>
+              <p className="text-sm" style={{ color: "#f87171" }}>{error}</p>
             )}
 
             <button
@@ -179,5 +163,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
