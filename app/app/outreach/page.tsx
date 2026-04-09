@@ -402,7 +402,7 @@ export default function OutreachPage() {
         }
       `}</style>
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 overflow-hidden">
         {/* ── Tab navigation ── */}
         <div className="mb-8 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-x pan-y" }}>
           <div className="flex gap-1 min-w-max border-b" style={{ borderColor: border }}>
