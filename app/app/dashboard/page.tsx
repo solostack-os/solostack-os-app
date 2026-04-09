@@ -169,16 +169,21 @@ export default function DashboardPage() {
       // Previously these were 5 sequential awaits; now they fire simultaneously.
       // We fetch all plans upfront (tiny table, 3 rows) so we don't need a
       // second sequential round-trip after learning the subscription plan_key.
+      // Fetch workspace, subscription, recent runs list, and plans in parallel.
+      // We don't fetch the runs count yet — it depends on the period start from
+      // the subscription row, so we handle it in a second (cheap) query below.
       const [
         { data: workspace },
         { data: subscription },
-        { count: runsCount },
         { data: runs },
         { data: plans },
       ] = await Promise.all([
         supabase.from("workspaces").select("name").eq("id", workspace_id).single(),
-        supabase.from("subscriptions").select("plan_key, trial_ends_at").eq("workspace_id", workspace_id).single(),
-        supabase.from("runs").select("id", { count: "exact", head: true }).eq("workspace_id", workspace_id),
+        supabase
+          .from("subscriptions")
+          .select("plan_key, trial_ends_at, current_period_start")
+          .eq("workspace_id", workspace_id)
+          .single(),
         supabase
           .from("runs")
           .select("id, workflow_key, module_key, created_at, outputs(title, output_markdown)")
@@ -196,14 +201,31 @@ export default function DashboardPage() {
       }
 
       setWorkspaceName(workspace.name ?? "My Workspace");
-      setRunsUsed(runsCount ?? 0);
       if (runs) setRecentRuns(runs as unknown as RecentRun[]);
 
       if (subscription) {
+        const isTrial = subscription.plan_key === "trial";
+        const start = !isTrial ? subscription.current_period_start : null;
+
         setPlanKey(subscription.plan_key);
         if (subscription.trial_ends_at) setTrialEndsAt(subscription.trial_ends_at);
+
         const plan = plans?.find((p) => p.key === subscription.plan_key);
         if (plan?.run_cap != null) setRunCap(plan.run_cap);
+
+        // Count runs within the current billing period (all runs for trial).
+        // No rollover — each period starts fresh from 0.
+        let countQuery = supabase
+          .from("runs")
+          .select("id", { count: "exact", head: true })
+          .eq("workspace_id", workspace_id);
+
+        if (start) {
+          countQuery = countQuery.gte("created_at", start);
+        }
+
+        const { count: runsCount } = await countQuery;
+        setRunsUsed(runsCount ?? 0);
       }
 
       setLoading(false);

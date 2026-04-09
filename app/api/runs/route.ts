@@ -117,7 +117,7 @@ export async function POST(request: Request) {
       .single(),
     supabase
       .from("subscriptions")
-      .select("plan_key")
+      .select("plan_key, current_period_start")
       .eq("workspace_id", workspace.id)
       .single(),
   ]);
@@ -136,9 +136,11 @@ export async function POST(request: Request) {
     use_brand_context: workspace.use_brand_context ?? true,
   };
 
-  // 6. Usage gate — each run costs CREDITS_PER_RUN credits. Compare total
-  //    credits consumed (runs × CREDITS_PER_RUN) against the plan cap.
-  //    Block when remaining credits are less than one run's cost.
+  // 6. Usage gate — each run costs CREDITS_PER_RUN credits. Compare credits
+  //    consumed within the current billing period against the plan cap.
+  //    Trial subscriptions count all runs (no monthly reset).
+  //    Paid plans count only runs since current_period_start (no rollover —
+  //    each new period the counter resets to zero).
   if (subscription) {
     const { data: plan } = await admin
       .from("plans")
@@ -147,10 +149,20 @@ export async function POST(request: Request) {
       .single();
 
     if (plan?.run_cap !== null && plan?.run_cap !== undefined) {
-      const { count } = await admin
+      const isTrial = subscription.plan_key === "trial";
+      const periodStart = !isTrial ? subscription.current_period_start : null;
+
+      let runsQuery = admin
         .from("runs")
         .select("id", { count: "exact", head: true })
         .eq("workspace_id", workspace.id);
+
+      // For paid plans, only count runs within the current billing period.
+      if (periodStart) {
+        runsQuery = runsQuery.gte("created_at", periodStart);
+      }
+
+      const { count } = await runsQuery;
 
       const creditsUsed = (count ?? 0) * CREDITS_PER_RUN;
       const remaining = plan.run_cap - creditsUsed;

@@ -44,7 +44,10 @@ export async function POST(request: Request) {
       // cleanly enough for a direct cast.
       const subscription = (await stripe.subscriptions.retrieve(
         subscriptionId
-      )) as unknown as Stripe.Subscription & { current_period_end: number };
+      )) as unknown as Stripe.Subscription & {
+        current_period_start: number;
+        current_period_end: number;
+      };
       const priceId = subscription.items.data[0].price.id;
 
       let planKey = "trial";
@@ -58,6 +61,9 @@ export async function POST(request: Request) {
           stripe_subscription_id: subscriptionId,
           stripe_price_id: priceId,
           status: "active",
+          current_period_start: new Date(
+            subscription.current_period_start * 1000
+          ).toISOString(),
           current_period_end: new Date(
             subscription.current_period_end * 1000
           ).toISOString(),
@@ -72,6 +78,7 @@ export async function POST(request: Request) {
       // See note above — current_period_end is missing from the current
       // Stripe.Subscription type definition but still present at runtime.
       const subscription = event.data.object as Stripe.Subscription & {
+        current_period_start: number;
         current_period_end: number;
       };
       const customerId = subscription.customer as string;
@@ -94,6 +101,9 @@ export async function POST(request: Request) {
           plan_key: planKey,
           stripe_price_id: priceId,
           status: subscription.status,
+          current_period_start: new Date(
+            subscription.current_period_start * 1000
+          ).toISOString(),
           current_period_end: new Date(
             subscription.current_period_end * 1000
           ).toISOString(),
