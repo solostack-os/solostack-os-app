@@ -289,18 +289,20 @@ export default function DashboardPage() {
   const usagePercent = runCap ? Math.min((creditsUsed / runCap) * 100, 100) : 0;
 
   return (
-    <div className="relative min-h-screen isolate overflow-x-hidden" style={{ backgroundColor: bg }}>
+    <div className="relative min-h-screen isolate overflow-hidden" style={{ backgroundColor: bg }}>
       {/* ─── Animated dotted surface background ─── */}
       <DottedSurface className="opacity-35" />
 
-      {/* ─── Ambient background glow ─── */}
-      <div
-        className="pointer-events-none absolute left-1/2 top-[15%] -translate-x-1/2 w-[700px] h-[350px] rounded-full"
-        style={{
-          background: "radial-gradient(ellipse, rgba(108,140,255,0.12), transparent 70%)",
-          filter: "blur(80px)",
-        }}
-      />
+      {/* ─── Ambient background glow (clipped to viewport) ─── */}
+      <div className="pointer-events-none absolute inset-x-0 top-[15%] h-[350px] overflow-hidden">
+        <div
+          className="absolute left-1/2 -translate-x-1/2 w-[700px] h-full rounded-full"
+          style={{
+            background: "radial-gradient(ellipse, rgba(108,140,255,0.12), transparent 70%)",
+            filter: "blur(80px)",
+          }}
+        />
+      </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-12 lg:py-20">
         {/* ─── Header ─── */}
