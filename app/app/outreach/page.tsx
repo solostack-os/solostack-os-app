@@ -389,7 +389,7 @@ export default function OutreachPage() {
   }, []);
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: bg }}>
+    <div className="min-h-screen overflow-hidden" style={{ backgroundColor: bg }}>
       <style>{`
         @keyframes skel-shimmer {
           0% { background-position: -200% 0; }
