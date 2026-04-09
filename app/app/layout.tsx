@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -130,6 +130,29 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [recentsOpen, setRecentsOpen] = useState(true);
   const [exportingRunId, setExportingRunId] = useState<string | null>(null);
+  const navRef = useRef<HTMLElement>(null);
+
+  // Pin the mobile nav to the VISUAL viewport bottom so it doesn't jiggle
+  // when Android Chrome's address bar appears/disappears during scroll.
+  // The visualViewport API reports the actual visible area; we offset the
+  // nav's `bottom` to compensate for any difference between the layout
+  // viewport height (window.innerHeight) and the visible viewport height.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      if (!navRef.current) return;
+      const offset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      navRef.current.style.bottom = `${offset}px`;
+    };
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    update();
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
 
   const loadRuns = useCallback(async () => {
     const supabase = createClient();
@@ -461,18 +484,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* ─── Mobile Bottom Nav ─── */}
       <nav
+        ref={navRef}
         className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t"
-        style={{
-          backgroundColor: sidebarBg,
-          borderColor: border,
-          // translateZ(0) promotes the nav to its own GPU compositor layer.
-          // This prevents the subtle "jiggle" on Android Chrome caused by the
-          // browser address bar appearing/disappearing during scroll, which
-          // would otherwise resize the visual viewport and shift bottom:0 elements.
-          transform: "translateZ(0)",
-          WebkitTransform: "translateZ(0)",
-          willChange: "transform",
-        }}
+        style={{ backgroundColor: sidebarBg, borderColor: border }}
       >
         <div className="flex items-center justify-around py-3 px-1">
           {navItems.map((item) => {
