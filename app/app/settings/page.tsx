@@ -21,8 +21,8 @@ const textMuted = "#94a3b8";
 const border = "rgba(255,255,255,0.06)";
 
 const planDetails: Record<string, { name: string; credits: string; color: string }> = {
-  trial: { name: "Trial", credits: "20 credits / month", color: accent },
-  starter: { name: "Starter", credits: "200 credits / month", color: accent },
+  trial: { name: "Trial", credits: "30 credits total", color: accent },
+  starter: { name: "Starter", credits: "300 credits / month", color: accent },
   pro: { name: "Pro", credits: "1,000 credits / month", color: "#5eead4" },
 };
 
@@ -1026,6 +1026,16 @@ function SettingsPageInner() {
           >
             {signingOut ? "Signing out..." : "Sign Out"}
           </button>
+        </div>
+
+        {/* ─── Legal links ─── */}
+        <div className="pt-8 mt-2 flex gap-5 text-xs" style={{ color: "#475569" }}>
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-slate-400 transition-colors">
+            Terms of Service
+          </a>
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-400 transition-colors">
+            Privacy Policy
+          </a>
         </div>
       </div>
     </div>
