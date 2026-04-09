@@ -129,6 +129,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [workspaceName, setWorkspaceName] = useState("");
   const [planKey, setPlanKey] = useState("trial");
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
   const [runsUsed, setRunsUsed] = useState(0);
   const [runCap, setRunCap] = useState<number | null>(null);
   const [recentRuns, setRecentRuns] = useState<RecentRun[]>([]);
@@ -176,7 +177,7 @@ export default function DashboardPage() {
         { data: plans },
       ] = await Promise.all([
         supabase.from("workspaces").select("name").eq("id", workspace_id).single(),
-        supabase.from("subscriptions").select("plan_key").eq("workspace_id", workspace_id).single(),
+        supabase.from("subscriptions").select("plan_key, trial_ends_at").eq("workspace_id", workspace_id).single(),
         supabase.from("runs").select("id", { count: "exact", head: true }).eq("workspace_id", workspace_id),
         supabase
           .from("runs")
@@ -200,6 +201,7 @@ export default function DashboardPage() {
 
       if (subscription) {
         setPlanKey(subscription.plan_key);
+        if (subscription.trial_ends_at) setTrialEndsAt(subscription.trial_ends_at);
         const plan = plans?.find((p) => p.key === subscription.plan_key);
         if (plan?.run_cap != null) setRunCap(plan.run_cap);
       }
@@ -279,6 +281,10 @@ export default function DashboardPage() {
   const creditsUsed = runsUsed * CREDITS_PER_RUN;
   const creditsRemaining = runCap ? Math.max(0, runCap - creditsUsed) : 0;
   const usagePercent = runCap ? Math.min((creditsUsed / runCap) * 100, 100) : 0;
+  const trialDaysLeft = trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : null;
+  const isTrial = planKey === "trial";
 
   return (
     <div className="relative min-h-screen isolate" style={{ backgroundColor: bg }}>
@@ -420,20 +426,59 @@ export default function DashboardPage() {
           })}
         </div>
 
-        {/* ─── Usage Bar ─── */}
+        {/* ─── Usage / Trial Bar ─── */}
         {runCap !== null && (
           <div style={fadeUp(6)}>
-            <GlowCard glowColor="blue">
+            <GlowCard glowColor={isTrial ? "orange" : "blue"}>
               <div className="p-7" style={{ backgroundColor: "rgba(17,24,39,0.8)", borderRadius: "inherit" }}>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-base font-medium text-white">Usage</span>
-                  <span className="text-sm" style={{ color: textMuted, fontVariantNumeric: "tabular-nums" }}>
-                    {creditsRemaining} credits remaining
+
+                {/* ── Top accent bar — amber for trial, blue for paid ── */}
+                <div
+                  className="h-[2px] rounded-full mb-6 -mt-1"
+                  style={{
+                    background: isTrial
+                      ? "linear-gradient(90deg, #f97316, #fbbf24)"
+                      : "linear-gradient(90deg, #6c8cff, #818cf8)",
+                  }}
+                />
+
+                {/* ── Header row ── */}
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    {isTrial ? (
+                      <>
+                        <span className="text-base font-semibold text-white">Free Trial</span>
+                        {trialDaysLeft !== null && (
+                          <span
+                            className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                            style={{
+                              backgroundColor: trialDaysLeft <= 2
+                                ? "rgba(248,113,113,0.12)"
+                                : "rgba(251,191,36,0.1)",
+                              color: trialDaysLeft <= 2 ? "#f87171" : "#fbbf24",
+                            }}
+                          >
+                            {trialDaysLeft === 0
+                              ? "Expires today"
+                              : trialDaysLeft === 1
+                                ? "1 day left"
+                                : `${trialDaysLeft} days left`}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-base font-medium text-white">Usage</span>
+                    )}
+                  </div>
+                  <span className="text-sm tabular-nums" style={{ color: textMuted }}>
+                    {creditsRemaining} <span style={{ color: "#64748b" }}>/ {runCap} credits</span>
                   </span>
                 </div>
+
+                {/* ── Progress bar ── */}
                 <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.06)" }}>
                   <div
-                    className="h-full rounded-full transition-all duration-500"
+                    className="h-full rounded-full transition-all duration-700"
                     style={{
                       width: `${usagePercent}%`,
                       background:
@@ -441,11 +486,34 @@ export default function DashboardPage() {
                           ? "linear-gradient(90deg, #f87171, #ef4444)"
                           : usagePercent >= 75
                             ? "linear-gradient(90deg, #fbbf24, #f59e0b)"
-                            : "linear-gradient(90deg, #6c8cff, #818cf8)",
+                            : isTrial
+                              ? "linear-gradient(90deg, #f97316, #fbbf24)"
+                              : "linear-gradient(90deg, #6c8cff, #818cf8)",
                     }}
                   />
                 </div>
-                {(planKey === "trial" || planKey === "starter") && (
+
+                {/* ── Trial upgrade CTA ── */}
+                {isTrial && (
+                  <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <p className="text-xs" style={{ color: "#64748b" }}>
+                      Upgrade anytime to keep access after your trial.
+                    </p>
+                    <Link
+                      href="/app/settings"
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg transition-all hover:brightness-110 cursor-pointer flex-shrink-0"
+                      style={{
+                        background: "linear-gradient(135deg, #f97316, #fbbf24)",
+                        color: "#0a0f1e",
+                      }}
+                    >
+                      Upgrade plan &rarr;
+                    </Link>
+                  </div>
+                )}
+
+                {/* ── Starter upgrade CTA (softer) ── */}
+                {planKey === "starter" && (
                   <div className="mt-5">
                     <Link
                       href="/app/settings"
@@ -456,6 +524,7 @@ export default function DashboardPage() {
                     </Link>
                   </div>
                 )}
+
               </div>
             </GlowCard>
           </div>
