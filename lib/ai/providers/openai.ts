@@ -1,10 +1,17 @@
 import OpenAI from "openai";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
-
 export const OPENAI_MODEL = "gpt-4o";
+
+/**
+ * Lazy client factory — the OpenAI SDK throws at construction time if
+ * OPENAI_API_KEY is missing. Creating the client inside the constructor
+ * (rather than at module level) ensures the error only fires when the
+ * fallback is actually triggered at runtime, not during Next.js's build-
+ * time module evaluation.
+ */
+function createClient() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+}
 
 /**
  * A thin wrapper around OpenAI's ChatCompletionStream that exposes the same
@@ -18,12 +25,12 @@ export const OPENAI_MODEL = "gpt-4o";
  * the streaming plumbing at all.
  */
 export class OpenAIStreamWrapper {
-  private _stream: ReturnType<typeof client.chat.completions.stream>;
+  private _stream: ReturnType<ReturnType<typeof createClient>["chat"]["completions"]["stream"]>;
   private _textListeners: ((delta: string) => void)[] = [];
   private _started = false;
 
   constructor(systemPrompt: string, userPrompt: string) {
-    this._stream = client.chat.completions.stream({
+    this._stream = createClient().chat.completions.stream({
       model: OPENAI_MODEL,
       max_tokens: 2048,
       messages: [
