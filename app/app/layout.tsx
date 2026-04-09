@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -130,30 +130,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [recentsOpen, setRecentsOpen] = useState(true);
   const [exportingRunId, setExportingRunId] = useState<string | null>(null);
-  const navRef = useRef<HTMLElement>(null);
-
-  // Pin the mobile nav to the VISUAL viewport bottom so it doesn't jiggle
-  // when Android Chrome's address bar appears/disappears during scroll.
-  // The visualViewport API reports the actual visible area; we offset the
-  // nav's `bottom` to compensate for any difference between the layout
-  // viewport height (window.innerHeight) and the visible viewport height.
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const update = () => {
-      if (!navRef.current) return;
-      const offset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      navRef.current.style.bottom = `${offset}px`;
-    };
-    vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
-    update();
-    return () => {
-      vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
-    };
-  }, []);
-
   const loadRuns = useCallback(async () => {
     const supabase = createClient();
     const {
@@ -275,7 +251,36 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     : [];
 
   return (
-    <div className="flex min-h-screen overflow-x-hidden" style={{ backgroundColor: bg }}>
+    <div id="app-layout-root" className="flex min-h-screen overflow-x-hidden" style={{ backgroundColor: bg }}>
+      {/* ─── Mobile 100dvh layout fix ─── */}
+      {/* Makes the layout fill exactly the VISIBLE viewport on mobile.
+          The nav becomes a natural flex item at the bottom — no `position:fixed`
+          jiggle on scroll — and works correctly on both Chrome (top address bar)
+          and Firefox (bottom address bar). */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media (max-width: 767px) {
+          #app-layout-root {
+            height: 100dvh;
+            min-height: 0 !important;
+            flex-direction: column;
+          }
+          #app-layout-main {
+            flex: 1 1 0%;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 0 !important;
+          }
+          #app-layout-nav {
+            position: relative !important;
+            bottom: auto !important;
+            left: auto !important;
+            right: auto !important;
+            width: 100% !important;
+            flex-shrink: 0;
+          }
+        }
+      `}} />
       {/* ─── Desktop Sidebar ─── */}
       <aside
         className="hidden md:flex flex-col fixed top-0 left-0 h-screen w-80 z-30 border-r"
@@ -478,13 +483,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* ─── Main content ─── */}
-      <main className="flex-1 md:ml-80 pt-[52px] md:pt-0 pb-20 md:pb-0">
+      <main id="app-layout-main" className="flex-1 md:ml-80 pt-[52px] md:pt-0 pb-20 md:pb-0">
         {children}
       </main>
 
       {/* ─── Mobile Bottom Nav ─── */}
       <nav
-        ref={navRef}
+        id="app-layout-nav"
         className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t"
         style={{ backgroundColor: sidebarBg, borderColor: border }}
       >
