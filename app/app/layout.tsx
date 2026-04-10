@@ -483,6 +483,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       >
         <img src="/logo.png" alt="SoloStack OS" className="h-7 w-7 object-contain" />
         <span className="text-sm font-semibold text-white tracking-tight">SoloStack OS</span>
+        <span
+          className="text-[9px] font-medium uppercase tracking-widest px-1.5 py-0.5 rounded flex-shrink-0"
+          style={{ backgroundColor: accent, color: sidebarBg }}
+        >
+          Beta
+        </span>
       </header>
 
       {/* ─── Main content ─── */}

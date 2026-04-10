@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { GlowCard } from "@/components/ui/glow-card";
 import { OutputCards } from "@/components/ui/output-cards";
 import { StreamingCard } from "@/components/ui/streaming-card";
@@ -249,6 +249,14 @@ export default function MarketingPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   // Persists for the entire session once credit limit is hit — never resets on modal dismiss.
   const [creditLimitReached, setCreditLimitReached] = useState(false);
+
+  // On mount, check if the credit limit is already reached (persists across refreshes).
+  useEffect(() => {
+    fetch("/api/usage")
+      .then((r) => r.json())
+      .then((d) => { if (d.limitReached) setCreditLimitReached(true); })
+      .catch(() => {/* silent — non-critical */});
+  }, []);
 
   /* ── Ad Copy state ── */
   const [acPlatform, setAcPlatform] = useState<"google_ads" | "facebook" | "instagram">("google_ads");

@@ -135,6 +135,7 @@ export default function DashboardPage() {
   const [recentRuns, setRecentRuns] = useState<RecentRun[]>([]);
   const [selectedRun, setSelectedRun] = useState<RecentRun | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [exportingRunId, setExportingRunId] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -239,6 +240,39 @@ export default function DashboardPage() {
     setCopiedIdx(idx);
     setTimeout(() => setCopiedIdx(null), 2000);
   }, []);
+
+  async function handleExportRun(run: RecentRun) {
+    const content = run.outputs?.[0]?.output_markdown ?? "";
+    if (!content) return;
+    setExportingRunId(run.id);
+    try {
+      const res = await fetch("/api/export/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, content_type: run.workflow_key }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || `Export failed (${res.status})`);
+      }
+      const disposition = res.headers.get("content-disposition") || "";
+      const match = /filename="?([^"]+)"?/i.exec(disposition);
+      const filename = match?.[1] || `${run.workflow_key}.pdf`;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("[export-pdf]", err);
+    } finally {
+      setExportingRunId(null);
+    }
+  }
 
   /* ─── Skeleton loading ─── */
   if (loading) {
@@ -623,15 +657,36 @@ export default function DashboardPage() {
                 <span className="text-base font-medium truncate mr-3" style={{ color: textPrimary }}>
                   {title}
                 </span>
-                <button
-                  onClick={() => setSelectedRun(null)}
-                  className="p-1.5 rounded-lg transition-colors hover:bg-white/10 cursor-pointer flex-shrink-0"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {/* PDF export */}
+                  <button
+                    onClick={() => handleExportRun(selectedRun)}
+                    disabled={exportingRunId === selectedRun.id || sections.length === 0}
+                    className="group flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all opacity-60 hover:opacity-100 disabled:opacity-30 cursor-pointer"
+                    style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                    title="Export as PDF"
+                  >
+                    {exportingRunId === selectedRun.id ? (
+                      <div className="h-3.5 w-3.5 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: accent, borderTopColor: "transparent" }} />
+                    ) : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                    )}
+                    <span className="text-[10px]" style={{ color: textMuted }}>PDF</span>
+                  </button>
+                  <button
+                    onClick={() => setSelectedRun(null)}
+                    className="p-1.5 rounded-lg transition-colors hover:bg-white/10 cursor-pointer"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
               </div>
               <div className="overflow-y-auto px-6 py-5 space-y-3">
                 {sections.length > 0 ? sections.map((section, idx) => (
