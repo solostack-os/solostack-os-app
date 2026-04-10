@@ -610,17 +610,20 @@ export default function DashboardPage() {
                     {isOutOfCredits ? (
                       /* Credits exhausted — show both options inline */
                       <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          onClick={handleRefill}
-                          disabled={refilling}
-                          className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg transition-all hover:brightness-110 disabled:opacity-60 cursor-pointer"
-                          style={{
-                            background: `linear-gradient(135deg, ${accent}, #818cf8)`,
-                            color: "#fff",
-                          }}
-                        >
-                          {refilling ? "Redirecting…" : "⚡ Top up 100 credits — $9"}
-                        </button>
+                        <div className="relative group">
+                          <div
+                            className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
+                            style={{ background: `linear-gradient(135deg, ${accent}, #818cf8)` }}
+                          />
+                          <button
+                            onClick={handleRefill}
+                            disabled={refilling}
+                            className="relative inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
+                            style={{ background: `linear-gradient(135deg, ${accent}, #818cf8)`, color: "#fff" }}
+                          >
+                            {refilling ? "Redirecting…" : "⚡ Top up 100 credits — $9"}
+                          </button>
+                        </div>
                         <div className="relative group">
                           <div
                             className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"

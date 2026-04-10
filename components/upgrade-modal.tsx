@@ -126,14 +126,20 @@ export function UpgradeModal({
                   </span>
                 </p>
               </div>
-              <button
-                onClick={handleRefill}
-                disabled={refilling || upgrading}
-                className="w-full rounded-xl py-2.5 text-sm font-semibold transition-opacity disabled:opacity-60"
-                style={{ backgroundColor: "#6c8cff", color: "#fff" }}
-              >
-                {refilling ? "Redirecting…" : "Top up 100 credits"}
-              </button>
+              <div className="relative group">
+                <div
+                  className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
+                  style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)" }}
+                />
+                <button
+                  onClick={handleRefill}
+                  disabled={refilling || upgrading}
+                  className="relative w-full rounded-xl py-2.5 text-sm font-semibold transition-opacity disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)", color: "#fff" }}
+                >
+                  {refilling ? "Redirecting…" : "Top up 100 credits"}
+                </button>
+              </div>
             </div>
 
             {/* Divider */}
