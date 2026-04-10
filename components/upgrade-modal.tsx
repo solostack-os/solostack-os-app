@@ -168,18 +168,11 @@ export function UpgradeModal({
               <button
                 onClick={handleUpgrade}
                 disabled={refilling || upgrading}
-                className="w-full rounded-xl py-2.5 text-sm font-medium transition-opacity disabled:opacity-60"
+                className="w-full rounded-xl py-2.5 text-sm font-semibold transition-all hover:brightness-110 disabled:opacity-60"
                 style={{
-                  backgroundColor: "rgba(255,255,255,0.06)",
-                  color: "rgba(255,255,255,0.75)",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "linear-gradient(135deg, #22c55e, #34d399)",
+                  color: "#fff",
                 }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.06)")
-                }
               >
                 {upgrading ? "Redirecting…" : "Upgrade to Pro"}
               </button>

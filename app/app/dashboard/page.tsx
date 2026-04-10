@@ -353,6 +353,22 @@ export default function DashboardPage() {
       setRefilling(false);
     }
   }
+
+  const [upgrading, setUpgrading] = React.useState(false);
+  async function handleUpgrade() {
+    setUpgrading(true);
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ planKey: "pro" }),
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      setUpgrading(false);
+    }
+  }
   const trialDaysLeft = trialEndsAt
     ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : null;
@@ -571,16 +587,17 @@ export default function DashboardPage() {
                     <p className="text-xs" style={{ color: "#64748b" }}>
                       Upgrade anytime to keep access after your trial.
                     </p>
-                    <Link
-                      href="/app/settings"
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg transition-all hover:brightness-110 cursor-pointer flex-shrink-0"
+                    <button
+                      onClick={handleUpgrade}
+                      disabled={upgrading}
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg transition-all hover:brightness-110 disabled:opacity-60 cursor-pointer flex-shrink-0"
                       style={{
-                        background: "linear-gradient(135deg, #f97316, #fbbf24)",
-                        color: "#0a0f1e",
+                        background: "linear-gradient(135deg, #22c55e, #34d399)",
+                        color: "#fff",
                       }}
                     >
-                      Upgrade plan &rarr;
-                    </Link>
+                      {upgrading ? "Redirecting…" : "Upgrade plan →"}
+                    </button>
                   </div>
                 )}
 
@@ -601,27 +618,31 @@ export default function DashboardPage() {
                         >
                           {refilling ? "Redirecting…" : "⚡ Top up 100 credits — $9"}
                         </button>
-                        <Link
-                          href="/app/settings"
-                          className="inline-flex items-center text-sm font-medium px-4 py-2 rounded-lg transition-all cursor-pointer"
+                        <button
+                          onClick={handleUpgrade}
+                          disabled={upgrading || refilling}
+                          className="inline-flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all hover:brightness-110 disabled:opacity-60 cursor-pointer"
                           style={{
-                            backgroundColor: "rgba(255,255,255,0.05)",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            color: "rgba(255,255,255,0.6)",
+                            background: "linear-gradient(135deg, #22c55e, #34d399)",
+                            color: "#fff",
                           }}
                         >
-                          Upgrade to Pro →
-                        </Link>
+                          {upgrading ? "Redirecting…" : "Upgrade to Pro →"}
+                        </button>
                       </div>
                     ) : (
                       /* Credits available — soft upgrade nudge */
-                      <Link
-                        href="/app/settings"
-                        className="inline-flex items-center text-sm font-medium px-4 py-2 rounded-lg transition-all hover:brightness-110 cursor-pointer"
-                        style={{ backgroundColor: "rgba(108,140,255,0.1)", color: accent }}
+                      <button
+                        onClick={handleUpgrade}
+                        disabled={upgrading}
+                        className="inline-flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all hover:brightness-110 disabled:opacity-60 cursor-pointer"
+                        style={{
+                          background: "linear-gradient(135deg, #22c55e, #34d399)",
+                          color: "#fff",
+                        }}
                       >
-                        Upgrade plan →
-                      </Link>
+                        {upgrading ? "Redirecting…" : "Upgrade to Pro →"}
+                      </button>
                     )}
                   </div>
                 )}

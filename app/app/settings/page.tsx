@@ -1036,20 +1036,23 @@ function SettingsPageInner() {
                       <p className="text-base font-semibold text-white">{targetPlan.name}</p>
                       <p className="text-sm" style={{ color: textMuted }}>{targetPlan.credits} &middot; {upgrade.price}</p>
                     </div>
-                    <button
-                      onClick={handleUpgrade}
-                      disabled={upgrading || refilling}
-                      className="px-5 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50 cursor-pointer"
-                      style={{
-                        backgroundColor: "rgba(255,255,255,0.06)",
-                        border: `1px solid ${border}`,
-                        color: "rgba(255,255,255,0.7)",
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.06)")}
-                    >
-                      {upgrading ? "Redirecting…" : `Upgrade to ${targetPlan.name}`}
-                    </button>
+                    <div className="relative group">
+                      <div
+                        className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-70 transition-opacity blur-lg"
+                        style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }}
+                      />
+                      <button
+                        onClick={handleUpgrade}
+                        disabled={upgrading || refilling}
+                        className="relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
+                        style={{
+                          background: "linear-gradient(135deg, #22c55e, #34d399)",
+                          color: "#fff",
+                        }}
+                      >
+                        {upgrading ? "Redirecting…" : `Upgrade to ${targetPlan.name}`}
+                      </button>
+                    </div>
                   </div>
                 </>
               ) : (
@@ -1064,14 +1067,14 @@ function SettingsPageInner() {
                   <div className="relative group">
                     <div
                       className="absolute -inset-1 rounded-2xl opacity-60 group-hover:opacity-80 transition-opacity blur-xl"
-                      style={{ background: `linear-gradient(135deg, ${accent}, ${accentLight})` }}
+                      style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }}
                     />
                     <button
                       onClick={handleUpgrade}
                       disabled={upgrading}
                       className="relative px-8 py-3 rounded-xl text-base font-semibold transition-all disabled:opacity-50 cursor-pointer"
                       style={{
-                        background: `linear-gradient(135deg, ${accent}, ${accentLight})`,
+                        background: "linear-gradient(135deg, #22c55e, #34d399)",
                         color: "#fff",
                       }}
                     >
