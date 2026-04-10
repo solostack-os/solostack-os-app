@@ -355,12 +355,12 @@ export default function DashboardPage() {
     }
   }
 
-  async function handleUpgrade() {
+  async function handleUpgrade(target: "starter" | "pro" = "pro") {
     setUpgrading(true);
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ planKey: "pro" }),
+      body: JSON.stringify({ planKey: target }),
     });
     const data = await res.json();
     if (data.url) {
@@ -583,22 +583,33 @@ export default function DashboardPage() {
 
                 {/* ── Trial upgrade CTA ── */}
                 {isTrial && (
-                  <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <p className="text-xs" style={{ color: "#64748b" }}>
-                      Upgrade anytime to keep access after your trial.
-                    </p>
+                  <div className="mt-5 flex flex-wrap items-center gap-2">
+                    <div className="relative group flex-shrink-0">
+                      <div
+                        className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
+                        style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)" }}
+                      />
+                      <button
+                        onClick={() => handleUpgrade("starter")}
+                        disabled={upgrading}
+                        className="relative inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
+                        style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)", color: "#fff" }}
+                      >
+                        {upgrading ? "Redirecting…" : "Upgrade to Starter"}
+                      </button>
+                    </div>
                     <div className="relative group flex-shrink-0">
                       <div
                         className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
                         style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }}
                       />
                       <button
-                        onClick={handleUpgrade}
+                        onClick={() => handleUpgrade("pro")}
                         disabled={upgrading}
                         className="relative inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
                         style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
                       >
-                        {upgrading ? "Redirecting…" : "Upgrade plan →"}
+                        {upgrading ? "Redirecting…" : "Upgrade to Pro →"}
                       </button>
                     </div>
                   </div>
@@ -630,7 +641,7 @@ export default function DashboardPage() {
                             style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }}
                           />
                           <button
-                            onClick={handleUpgrade}
+                            onClick={() => handleUpgrade("pro")}
                             disabled={upgrading || refilling}
                             className="relative inline-flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
                             style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
@@ -647,7 +658,7 @@ export default function DashboardPage() {
                           style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }}
                         />
                         <button
-                          onClick={handleUpgrade}
+                          onClick={() => handleUpgrade("pro")}
                           disabled={upgrading}
                           className="relative inline-flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
                           style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}

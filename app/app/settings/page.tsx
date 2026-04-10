@@ -265,28 +265,25 @@ function SettingsPageInner() {
   const upgrade = upgradePaths[planKey];
   const targetPlan = upgrade ? planDetails[upgrade.target] : null;
 
-  async function handleUpgrade() {
-    if (!upgrade) return;
+  async function handleUpgradeTo(target: "starter" | "pro") {
     setUpgrading(true);
-
-    const priceMap: Record<string, string> = {
-      starter: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID ?? "",
-      pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID ?? "",
-    };
-    const priceId = priceMap[upgrade.target];
-
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ priceId }),
+      body: JSON.stringify({ planKey: target }),
     });
-
     const data = await res.json();
     if (data.url) {
       window.location.href = data.url;
     } else {
       setUpgrading(false);
     }
+  }
+
+  // Convenience wrapper used by Starter → Pro upgrade button
+  async function handleUpgrade() {
+    if (!upgrade) return;
+    await handleUpgradeTo(upgrade.target as "starter" | "pro");
   }
 
   async function handleRefill() {
@@ -1056,32 +1053,57 @@ function SettingsPageInner() {
                   </div>
                 </>
               ) : (
-                /* ── Trial / other: single upgrade CTA ── */
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-lg font-bold text-white">{targetPlan.name}</p>
-                    <p className="text-sm" style={{ color: textMuted }}>
-                      {targetPlan.credits} &middot; {upgrade.price}
-                    </p>
+                /* ── Trial: Starter + Pro dual CTA ── */
+                <>
+                  {/* Starter row */}
+                  <div className="flex items-center justify-between mb-4 pb-4" style={{ borderBottom: `1px solid ${border}` }}>
+                    <div>
+                      <p className="text-base font-semibold text-white">Starter</p>
+                      <p className="text-sm" style={{ color: textMuted }}>300 credits / month</p>
+                    </div>
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                      <p className="text-base font-bold text-white">$19<span className="text-sm font-normal" style={{ color: textMuted }}>/mo</span></p>
+                      <div className="relative group">
+                        <div
+                          className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-70 transition-opacity blur-lg"
+                          style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)" }}
+                        />
+                        <button
+                          onClick={() => handleUpgradeTo("starter")}
+                          disabled={upgrading}
+                          className="relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
+                          style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)", color: "#fff" }}
+                        >
+                          {upgrading ? "Redirecting…" : "Upgrade to Starter"}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="relative group">
-                    <div
-                      className="absolute -inset-1 rounded-2xl opacity-60 group-hover:opacity-80 transition-opacity blur-xl"
-                      style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }}
-                    />
-                    <button
-                      onClick={handleUpgrade}
-                      disabled={upgrading}
-                      className="relative px-8 py-3 rounded-xl text-base font-semibold transition-all disabled:opacity-50 cursor-pointer"
-                      style={{
-                        background: "linear-gradient(135deg, #22c55e, #34d399)",
-                        color: "#fff",
-                      }}
-                    >
-                      {upgrading ? "Redirecting..." : `Upgrade to ${targetPlan.name}`}
-                    </button>
+                  {/* Pro row */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-base font-semibold text-white">Pro</p>
+                      <p className="text-sm" style={{ color: textMuted }}>1,000 credits / month</p>
+                    </div>
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                      <p className="text-base font-bold text-white">$49<span className="text-sm font-normal" style={{ color: textMuted }}>/mo</span></p>
+                      <div className="relative group">
+                        <div
+                          className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-70 transition-opacity blur-lg"
+                          style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }}
+                        />
+                        <button
+                          onClick={() => handleUpgradeTo("pro")}
+                          disabled={upgrading}
+                          className="relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
+                          style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
+                        >
+                          {upgrading ? "Redirecting…" : "Upgrade to Pro"}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
           </div>
