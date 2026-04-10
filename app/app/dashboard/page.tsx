@@ -358,11 +358,15 @@ export default function DashboardPage() {
 
   async function handleRefill() {
     setRefilling(true);
-    const res = await fetch("/api/refill", { method: "POST" });
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
+    try {
+      const res = await fetch("/api/refill", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setRefilling(false);
+      }
+    } catch {
       setRefilling(false);
     }
   }
@@ -634,8 +638,8 @@ export default function DashboardPage() {
 
                 {/* ── Pro CTA — top-up only when exhausted ── */}
                 {planKey === "pro" && isOutOfCredits && (
-                  <div className="mt-5">
-                    <div className="relative group flex-shrink-0">
+                  <div className="mt-5 inline-flex">
+                    <div className="relative group">
                       <div
                         className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
                         style={{ background: "linear-gradient(135deg, #5eead4, #34d399)" }}

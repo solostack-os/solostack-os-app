@@ -45,11 +45,15 @@ export function UpgradeModal({
 
   async function handleRefill() {
     setRefilling(true);
-    const res = await fetch("/api/refill", { method: "POST" });
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
+    try {
+      const res = await fetch("/api/refill", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setRefilling(false);
+      }
+    } catch {
       setRefilling(false);
     }
   }
