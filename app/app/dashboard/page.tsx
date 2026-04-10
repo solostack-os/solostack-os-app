@@ -600,7 +600,7 @@ export default function DashboardPage() {
                         className="relative inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
                         style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)", color: "#fff" }}
                       >
-                        {upgrading === "starter" ? "Redirecting…" : "Upgrade to Starter"}
+                        {upgrading === "starter" ? "Redirecting…" : <>Upgrade to Starter <span style={{ opacity: 0.75, fontWeight: 400 }}>— $19/mo</span></>}
                       </button>
                     </div>
                     <div className="relative group flex-shrink-0">
@@ -614,7 +614,7 @@ export default function DashboardPage() {
                         className="relative inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
                         style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
                       >
-                        {upgrading === "pro" ? "Redirecting…" : "Upgrade to Pro →"}
+                        {upgrading === "pro" ? "Redirecting…" : <>Upgrade to Pro <span style={{ opacity: 0.75, fontWeight: 400 }}>— $39/mo</span> →</>}
                       </button>
                     </div>
                   </div>
@@ -651,7 +651,7 @@ export default function DashboardPage() {
                             className="relative inline-flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
                             style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
                           >
-                            {upgrading === "pro" ? "Redirecting…" : "Upgrade to Pro →"}
+                            {upgrading === "pro" ? "Redirecting…" : <>Upgrade to Pro <span style={{ opacity: 0.75, fontWeight: 400 }}>— $39/mo</span> →</>}
                           </button>
                         </div>
                       </div>
@@ -668,7 +668,7 @@ export default function DashboardPage() {
                           className="relative inline-flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
                           style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
                         >
-                          {upgrading === "pro" ? "Redirecting…" : "Upgrade to Pro →"}
+                          {upgrading === "pro" ? "Redirecting…" : <>Upgrade to Pro <span style={{ opacity: 0.75, fontWeight: 400 }}>— $39/mo</span> →</>}
                         </button>
                       </div>
                     )}

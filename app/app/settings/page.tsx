@@ -1088,7 +1088,7 @@ function SettingsPageInner() {
                       <p className="text-sm" style={{ color: textMuted }}>1,000 credits / month</p>
                     </div>
                     <div className="flex items-center gap-4 flex-shrink-0">
-                      <p className="text-base font-bold text-white">$49<span className="text-sm font-normal" style={{ color: textMuted }}>/mo</span></p>
+                      <p className="text-base font-bold text-white">$39<span className="text-sm font-normal" style={{ color: textMuted }}>/mo</span></p>
                       <div className="relative group">
                         <div
                           className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-70 transition-opacity blur-lg"

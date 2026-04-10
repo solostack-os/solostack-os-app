@@ -8,7 +8,7 @@ export const CREDIT_LIMIT_ERROR = "Credit limit reached. Please upgrade your pla
  *
  * Behaviour by planKey:
  *  - "trial"   → single CTA: Upgrade to Starter ($19/mo, 300 credits)
- *  - "starter" → dual CTA:   Top up 100 credits ($9 one-time) + Upgrade to Pro ($49/mo)
+ *  - "starter" → dual CTA:   Top up 100 credits ($9 one-time) + Upgrade to Pro ($39/mo)
  *  - anything else → generic upgrade to Pro
  */
 export function UpgradeModal({
@@ -143,7 +143,7 @@ export function UpgradeModal({
                   <p className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>1,000 credits / month</p>
                 </div>
                 <p className="text-lg font-bold text-white">
-                  $49<span className="text-sm font-normal" style={{ color: "rgba(255,255,255,0.45)" }}>/mo</span>
+                  $39<span className="text-sm font-normal" style={{ color: "rgba(255,255,255,0.45)" }}>/mo</span>
                 </p>
               </div>
               <div className="relative group">
@@ -198,7 +198,7 @@ export function UpgradeModal({
                   <p className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>1,000 credits / month</p>
                 </div>
                 <p className="text-lg font-bold text-white">
-                  $49<span className="text-sm font-normal" style={{ color: "rgba(255,255,255,0.45)" }}>/mo</span>
+                  $39<span className="text-sm font-normal" style={{ color: "rgba(255,255,255,0.45)" }}>/mo</span>
                 </p>
               </div>
               <div className="relative group">
