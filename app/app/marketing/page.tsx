@@ -249,12 +249,16 @@ export default function MarketingPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   // Persists for the entire session once credit limit is hit — never resets on modal dismiss.
   const [creditLimitReached, setCreditLimitReached] = useState(false);
+  const [currentPlanKey, setCurrentPlanKey] = useState<string>("trial");
 
   // On mount, check if the credit limit is already reached (persists across refreshes).
   useEffect(() => {
     fetch("/api/usage")
       .then((r) => r.json())
-      .then((d) => { if (d.limitReached) setCreditLimitReached(true); })
+      .then((d) => {
+        if (d.limitReached) setCreditLimitReached(true);
+        if (d.planKey) setCurrentPlanKey(d.planKey);
+      })
       .catch(() => {/* silent — non-critical */});
   }, []);
 
@@ -750,7 +754,7 @@ export default function MarketingPage() {
           </>
         )}
       </div>
-      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} planKey={currentPlanKey} />
     </div>
   );
 }

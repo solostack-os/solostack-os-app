@@ -132,6 +132,8 @@ export default function DashboardPage() {
   const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
   const [runsUsed, setRunsUsed] = useState(0);
   const [runCap, setRunCap] = useState<number | null>(null);
+  const [extraCredits, setExtraCredits] = useState(0);
+  const [refilling, setRefilling] = useState(false);
   const [recentRuns, setRecentRuns] = useState<RecentRun[]>([]);
   const [selectedRun, setSelectedRun] = useState<RecentRun | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
@@ -182,7 +184,7 @@ export default function DashboardPage() {
         supabase.from("workspaces").select("name").eq("id", workspace_id).single(),
         supabase
           .from("subscriptions")
-          .select("plan_key, trial_ends_at, current_period_start")
+          .select("plan_key, trial_ends_at, current_period_start, extra_credits")
           .eq("workspace_id", workspace_id)
           .single(),
         supabase
@@ -210,6 +212,7 @@ export default function DashboardPage() {
 
         setPlanKey(subscription.plan_key);
         if (subscription.trial_ends_at) setTrialEndsAt(subscription.trial_ends_at);
+        setExtraCredits((subscription as { extra_credits?: number }).extra_credits ?? 0);
 
         const plan = plans?.find((p) => p.key === subscription.plan_key);
         if (plan?.run_cap != null) setRunCap(plan.run_cap);
@@ -335,8 +338,21 @@ export default function DashboardPage() {
 
   const planLabel = planKey === "pro" ? "Pro" : planKey === "starter" ? "Starter" : "Trial";
   const creditsUsed = runsUsed * CREDITS_PER_RUN;
-  const creditsRemaining = runCap ? Math.max(0, runCap - creditsUsed) : 0;
-  const usagePercent = runCap ? Math.min((creditsUsed / runCap) * 100, 100) : 0;
+  const effectiveCap = (runCap ?? 0) + extraCredits;
+  const creditsRemaining = effectiveCap ? Math.max(0, effectiveCap - creditsUsed) : 0;
+  const usagePercent = effectiveCap ? Math.min((creditsUsed / effectiveCap) * 100, 100) : 0;
+  const isOutOfCredits = effectiveCap > 0 && creditsRemaining === 0;
+
+  async function handleRefill() {
+    setRefilling(true);
+    const res = await fetch("/api/refill", { method: "POST" });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      setRefilling(false);
+    }
+  }
   const trialDaysLeft = trialEndsAt
     ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : null;
@@ -527,7 +543,7 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <span className="text-sm tabular-nums" style={{ color: textMuted }}>
-                    {creditsRemaining} <span style={{ color: "#64748b" }}>/ {runCap} credits</span>
+                    {creditsRemaining} <span style={{ color: "#64748b" }}>/ {effectiveCap} credits</span>
                   </span>
                 </div>
 
@@ -568,16 +584,45 @@ export default function DashboardPage() {
                   </div>
                 )}
 
-                {/* ── Starter upgrade CTA (softer) ── */}
+                {/* ── Starter CTA — top-up when exhausted, soft upgrade otherwise ── */}
                 {planKey === "starter" && (
                   <div className="mt-5">
-                    <Link
-                      href="/app/settings"
-                      className="inline-flex items-center text-sm font-medium px-4 py-2 rounded-lg transition-all hover:brightness-110 cursor-pointer"
-                      style={{ backgroundColor: "rgba(108,140,255,0.1)", color: accent }}
-                    >
-                      Upgrade plan &rarr;
-                    </Link>
+                    {isOutOfCredits ? (
+                      /* Credits exhausted — show both options inline */
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          onClick={handleRefill}
+                          disabled={refilling}
+                          className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg transition-all hover:brightness-110 disabled:opacity-60 cursor-pointer"
+                          style={{
+                            background: `linear-gradient(135deg, ${accent}, #818cf8)`,
+                            color: "#fff",
+                          }}
+                        >
+                          {refilling ? "Redirecting…" : "⚡ Top up 100 credits — $9"}
+                        </button>
+                        <Link
+                          href="/app/settings"
+                          className="inline-flex items-center text-sm font-medium px-4 py-2 rounded-lg transition-all cursor-pointer"
+                          style={{
+                            backgroundColor: "rgba(255,255,255,0.05)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            color: "rgba(255,255,255,0.6)",
+                          }}
+                        >
+                          Upgrade to Pro →
+                        </Link>
+                      </div>
+                    ) : (
+                      /* Credits available — soft upgrade nudge */
+                      <Link
+                        href="/app/settings"
+                        className="inline-flex items-center text-sm font-medium px-4 py-2 rounded-lg transition-all hover:brightness-110 cursor-pointer"
+                        style={{ backgroundColor: "rgba(108,140,255,0.1)", color: accent }}
+                      >
+                        Upgrade plan →
+                      </Link>
+                    )}
                   </div>
                 )}
 

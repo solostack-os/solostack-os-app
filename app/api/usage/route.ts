@@ -38,12 +38,12 @@ export async function GET() {
   // Get subscription + plan
   const { data: subscription } = await admin
     .from("subscriptions")
-    .select("plan_key, status, current_period_start")
+    .select("plan_key, status, current_period_start, extra_credits")
     .eq("workspace_id", workspace.id)
     .single();
 
   if (!subscription) {
-    return NextResponse.json({ remaining: null, limitReached: false });
+    return NextResponse.json({ remaining: null, limitReached: false, planKey: "trial" });
   }
 
   const { data: plan } = await admin
@@ -53,7 +53,7 @@ export async function GET() {
     .single();
 
   if (!plan?.run_cap) {
-    return NextResponse.json({ remaining: null, limitReached: false });
+    return NextResponse.json({ remaining: null, limitReached: false, planKey: subscription.plan_key });
   }
 
   // Count runs in current period
@@ -71,9 +71,15 @@ export async function GET() {
 
   const { count } = await runsQuery;
 
+  const extraCredits = (subscription as { extra_credits?: number }).extra_credits ?? 0;
   const creditsUsed = (count ?? 0) * CREDITS_PER_RUN;
-  const remaining = plan.run_cap - creditsUsed;
+  const effectiveCap = plan.run_cap + extraCredits;
+  const remaining = effectiveCap - creditsUsed;
   const limitReached = remaining < CREDITS_PER_RUN;
 
-  return NextResponse.json({ remaining, limitReached });
+  return NextResponse.json({
+    remaining,
+    limitReached,
+    planKey: subscription.plan_key,
+  });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { GlowCard } from "@/components/ui/glow-card";
 import { OutputCards } from "@/components/ui/output-cards";
 import { StreamingCard } from "@/components/ui/streaming-card";
@@ -248,6 +248,14 @@ function ErrorMsg({ error }: { error: string | null }) {
 export default function OutreachPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("cold_email");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [currentPlanKey, setCurrentPlanKey] = useState<string>("trial");
+
+  useEffect(() => {
+    fetch("/api/usage")
+      .then((r) => r.json())
+      .then((d) => { if (d.planKey) setCurrentPlanKey(d.planKey); })
+      .catch(() => {});
+  }, []);
 
   /* ── Cold Email state ── */
   const [ceName, setCeName] = useState("");
@@ -587,7 +595,7 @@ export default function OutreachPage() {
           </>
         )}
       </div>
-      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} planKey={currentPlanKey} />
     </div>
   );
 }

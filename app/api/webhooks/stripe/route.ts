@@ -30,12 +30,37 @@ export async function POST(request: Request) {
 
   // 2. Handle events
   switch (event.type) {
-    // ── Checkout completed: activate subscription ──
+    // ── Checkout completed: activate subscription OR credit refill ──
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
-      const subscriptionId = session.subscription as string;
       const workspaceId = session.metadata?.workspaceId;
       if (!workspaceId) break;
+
+      // ── One-time credit refill ──────────────────────────────────────
+      if (session.mode === "payment" && session.metadata?.type === "refill") {
+        const creditsToAdd = parseInt(session.metadata?.credits ?? "100", 10);
+
+        // Increment extra_credits on the workspace's subscription
+        const { data: sub } = await admin
+          .from("subscriptions")
+          .select("extra_credits")
+          .eq("workspace_id", workspaceId)
+          .single();
+
+        const current = (sub?.extra_credits as number) ?? 0;
+        await admin
+          .from("subscriptions")
+          .update({ extra_credits: current + creditsToAdd })
+          .eq("workspace_id", workspaceId);
+
+        console.log(
+          `[webhook] Refill: +${creditsToAdd} credits for workspace ${workspaceId}`
+        );
+        break;
+      }
+
+      // ── New subscription checkout ───────────────────────────────────
+      const subscriptionId = session.subscription as string;
 
       // Cast to include `current_period_end` — recent versions of the
       // stripe npm types dropped it from the top-level Subscription type

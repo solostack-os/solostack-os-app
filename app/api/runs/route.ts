@@ -117,7 +117,7 @@ export async function POST(request: Request) {
       .single(),
     supabase
       .from("subscriptions")
-      .select("plan_key, current_period_start")
+      .select("plan_key, current_period_start, extra_credits")
       .eq("workspace_id", workspace.id)
       .single(),
   ]);
@@ -164,8 +164,10 @@ export async function POST(request: Request) {
 
       const { count } = await runsQuery;
 
+      const extraCredits = (subscription as { extra_credits?: number }).extra_credits ?? 0;
       const creditsUsed = (count ?? 0) * CREDITS_PER_RUN;
-      const remaining = plan.run_cap - creditsUsed;
+      const effectiveCap = plan.run_cap + extraCredits;
+      const remaining = effectiveCap - creditsUsed;
 
       if (remaining < CREDITS_PER_RUN) {
         return NextResponse.json(

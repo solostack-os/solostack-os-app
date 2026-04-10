@@ -65,7 +65,9 @@ function SettingsPageInner() {
   const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [runCap, setRunCap] = useState<number | null>(null);
+  const [extraCredits, setExtraCredits] = useState(0);
   const [upgrading, setUpgrading] = useState(false);
+  const [refilling, setRefilling] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
   const [hasStripeCustomer, setHasStripeCustomer] = useState(false);
@@ -182,7 +184,7 @@ function SettingsPageInner() {
           const [subRes, countRes] = await Promise.all([
             supabase
               .from("subscriptions")
-              .select("plan_key, status, current_period_end, trial_ends_at")
+              .select("plan_key, status, current_period_end, trial_ends_at, extra_credits")
               .eq("workspace_id", basicWs.id)
               .single(),
             supabase
@@ -195,6 +197,7 @@ function SettingsPageInner() {
             setStatus(subRes.data.status);
             setPeriodEnd(subRes.data.current_period_end);
             setTrialEndsAt(subRes.data.trial_ends_at);
+            setExtraCredits((subRes.data as { extra_credits?: number }).extra_credits ?? 0);
             const { data: planRow } = await supabase.from("plans").select("run_cap").eq("key", subRes.data.plan_key).single();
             if (planRow) setRunCap(planRow.run_cap);
           }
@@ -243,6 +246,7 @@ function SettingsPageInner() {
           setStatus(subRes2.data.status);
           setPeriodEnd(subRes2.data.current_period_end);
           setTrialEndsAt(subRes2.data.trial_ends_at);
+          setExtraCredits((subRes2.data as { extra_credits?: number }).extra_credits ?? 0);
           const { data: planRow } = await supabase.from("plans").select("run_cap").eq("key", subRes2.data.plan_key).single();
           if (planRow) setRunCap(planRow.run_cap);
         }
@@ -282,6 +286,17 @@ function SettingsPageInner() {
       window.location.href = data.url;
     } else {
       setUpgrading(false);
+    }
+  }
+
+  async function handleRefill() {
+    setRefilling(true);
+    const res = await fetch("/api/refill", { method: "POST" });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      setRefilling(false);
     }
   }
 
@@ -939,7 +954,7 @@ function SettingsPageInner() {
             {/* Credits remaining */}
             {runCap !== null && (
               <p className="text-sm mb-1" style={{ color: textMuted, fontVariantNumeric: "tabular-nums" }}>
-                {Math.max(0, runCap - creditsUsed)} / {runCap} credits remaining
+                {Math.max(0, (runCap ?? 0) + extraCredits - creditsUsed)} / {(runCap ?? 0) + extraCredits} credits remaining
               </p>
             )}
 
@@ -975,7 +990,7 @@ function SettingsPageInner() {
           </div>
         </div>
 
-        {/* ─── Upgrade Card ─── */}
+        {/* ─── Upgrade / Top-up Card ─── */}
         {upgrade && targetPlan && (
           <div
             className="rounded-xl border overflow-hidden mb-6"
@@ -983,35 +998,88 @@ function SettingsPageInner() {
           >
             <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
             <div className="p-7">
-              <h2 className="text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: textMuted }}>
-                Upgrade
+              <h2 className="text-sm font-semibold uppercase tracking-wider mb-5" style={{ color: textMuted }}>
+                {planKey === "starter" ? "Add Credits" : "Upgrade"}
               </h2>
 
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-lg font-bold text-white">{targetPlan.name}</p>
-                  <p className="text-sm" style={{ color: textMuted }}>
-                    {targetPlan.credits} &middot; {upgrade.price}
-                  </p>
+              {/* ── Starter: show top-up first, then upgrade to Pro ── */}
+              {planKey === "starter" ? (
+                <>
+                  {/* Top-up row */}
+                  <div className="flex items-center justify-between mb-4 pb-4" style={{ borderBottom: `1px solid ${border}` }}>
+                    <div>
+                      <p className="text-base font-semibold text-white">Credit Top-up</p>
+                      <p className="text-sm" style={{ color: textMuted }}>100 extra credits — one-time purchase</p>
+                    </div>
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                      <p className="text-base font-bold text-white">$9</p>
+                      <div className="relative group">
+                        <div
+                          className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-70 transition-opacity blur-lg"
+                          style={{ background: `linear-gradient(135deg, ${accent}, ${accentLight})` }}
+                        />
+                        <button
+                          onClick={handleRefill}
+                          disabled={refilling || upgrading}
+                          className="relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
+                          style={{ background: `linear-gradient(135deg, ${accent}, ${accentLight})`, color: "#fff" }}
+                        >
+                          {refilling ? "Redirecting…" : "Top up"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Upgrade to Pro row */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-base font-semibold text-white">{targetPlan.name}</p>
+                      <p className="text-sm" style={{ color: textMuted }}>{targetPlan.credits} &middot; {upgrade.price}</p>
+                    </div>
+                    <button
+                      onClick={handleUpgrade}
+                      disabled={upgrading || refilling}
+                      className="px-5 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50 cursor-pointer"
+                      style={{
+                        backgroundColor: "rgba(255,255,255,0.06)",
+                        border: `1px solid ${border}`,
+                        color: "rgba(255,255,255,0.7)",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.06)")}
+                    >
+                      {upgrading ? "Redirecting…" : `Upgrade to ${targetPlan.name}`}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                /* ── Trial / other: single upgrade CTA ── */
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-lg font-bold text-white">{targetPlan.name}</p>
+                    <p className="text-sm" style={{ color: textMuted }}>
+                      {targetPlan.credits} &middot; {upgrade.price}
+                    </p>
+                  </div>
+                  <div className="relative group">
+                    <div
+                      className="absolute -inset-1 rounded-2xl opacity-60 group-hover:opacity-80 transition-opacity blur-xl"
+                      style={{ background: `linear-gradient(135deg, ${accent}, ${accentLight})` }}
+                    />
+                    <button
+                      onClick={handleUpgrade}
+                      disabled={upgrading}
+                      className="relative px-8 py-3 rounded-xl text-base font-semibold transition-all disabled:opacity-50 cursor-pointer"
+                      style={{
+                        background: `linear-gradient(135deg, ${accent}, ${accentLight})`,
+                        color: "#fff",
+                      }}
+                    >
+                      {upgrading ? "Redirecting..." : `Upgrade to ${targetPlan.name}`}
+                    </button>
+                  </div>
                 </div>
-                <div className="relative group">
-                  <div
-                    className="absolute -inset-1 rounded-2xl opacity-60 group-hover:opacity-80 transition-opacity blur-xl"
-                    style={{ background: `linear-gradient(135deg, ${accent}, ${accentLight})` }}
-                  />
-                  <button
-                    onClick={handleUpgrade}
-                    disabled={upgrading}
-                    className="relative px-8 py-3 rounded-xl text-base font-semibold transition-all disabled:opacity-50 cursor-pointer"
-                    style={{
-                      background: `linear-gradient(135deg, ${accent}, ${accentLight})`,
-                      color: "#fff",
-                    }}
-                  >
-                    {upgrading ? "Redirecting..." : `Upgrade to ${targetPlan.name}`}
-                  </button>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         )}
