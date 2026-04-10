@@ -96,6 +96,18 @@ function SettingsPageInner() {
   const [uploading, setUploading] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
 
+  // Reset loading states when user navigates back from Stripe (bfcache restore)
+  useEffect(() => {
+    function handlePageShow(e: PageTransitionEvent) {
+      if (e.persisted) {
+        setRefilling(false);
+        setUpgrading(null);
+      }
+    }
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
+
   useEffect(() => {
     async function load() {
       try {
@@ -1036,21 +1048,24 @@ function SettingsPageInner() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-base font-semibold text-white">{targetPlan.name}</p>
-                      <p className="text-sm" style={{ color: textMuted }}>{targetPlan.credits} &middot; {upgrade.price}</p>
+                      <p className="text-sm" style={{ color: textMuted }}>{targetPlan.credits}</p>
                     </div>
-                    <div className="relative group">
-                      <div
-                        className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-70 transition-opacity blur-lg"
-                        style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }}
-                      />
-                      <button
-                        onClick={handleUpgrade}
-                        disabled={!!upgrading || !!refilling}
-                        className="relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
-                        style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
-                      >
-                        {upgrading === "pro" ? "Redirecting…" : `Upgrade to ${targetPlan.name}`}
-                      </button>
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                      <p className="text-base font-bold text-white">$39<span className="text-sm font-normal" style={{ color: textMuted }}>/mo</span></p>
+                      <div className="relative group">
+                        <div
+                          className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-70 transition-opacity blur-lg"
+                          style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }}
+                        />
+                        <button
+                          onClick={handleUpgrade}
+                          disabled={!!upgrading || !!refilling}
+                          className="relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
+                          style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
+                        >
+                          {upgrading === "pro" ? "Redirecting…" : `Upgrade to ${targetPlan.name}`}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </>

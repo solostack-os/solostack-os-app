@@ -142,6 +142,18 @@ export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  // Reset loading states when user navigates back from Stripe (bfcache restore)
+  useEffect(() => {
+    function handlePageShow(e: PageTransitionEvent) {
+      if (e.persisted) {
+        setRefilling(false);
+        setUpgrading(null);
+      }
+    }
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
+
   useEffect(() => {
     async function bootstrap() {
       // ── Step 1: Bootstrap (auth is validated server-side, returns workspace_id) ──
