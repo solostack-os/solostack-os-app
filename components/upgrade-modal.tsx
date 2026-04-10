@@ -20,32 +20,21 @@ export function UpgradeModal({
   onClose: () => void;
   planKey?: string;
 }) {
-  const [upgrading, setUpgrading] = useState(false);
+  const [upgrading, setUpgrading] = useState<string | null>(null); // "starter" | "pro"
   const [refilling, setRefilling] = useState(false);
 
-  async function handleUpgrade() {
-    setUpgrading(true);
-    const priceMap: Record<string, string> = {
-      starter: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID ?? "",
-      pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID ?? "",
-    };
-    const upgradePaths: Record<string, string> = {
-      trial: "starter",
-      starter: "pro",
-    };
-    const target = upgradePaths[planKey] ?? "starter";
-    const priceId = priceMap[target];
-
+  async function handleUpgradeTo(target: "starter" | "pro") {
+    setUpgrading(target);
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ priceId }),
+      body: JSON.stringify({ planKey: target }),
     });
     const data = await res.json();
     if (data.url) {
       window.location.href = data.url;
     } else {
-      setUpgrading(false);
+      setUpgrading(null);
     }
   }
 
@@ -98,13 +87,13 @@ export function UpgradeModal({
         <p className="mb-5 text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
           {isStarter
             ? "Your Starter plan includes 300 credits / month. Top up to keep going, or upgrade for more."
-            : "Your Trial includes 30 credits. Upgrade to keep generating."}
+            : "Your Trial includes 30 credits. Pick a plan to keep generating."}
         </p>
 
         {isStarter ? (
-          /* ── Starter: dual CTA ─────────────────────────────── */
+          /* ── Starter: top-up + Pro ──────────────────────────── */
           <>
-            {/* Option A — Refill (primary) */}
+            {/* Option A — Refill */}
             <div
               className="mb-3 rounded-xl p-4"
               style={{
@@ -120,107 +109,103 @@ export function UpgradeModal({
                   </p>
                 </div>
                 <p className="text-lg font-bold text-white">
-                  $9
-                  <span className="text-sm font-normal" style={{ color: "rgba(255,255,255,0.45)" }}>
-                    {" "}once
-                  </span>
+                  $9<span className="text-sm font-normal" style={{ color: "rgba(255,255,255,0.45)" }}> once</span>
                 </p>
               </div>
               <div className="relative group">
-                <div
-                  className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
-                  style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)" }}
-                />
-                <button
-                  onClick={handleRefill}
-                  disabled={refilling || upgrading}
+                <div className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
+                  style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)" }} />
+                <button onClick={handleRefill} disabled={!!refilling || !!upgrading}
                   className="relative w-full rounded-xl py-2.5 text-sm font-semibold transition-opacity disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)", color: "#fff" }}
-                >
+                  style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)", color: "#fff" }}>
                   {refilling ? "Redirecting…" : "Top up 100 credits"}
                 </button>
               </div>
             </div>
 
-            {/* Divider */}
             <div className="mb-3 flex items-center gap-3">
               <div className="h-px flex-1" style={{ backgroundColor: "rgba(255,255,255,0.08)" }} />
               <span className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>or</span>
               <div className="h-px flex-1" style={{ backgroundColor: "rgba(255,255,255,0.08)" }} />
             </div>
 
-            {/* Option B — Upgrade to Pro (secondary) */}
-            <div
-              className="mb-3 rounded-xl p-4"
-              style={{
-                backgroundColor: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
+            {/* Option B — Pro */}
+            <div className="mb-3 rounded-xl p-4"
+              style={{ backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
               <div className="mb-3 flex items-center justify-between">
                 <div>
                   <p className="font-semibold text-white">Pro Plan</p>
-                  <p className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
-                    1,000 credits / month
-                  </p>
+                  <p className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>1,000 credits / month</p>
                 </div>
                 <p className="text-lg font-bold text-white">
-                  $49
-                  <span className="text-sm font-normal" style={{ color: "rgba(255,255,255,0.45)" }}>
-                    /mo
-                  </span>
+                  $49<span className="text-sm font-normal" style={{ color: "rgba(255,255,255,0.45)" }}>/mo</span>
                 </p>
               </div>
               <div className="relative group">
-                <div
-                  className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
-                  style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }}
-                />
-                <button
-                  onClick={handleUpgrade}
-                  disabled={refilling || upgrading}
+                <div className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
+                  style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }} />
+                <button onClick={() => handleUpgradeTo("pro")} disabled={!!refilling || !!upgrading}
                   className="relative w-full rounded-xl py-2.5 text-sm font-semibold transition-all disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
-                >
-                  {upgrading ? "Redirecting…" : "Upgrade to Pro"}
+                  style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}>
+                  {upgrading === "pro" ? "Redirecting…" : "Upgrade to Pro"}
                 </button>
               </div>
             </div>
           </>
         ) : (
-          /* ── Trial: single CTA ─────────────────────────────── */
+          /* ── Trial: Starter + Pro ───────────────────────────── */
           <>
-            <div
-              className="mb-5 rounded-xl p-4"
-              style={{
-                backgroundColor: "rgba(108,140,255,0.07)",
-                border: "1px solid rgba(108,140,255,0.18)",
-              }}
-            >
-              <div className="flex items-center justify-between">
+            {/* Option A — Starter */}
+            <div className="mb-3 rounded-xl p-4"
+              style={{ backgroundColor: "rgba(108,140,255,0.07)", border: "1px solid rgba(108,140,255,0.18)" }}>
+              <div className="mb-3 flex items-center justify-between">
                 <div>
                   <p className="font-semibold text-white">Starter</p>
-                  <p className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
-                    300 credits / month
-                  </p>
+                  <p className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>300 credits / month</p>
                 </div>
                 <p className="text-lg font-bold text-white">
-                  $19
-                  <span className="text-sm font-normal" style={{ color: "rgba(255,255,255,0.45)" }}>
-                    /mo
-                  </span>
+                  $19<span className="text-sm font-normal" style={{ color: "rgba(255,255,255,0.45)" }}>/mo</span>
                 </p>
+              </div>
+              <div className="relative group">
+                <div className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
+                  style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)" }} />
+                <button onClick={() => handleUpgradeTo("starter")} disabled={!!upgrading}
+                  className="relative w-full rounded-xl py-2.5 text-sm font-semibold transition-opacity disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)", color: "#fff" }}>
+                  {upgrading === "starter" ? "Redirecting…" : "Upgrade to Starter"}
+                </button>
               </div>
             </div>
 
-            <button
-              onClick={handleUpgrade}
-              disabled={upgrading}
-              className="mb-2 w-full rounded-xl py-3 text-sm font-semibold transition-opacity disabled:opacity-60"
-              style={{ backgroundColor: "#6c8cff", color: "#fff" }}
-            >
-              {upgrading ? "Redirecting…" : "Upgrade to Starter"}
-            </button>
+            <div className="mb-3 flex items-center gap-3">
+              <div className="h-px flex-1" style={{ backgroundColor: "rgba(255,255,255,0.08)" }} />
+              <span className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>or</span>
+              <div className="h-px flex-1" style={{ backgroundColor: "rgba(255,255,255,0.08)" }} />
+            </div>
+
+            {/* Option B — Pro */}
+            <div className="mb-3 rounded-xl p-4"
+              style={{ backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-white">Pro Plan</p>
+                  <p className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>1,000 credits / month</p>
+                </div>
+                <p className="text-lg font-bold text-white">
+                  $49<span className="text-sm font-normal" style={{ color: "rgba(255,255,255,0.45)" }}>/mo</span>
+                </p>
+              </div>
+              <div className="relative group">
+                <div className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
+                  style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }} />
+                <button onClick={() => handleUpgradeTo("pro")} disabled={!!upgrading}
+                  className="relative w-full rounded-xl py-2.5 text-sm font-semibold transition-all disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}>
+                  {upgrading === "pro" ? "Redirecting…" : "Upgrade to Pro"}
+                </button>
+              </div>
+            </div>
           </>
         )}
 
