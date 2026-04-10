@@ -134,7 +134,7 @@ export default function DashboardPage() {
   const [runCap, setRunCap] = useState<number | null>(null);
   const [extraCredits, setExtraCredits] = useState(0);
   const [refilling, setRefilling] = useState(false);
-  const [upgrading, setUpgrading] = useState(false);
+  const [upgrading, setUpgrading] = useState<string | null>(null);
   const [recentRuns, setRecentRuns] = useState<RecentRun[]>([]);
   const [selectedRun, setSelectedRun] = useState<RecentRun | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
@@ -355,18 +355,23 @@ export default function DashboardPage() {
     }
   }
 
+  const upgradePriceMap: Record<string, string> = {
+    starter: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID ?? "",
+    pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID ?? "",
+  };
+
   async function handleUpgrade(target: "starter" | "pro" = "pro") {
-    setUpgrading(true);
+    setUpgrading(target);
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ planKey: target }),
+      body: JSON.stringify({ priceId: upgradePriceMap[target] }),
     });
     const data = await res.json();
     if (data.url) {
       window.location.href = data.url;
     } else {
-      setUpgrading(false);
+      setUpgrading(null);
     }
   }
   const trialDaysLeft = trialEndsAt
@@ -591,11 +596,11 @@ export default function DashboardPage() {
                       />
                       <button
                         onClick={() => handleUpgrade("starter")}
-                        disabled={upgrading}
+                        disabled={!!upgrading}
                         className="relative inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
                         style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)", color: "#fff" }}
                       >
-                        {upgrading ? "Redirecting…" : "Upgrade to Starter"}
+                        {upgrading === "starter" ? "Redirecting…" : "Upgrade to Starter"}
                       </button>
                     </div>
                     <div className="relative group flex-shrink-0">
@@ -605,11 +610,11 @@ export default function DashboardPage() {
                       />
                       <button
                         onClick={() => handleUpgrade("pro")}
-                        disabled={upgrading}
+                        disabled={!!upgrading}
                         className="relative inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
                         style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
                       >
-                        {upgrading ? "Redirecting…" : "Upgrade to Pro →"}
+                        {upgrading === "pro" ? "Redirecting…" : "Upgrade to Pro →"}
                       </button>
                     </div>
                   </div>
@@ -642,11 +647,11 @@ export default function DashboardPage() {
                           />
                           <button
                             onClick={() => handleUpgrade("pro")}
-                            disabled={upgrading || refilling}
+                            disabled={!!upgrading || !!refilling}
                             className="relative inline-flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
                             style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
                           >
-                            {upgrading ? "Redirecting…" : "Upgrade to Pro →"}
+                            {upgrading === "pro" ? "Redirecting…" : "Upgrade to Pro →"}
                           </button>
                         </div>
                       </div>
@@ -659,11 +664,11 @@ export default function DashboardPage() {
                         />
                         <button
                           onClick={() => handleUpgrade("pro")}
-                          disabled={upgrading}
+                          disabled={!!upgrading}
                           className="relative inline-flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
                           style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
                         >
-                          {upgrading ? "Redirecting…" : "Upgrade to Pro →"}
+                          {upgrading === "pro" ? "Redirecting…" : "Upgrade to Pro →"}
                         </button>
                       </div>
                     )}

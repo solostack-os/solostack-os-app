@@ -23,12 +23,17 @@ export function UpgradeModal({
   const [upgrading, setUpgrading] = useState<string | null>(null); // "starter" | "pro"
   const [refilling, setRefilling] = useState(false);
 
+  const upgradePriceMap: Record<string, string> = {
+    starter: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID ?? "",
+    pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID ?? "",
+  };
+
   async function handleUpgradeTo(target: "starter" | "pro") {
     setUpgrading(target);
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ planKey: target }),
+      body: JSON.stringify({ priceId: upgradePriceMap[target] }),
     });
     const data = await res.json();
     if (data.url) {

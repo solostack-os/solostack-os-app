@@ -66,7 +66,7 @@ function SettingsPageInner() {
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [runCap, setRunCap] = useState<number | null>(null);
   const [extraCredits, setExtraCredits] = useState(0);
-  const [upgrading, setUpgrading] = useState(false);
+  const [upgrading, setUpgrading] = useState<string | null>(null);
   const [refilling, setRefilling] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
@@ -265,18 +265,23 @@ function SettingsPageInner() {
   const upgrade = upgradePaths[planKey];
   const targetPlan = upgrade ? planDetails[upgrade.target] : null;
 
+  const priceMap: Record<string, string> = {
+    starter: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID ?? "",
+    pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID ?? "",
+  };
+
   async function handleUpgradeTo(target: "starter" | "pro") {
-    setUpgrading(true);
+    setUpgrading(target);
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ planKey: target }),
+      body: JSON.stringify({ priceId: priceMap[target] }),
     });
     const data = await res.json();
     if (data.url) {
       window.location.href = data.url;
     } else {
-      setUpgrading(false);
+      setUpgrading(null);
     }
   }
 
@@ -1017,7 +1022,7 @@ function SettingsPageInner() {
                         />
                         <button
                           onClick={handleRefill}
-                          disabled={refilling || upgrading}
+                          disabled={!!refilling || !!upgrading}
                           className="relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
                           style={{ background: `linear-gradient(135deg, ${accent}, ${accentLight})`, color: "#fff" }}
                         >
@@ -1040,14 +1045,11 @@ function SettingsPageInner() {
                       />
                       <button
                         onClick={handleUpgrade}
-                        disabled={upgrading || refilling}
+                        disabled={!!upgrading || !!refilling}
                         className="relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
-                        style={{
-                          background: "linear-gradient(135deg, #22c55e, #34d399)",
-                          color: "#fff",
-                        }}
+                        style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
                       >
-                        {upgrading ? "Redirecting…" : `Upgrade to ${targetPlan.name}`}
+                        {upgrading === "pro" ? "Redirecting…" : `Upgrade to ${targetPlan.name}`}
                       </button>
                     </div>
                   </div>
@@ -1070,11 +1072,11 @@ function SettingsPageInner() {
                         />
                         <button
                           onClick={() => handleUpgradeTo("starter")}
-                          disabled={upgrading}
+                          disabled={!!upgrading}
                           className="relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
                           style={{ background: "linear-gradient(135deg, #6c8cff, #818cf8)", color: "#fff" }}
                         >
-                          {upgrading ? "Redirecting…" : "Upgrade to Starter"}
+                          {upgrading === "starter" ? "Redirecting…" : "Upgrade to Starter"}
                         </button>
                       </div>
                     </div>
@@ -1094,11 +1096,11 @@ function SettingsPageInner() {
                         />
                         <button
                           onClick={() => handleUpgradeTo("pro")}
-                          disabled={upgrading}
+                          disabled={!!upgrading}
                           className="relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
                           style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
                         >
-                          {upgrading ? "Redirecting…" : "Upgrade to Pro"}
+                          {upgrading === "pro" ? "Redirecting…" : "Upgrade to Pro"}
                         </button>
                       </div>
                     </div>
