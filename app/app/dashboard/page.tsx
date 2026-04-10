@@ -134,6 +134,7 @@ export default function DashboardPage() {
   const [runCap, setRunCap] = useState<number | null>(null);
   const [extraCredits, setExtraCredits] = useState(0);
   const [refilling, setRefilling] = useState(false);
+  const [upgrading, setUpgrading] = useState(false);
   const [recentRuns, setRecentRuns] = useState<RecentRun[]>([]);
   const [selectedRun, setSelectedRun] = useState<RecentRun | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
@@ -354,7 +355,6 @@ export default function DashboardPage() {
     }
   }
 
-  const [upgrading, setUpgrading] = useState(false);
   async function handleUpgrade() {
     setUpgrading(true);
     const res = await fetch("/api/checkout", {
