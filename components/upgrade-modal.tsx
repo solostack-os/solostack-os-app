@@ -165,17 +165,20 @@ export function UpgradeModal({
                   </span>
                 </p>
               </div>
-              <button
-                onClick={handleUpgrade}
-                disabled={refilling || upgrading}
-                className="w-full rounded-xl py-2.5 text-sm font-semibold transition-all hover:brightness-110 disabled:opacity-60"
-                style={{
-                  background: "linear-gradient(135deg, #22c55e, #34d399)",
-                  color: "#fff",
-                }}
-              >
-                {upgrading ? "Redirecting…" : "Upgrade to Pro"}
-              </button>
+              <div className="relative group">
+                <div
+                  className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
+                  style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }}
+                />
+                <button
+                  onClick={handleUpgrade}
+                  disabled={refilling || upgrading}
+                  className="relative w-full rounded-xl py-2.5 text-sm font-semibold transition-all disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
+                >
+                  {upgrading ? "Redirecting…" : "Upgrade to Pro"}
+                </button>
+              </div>
             </div>
           </>
         ) : (
