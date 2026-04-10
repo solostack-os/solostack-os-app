@@ -36,18 +36,23 @@ export async function POST() {
     return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
   }
 
-  // 3. Ensure the workspace has a Stripe customer record
+  // 3. Ensure the workspace has a valid Stripe customer record
   let customerId = workspace.stripe_customer_id as string | null;
-  if (!customerId) {
+
+  async function ensureFreshCustomer() {
     const customer = await stripe.customers.create({
-      email: user.email,
-      metadata: { workspaceId: workspace.id },
+      email: user!.email,
+      metadata: { workspaceId: workspace!.id },
     });
-    customerId = customer.id;
     await admin
       .from("workspaces")
-      .update({ stripe_customer_id: customerId })
-      .eq("id", workspace.id);
+      .update({ stripe_customer_id: customer.id })
+      .eq("id", workspace!.id);
+    return customer.id;
+  }
+
+  if (!customerId) {
+    customerId = await ensureFreshCustomer();
   }
 
   const priceId = process.env.STRIPE_REFILL_PRICE_ID;
@@ -59,18 +64,34 @@ export async function POST() {
   }
 
   // 4. Create a one-time payment checkout session
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    line_items: [{ price: priceId, quantity: 1 }],
-    mode: "payment",
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/settings?refilled=true`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/settings`,
-    metadata: {
-      workspaceId: workspace.id,
-      type: "refill",
-      credits: "100",
-    },
-  });
+  // If the stored customer ID is stale (e.g. from test mode), recreate it and retry once.
+  let session;
+  try {
+    session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      mode: "payment",
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/settings?refilled=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/settings`,
+      metadata: { workspaceId: workspace.id, type: "refill", credits: "100" },
+    });
+  } catch (err: unknown) {
+    const stripeErr = err as { code?: string };
+    if (stripeErr?.code === "resource_missing") {
+      // Customer ID is stale — create a fresh one and retry
+      customerId = await ensureFreshCustomer();
+      session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        line_items: [{ price: priceId, quantity: 1 }],
+        mode: "payment",
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/settings?refilled=true`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/settings`,
+        metadata: { workspaceId: workspace.id, type: "refill", credits: "100" },
+      });
+    } else {
+      throw err;
+    }
+  }
 
   return NextResponse.json({ url: session.url });
 }

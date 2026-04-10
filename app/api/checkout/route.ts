@@ -39,28 +39,51 @@ export async function POST(request: Request) {
 
   // 4. Create Stripe Customer if none exists
   let customerId = workspace.stripe_customer_id as string | null;
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: user.email,
-      metadata: { workspaceId: workspace.id },
-    });
-    customerId = customer.id;
 
+  async function ensureFreshCustomer() {
+    const customer = await stripe.customers.create({
+      email: user!.email,
+      metadata: { workspaceId: workspace!.id },
+    });
     await admin
       .from("workspaces")
-      .update({ stripe_customer_id: customerId })
-      .eq("id", workspace.id);
+      .update({ stripe_customer_id: customer.id })
+      .eq("id", workspace!.id);
+    return customer.id;
+  }
+
+  if (!customerId) {
+    customerId = await ensureFreshCustomer();
   }
 
   // 5. Create Checkout Session
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    line_items: [{ price: priceId, quantity: 1 }],
-    mode: "subscription",
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/settings?upgraded=true`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/settings`,
-    metadata: { workspaceId: workspace.id },
-  });
+  // If the stored customer ID is stale (e.g. from test mode), recreate it and retry once.
+  let session;
+  try {
+    session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      mode: "subscription",
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/settings?upgraded=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/settings`,
+      metadata: { workspaceId: workspace.id },
+    });
+  } catch (err: unknown) {
+    const stripeErr = err as { code?: string };
+    if (stripeErr?.code === "resource_missing") {
+      customerId = await ensureFreshCustomer();
+      session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        line_items: [{ price: priceId, quantity: 1 }],
+        mode: "subscription",
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/settings?upgraded=true`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/settings`,
+        metadata: { workspaceId: workspace.id },
+      });
+    } else {
+      throw err;
+    }
+  }
 
   return NextResponse.json({ url: session.url });
 }
