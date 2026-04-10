@@ -632,6 +632,26 @@ export default function DashboardPage() {
                   </div>
                 )}
 
+                {/* ── Pro CTA — top-up only when exhausted ── */}
+                {planKey === "pro" && isOutOfCredits && (
+                  <div className="mt-5">
+                    <div className="relative group flex-shrink-0">
+                      <div
+                        className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
+                        style={{ background: "linear-gradient(135deg, #5eead4, #34d399)" }}
+                      />
+                      <button
+                        onClick={handleRefill}
+                        disabled={!!refilling}
+                        className="relative inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
+                        style={{ background: "linear-gradient(135deg, #5eead4, #34d399)", color: "#0d1117" }}
+                      >
+                        {refilling ? "Redirecting…" : "⚡ Top up 100 credits — $9"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* ── Starter CTA — top-up when exhausted, soft upgrade otherwise ── */}
                 {planKey === "starter" && (
                   <div className="mt-5">

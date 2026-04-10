@@ -57,6 +57,7 @@ export function UpgradeModal({
   if (!isOpen) return null;
 
   const isStarter = planKey === "starter";
+  const isPro = planKey === "pro";
 
   return (
     <div
@@ -90,12 +91,39 @@ export function UpgradeModal({
           You&apos;ve used all your credits
         </h2>
         <p className="mb-5 text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
-          {isStarter
+          {isPro
+            ? "Your Pro plan includes 1,000 credits / month. Top up to keep generating."
+            : isStarter
             ? "Your Starter plan includes 300 credits / month. Top up to keep going, or upgrade for more."
             : "Your Trial includes 30 credits. Pick a plan to keep generating."}
         </p>
 
-        {isStarter ? (
+        {isPro ? (
+          /* ── Pro: top-up only ───────────────────────────────── */
+          <div
+            className="mb-3 rounded-xl p-4"
+            style={{ backgroundColor: "rgba(94,234,212,0.07)", border: "1px solid rgba(94,234,212,0.18)" }}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-white">Credit Top-up</p>
+                <p className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>100 extra credits — one time</p>
+              </div>
+              <p className="text-lg font-bold text-white">
+                $9<span className="text-sm font-normal" style={{ color: "rgba(255,255,255,0.45)" }}> once</span>
+              </p>
+            </div>
+            <div className="relative group">
+              <div className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
+                style={{ background: "linear-gradient(135deg, #5eead4, #34d399)" }} />
+              <button onClick={handleRefill} disabled={!!refilling}
+                className="relative w-full rounded-xl py-2.5 text-sm font-semibold transition-opacity disabled:opacity-60"
+                style={{ background: "linear-gradient(135deg, #5eead4, #34d399)", color: "#0d1117" }}>
+                {refilling ? "Redirecting…" : "⚡ Top up 100 credits"}
+              </button>
+            </div>
+          </div>
+        ) : isStarter ? (
           /* ── Starter: top-up + Pro ──────────────────────────── */
           <>
             {/* Option A — Refill */}

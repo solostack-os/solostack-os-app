@@ -1004,6 +1004,44 @@ function SettingsPageInner() {
           </div>
         </div>
 
+        {/* ─── Pro: Add Credits (top-up only) ─── */}
+        {planKey === "pro" && (
+          <div
+            className="rounded-xl border overflow-hidden mb-6"
+            style={{ backgroundColor: surface, borderColor: "rgba(94,234,212,0.2)" }}
+          >
+            <div className="h-[2px]" style={{ background: "linear-gradient(90deg, #5eead4, #34d399)" }} />
+            <div className="p-7">
+              <h2 className="text-sm font-semibold uppercase tracking-wider mb-5" style={{ color: textMuted }}>
+                Add Credits
+              </h2>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-base font-semibold text-white">Credit Top-up</p>
+                  <p className="text-sm" style={{ color: textMuted }}>100 extra credits — one-time purchase</p>
+                </div>
+                <div className="flex items-center gap-4 flex-shrink-0">
+                  <p className="text-base font-bold text-white">$9<span className="text-sm font-normal" style={{ color: textMuted }}> once</span></p>
+                  <div className="relative group">
+                    <div
+                      className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-70 transition-opacity blur-lg"
+                      style={{ background: "linear-gradient(135deg, #5eead4, #34d399)" }}
+                    />
+                    <button
+                      onClick={handleRefill}
+                      disabled={!!refilling}
+                      className="relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
+                      style={{ background: "linear-gradient(135deg, #5eead4, #34d399)", color: "#0d1117" }}
+                    >
+                      {refilling ? "Redirecting…" : "Top up"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ─── Upgrade / Top-up Card ─── */}
         {upgrade && targetPlan && (
           <div
