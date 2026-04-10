@@ -354,7 +354,7 @@ export default function DashboardPage() {
     }
   }
 
-  const [upgrading, setUpgrading] = React.useState(false);
+  const [upgrading, setUpgrading] = useState(false);
   async function handleUpgrade() {
     setUpgrading(true);
     const res = await fetch("/api/checkout", {
