@@ -31,6 +31,7 @@ export async function POST() {
     try {
       await resend.emails.send({
         from: "SoloStack <noreply@solostack.io>",
+        replyTo: "SoloStack Support <support@solostack.io>",
         to: userEmail,
         subject: "Your SoloStack account has been deleted",
         html: `<!DOCTYPE html>

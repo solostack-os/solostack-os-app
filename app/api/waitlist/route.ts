@@ -118,6 +118,7 @@ export async function POST(req: NextRequest) {
   try {
     await resend.emails.send({
       from: "SoloStack <noreply@solostack.io>",
+      replyTo: "SoloStack Support <support@solostack.io>",
       to: email,
       subject: "You're on the SoloStack waitlist! \ud83c\udf89",
       html: `<!DOCTYPE html>

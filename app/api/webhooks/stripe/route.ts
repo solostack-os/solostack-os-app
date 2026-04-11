@@ -106,7 +106,7 @@ export async function POST(request: Request) {
         try {
           await resend.emails.send({
             from: "SoloStack <noreply@solostack.io>",
-            reply_to: "SoloStack Support <support@solostack.io>",
+            replyTo: "SoloStack Support <support@solostack.io>",
             to: customerEmail,
             subject: `Welcome to SoloStack OS — you're in.`,
             html: `<!DOCTYPE html>
