@@ -1049,13 +1049,15 @@ function SettingsPageInner() {
             )}
 
             {/* Canceling badge */}
-            {cancelAtPeriodEnd && periodEnd && (
+            {cancelAtPeriodEnd && (
               <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
                 style={{ backgroundColor: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.25)", color: "#fbbf24" }}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
-                Cancels {new Date(periodEnd).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} — access continues until then
+                {periodEnd
+                  ? `Cancels ${new Date(periodEnd).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} — access continues until then`
+                  : "Subscription cancelled — will not renew"}
               </div>
             )}
 
