@@ -148,14 +148,14 @@ export async function POST() {
       <p style="color:#94a3b8;font-size:14px;margin:0 0 4px;">After your access ends, your account will revert to the <strong style="color:#f1f5f9;">Trial tier</strong> with a fresh 30-credit allocation. Your workspace data will be preserved.</p>
     </div>
 
-    <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 8px;">
-      Changed your mind? You can resubscribe at any time from your Settings page.
+    <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 20px;">
+      Changed your mind? One click and your subscription stays active — no new charge, no new setup.
     </p>
 
-    <div style="margin:24px 0;">
-      <a href="https://solostack.io/app/settings"
+    <div style="margin:0 0 28px;">
+      <a href="https://solostack.io/app/settings?reactivate=1"
          style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#6c8cff,#818cf8);color:#ffffff;text-decoration:none;border-radius:10px;font-size:14px;font-weight:600;">
-        Go to Settings →
+        Keep my subscription →
       </a>
     </div>
 

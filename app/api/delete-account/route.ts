@@ -41,24 +41,23 @@ export async function POST() {
     <h1 style="color:#ffffff;font-size:24px;font-weight:700;margin:0 0 8px;">SoloStack OS</h1>
     <p style="color:#6c8cff;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 32px;">Account Deleted</p>
 
-    <h2 style="color:#ffffff;font-size:20px;font-weight:600;margin:0 0 16px;">Sorry to see you go</h2>
-    <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 24px;">
-      Your SoloStack OS account and all associated data have been permanently deleted as requested. Any active subscription has been cancelled.
+    <h2 style="color:#ffffff;font-size:20px;font-weight:600;margin:0 0 16px;">Every great build starts with what didn't work.</h2>
+    <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 12px;">
+      Your account and all associated data have been permanently deleted. Any active subscription has been cancelled.
+    </p>
+    <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 28px;">
+      We're still building — and your experience, good or bad, is exactly what shapes the next version. If you have 60 seconds, tell us what happened:
     </p>
 
-    <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 8px;">
-      We'd love to understand what we could have done better. If you have a moment, we'd really appreciate your feedback:
-    </p>
-
-    <div style="margin:24px 0;">
-      <a href="mailto:support@solostack.io?subject=Feedback%20on%20SoloStack%20OS&body=Hi%2C%20I%20just%20deleted%20my%20account.%20Here%27s%20why%3A%0A%0A"
+    <div style="margin:0 0 28px;">
+      <a href="https://solostack.io/feedback?ref=deleted&email=${encodeURIComponent(userEmail)}"
          style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#6c8cff,#818cf8);color:#ffffff;text-decoration:none;border-radius:10px;font-size:14px;font-weight:600;">
-        Share feedback →
+        Share what happened →
       </a>
     </div>
 
-    <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 24px;">
-      If you ever decide to come back, you're always welcome. We'll keep building.
+    <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 0;">
+      If you ever come back, the door's open.
     </p>
 
     <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;margin-top:32px;">

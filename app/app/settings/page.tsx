@@ -54,8 +54,9 @@ export default function SettingsPage() {
 function SettingsPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const upgraded = searchParams.get("upgraded") === "true";
-  const canceled = searchParams.get("canceled") === "true";
+  const upgraded   = searchParams.get("upgraded")   === "true";
+  const canceled   = searchParams.get("canceled")   === "true";
+  const reactivate = searchParams.get("reactivate") === "1";
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +72,9 @@ function SettingsPageInner() {
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [cancelingPlan, setCancelingPlan] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [reactivating, setReactivating] = useState(false);
+  const [reactivateError, setReactivateError] = useState<string | null>(null);
+  const [reactivated, setReactivated] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
@@ -100,6 +104,31 @@ function SettingsPageInner() {
   const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
+
+  // Auto-reactivate subscription if user arrived from cancel email
+  useEffect(() => {
+    if (!reactivate || loading || !cancelAtPeriodEnd) return;
+    async function doReactivate() {
+      setReactivating(true);
+      try {
+        const res = await fetch("/api/reactivate-plan", { method: "POST" });
+        if (res.ok) {
+          setCancelAtPeriodEnd(false);
+          setReactivated(true);
+          router.replace("/app/settings");
+        } else {
+          const data = await res.json().catch(() => ({}));
+          setReactivateError(data.error ?? "Could not reactivate. Please try again.");
+        }
+      } catch {
+        setReactivateError("Network error. Please try again.");
+      } finally {
+        setReactivating(false);
+      }
+    }
+    doReactivate();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reactivate, loading, cancelAtPeriodEnd]);
 
   // Reset loading states when user navigates back from Stripe (bfcache restore)
   useEffect(() => {
@@ -1059,6 +1088,24 @@ function SettingsPageInner() {
                   ? `Cancels ${new Date(periodEnd).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} — access continues until then`
                   : "Subscription cancelled — will not renew"}
               </div>
+            )}
+
+            {/* Reactivated success banner */}
+            {reactivated && (
+              <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+                style={{ backgroundColor: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.25)", color: "#4ade80" }}>
+                ✓ Subscription reactivated — you're all set.
+              </div>
+            )}
+
+            {/* Reactivating spinner */}
+            {reactivating && (
+              <p className="mt-3 text-xs" style={{ color: "#94a3b8" }}>Reactivating your subscription…</p>
+            )}
+
+            {/* Reactivate error */}
+            {reactivateError && (
+              <p className="mt-3 text-xs" style={{ color: "#f87171" }}>{reactivateError}</p>
             )}
 
             {/* Cancel error */}
