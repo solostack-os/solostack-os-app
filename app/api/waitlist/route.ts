@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
   // Send confirmation email (non-blocking)
   try {
     await resend.emails.send({
-      from: "SoloStack <onboarding@resend.dev>",
+      from: "SoloStack <noreply@solostack.io>",
       to: email,
       subject: "You're on the SoloStack waitlist! \ud83c\udf89",
       html: `<!DOCTYPE html>

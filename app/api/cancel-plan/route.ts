@@ -128,7 +128,7 @@ export async function POST() {
   if (userEmail) {
     try {
       await resend.emails.send({
-        from: "SoloStack <onboarding@resend.dev>",
+        from: "SoloStack <noreply@solostack.io>",
         to: userEmail,
         subject: "Your SoloStack subscription has been cancelled",
         html: `<!DOCTYPE html>
