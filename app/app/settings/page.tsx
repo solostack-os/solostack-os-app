@@ -1094,7 +1094,7 @@ function SettingsPageInner() {
             {reactivated && (
               <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
                 style={{ backgroundColor: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.25)", color: "#4ade80" }}>
-                ✓ Subscription reactivated — you're all set.
+                ✓ Subscription reactivated — you&apos;re all set.
               </div>
             )}
 
