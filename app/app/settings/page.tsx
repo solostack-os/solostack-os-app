@@ -70,6 +70,7 @@ function SettingsPageInner() {
   const [refilling, setRefilling] = useState(false);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [cancelingPlan, setCancelingPlan] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
   const [hasStripeCustomer, setHasStripeCustomer] = useState(false);
@@ -343,14 +344,19 @@ function SettingsPageInner() {
   }
 
   async function handleCancelPlan() {
-    if (!confirm("Are you sure you want to cancel your subscription? You'll keep access until the end of the billing period.")) return;
+    if (!confirm("Are you sure you want to cancel your subscription? You'll keep full access until the end of the billing period.")) return;
     setCancelingPlan(true);
+    setCancelError(null);
     try {
       const res = await fetch("/api/cancel-plan", { method: "POST" });
       const data = await res.json();
       if (data.success) {
         setCancelAtPeriodEnd(true);
+      } else {
+        setCancelError(data.error ?? "Something went wrong. Please try again.");
       }
+    } catch {
+      setCancelError("Network error. Please try again.");
     } finally {
       setCancelingPlan(false);
     }
@@ -1021,6 +1027,11 @@ function SettingsPageInner() {
               </div>
             )}
 
+            {/* Cancel error */}
+            {cancelError && (
+              <p className="mt-3 text-xs" style={{ color: "#f87171" }}>{cancelError}</p>
+            )}
+
             {/* Billing actions */}
             <div className="flex flex-wrap items-center gap-3 mt-5">
               {hasStripeCustomer && (
@@ -1037,10 +1048,10 @@ function SettingsPageInner() {
                 <button
                   onClick={handleCancelPlan}
                   disabled={cancelingPlan}
-                  className="text-sm transition-colors cursor-pointer disabled:opacity-50"
-                  style={{ color: "rgba(255,255,255,0.3)" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(239,68,68,0.7)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
+                  className="px-4 py-2.5 text-sm font-medium rounded-lg border transition-all cursor-pointer disabled:opacity-50"
+                  style={{ color: "#f87171", borderColor: "rgba(248,113,113,0.25)", backgroundColor: "rgba(248,113,113,0.06)" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(248,113,113,0.12)"; e.currentTarget.style.borderColor = "rgba(248,113,113,0.4)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "rgba(248,113,113,0.06)"; e.currentTarget.style.borderColor = "rgba(248,113,113,0.25)"; }}
                 >
                   {cancelingPlan ? "Canceling..." : "Cancel plan"}
                 </button>
