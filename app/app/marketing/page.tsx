@@ -612,7 +612,7 @@ export default function MarketingPage() {
                   loadingSuggestions={loadingSuggestions}
                   onSuggest={handleSuggest}
                   suggestions={suggestions}
-                  suggestDisabled={creditLimitReached}
+                  suggestDisabled={creditLimitReached === true}
                 />
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>Number of posts</label>
