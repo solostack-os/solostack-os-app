@@ -247,19 +247,19 @@ export default function MarketingPage() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  // Persists for the entire session once credit limit is hit — never resets on modal dismiss.
-  const [creditLimitReached, setCreditLimitReached] = useState(false);
+  // null = still loading from API; false = credits available; true = limit reached
+  const [creditLimitReached, setCreditLimitReached] = useState<boolean | null>(null);
   const [currentPlanKey, setCurrentPlanKey] = useState<string>("trial");
 
-  // On mount, check if the credit limit is already reached (persists across refreshes).
+  // On mount, sync credit-limit state from server — always overwrite both directions.
   useEffect(() => {
     fetch("/api/usage")
       .then((r) => r.json())
       .then((d) => {
-        if (d.limitReached) setCreditLimitReached(true);
+        setCreditLimitReached(d.limitReached ?? false);
         if (d.planKey) setCurrentPlanKey(d.planKey);
       })
-      .catch(() => {/* silent — non-critical */});
+      .catch(() => { setCreditLimitReached(false); });
   }, []);
 
   /* ── Ad Copy state ── */
@@ -633,7 +633,7 @@ export default function MarketingPage() {
                     ))}
                   </div>
                 </div>
-                <GenerateButton loading={spLoading} disabled={!spTopic.trim()} onClick={handleSpGenerate} label="Generate" />
+                <GenerateButton loading={spLoading} disabled={!spTopic.trim() || creditLimitReached === true} onClick={handleSpGenerate} label="Generate" />
                 <ErrorMsg error={spError} />
               </div>
               </div>
@@ -655,10 +655,10 @@ export default function MarketingPage() {
               <div className="p-7">
                 <PillSelector label="Platform" options={adPlatforms} value={acPlatform} onChange={setAcPlatform} />
                 <PillSelector label="Goal" options={adGoals} value={acGoal} onChange={setAcGoal} />
-                <TopicInput value={acTopic} onChange={(v) => { setAcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. Summer sale on premium headphones" loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached} />
+                <TopicInput value={acTopic} onChange={(v) => { setAcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. Summer sale on premium headphones" loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
                 <GenerateButton
                   loading={acLoading}
-                  disabled={!acTopic.trim()}
+                  disabled={!acTopic.trim() || creditLimitReached === true}
                   onClick={() => callWorkflow("ad_copy", { platform: acPlatform, goal: acGoal, topic: acTopic }, setAcLoading, setAcOutput, setAcError, setAcStreaming, acStreamTextRef)}
                   label="Generate"
                 />
@@ -683,10 +683,10 @@ export default function MarketingPage() {
               <div className="p-7">
                 <PillSelector label="Section" options={landingSections} value={lpSection} onChange={setLpSection} />
                 <PillSelector label="Goal" options={landingGoals} value={lpGoal} onChange={setLpGoal} />
-                <TopicInput value={lpTopic} onChange={(v) => { setLpTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. AI-powered project management tool" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached} />
+                <TopicInput value={lpTopic} onChange={(v) => { setLpTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. AI-powered project management tool" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
                 <GenerateButton
                   loading={lpLoading}
-                  disabled={!lpTopic.trim()}
+                  disabled={!lpTopic.trim() || creditLimitReached === true}
                   onClick={() => callWorkflow("landing_page", { section: lpSection, goal: lpGoal, topic: lpTopic }, setLpLoading, setLpOutput, setLpError, setLpStreaming, lpStreamTextRef)}
                   label="Generate"
                 />
@@ -710,10 +710,10 @@ export default function MarketingPage() {
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Email type" options={emailTypes} value={ecType} onChange={setEcType} />
-                <TopicInput value={ecTopic} onChange={(v) => { setEcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. New feature launch announcement" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached} />
+                <TopicInput value={ecTopic} onChange={(v) => { setEcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. New feature launch announcement" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
                 <GenerateButton
                   loading={ecLoading}
-                  disabled={!ecTopic.trim()}
+                  disabled={!ecTopic.trim() || creditLimitReached === true}
                   onClick={() => callWorkflow("email_campaign", { email_type: ecType, topic: ecTopic }, setEcLoading, setEcOutput, setEcError, setEcStreaming, ecStreamTextRef)}
                   label="Generate"
                 />
@@ -737,10 +737,10 @@ export default function MarketingPage() {
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Content type" options={contentTypes} value={cbType} onChange={setCbType} />
-                <TopicInput value={cbTopic} onChange={(v) => { setCbTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. How to build a personal brand in 2025" maxLen={2000} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached} />
+                <TopicInput value={cbTopic} onChange={(v) => { setCbTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. How to build a personal brand in 2025" maxLen={2000} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
                 <GenerateButton
                   loading={cbLoading}
-                  disabled={!cbTopic.trim()}
+                  disabled={!cbTopic.trim() || creditLimitReached === true}
                   onClick={() => callWorkflow("content_brief", { content_type: cbType, topic: cbTopic }, setCbLoading, setCbOutput, setCbError, setCbStreaming, cbStreamTextRef)}
                   label="Generate"
                 />

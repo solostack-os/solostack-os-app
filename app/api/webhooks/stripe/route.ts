@@ -132,6 +132,7 @@ export async function POST(request: Request) {
           current_period_end: new Date(
             subscription.current_period_end * 1000
           ).toISOString(),
+          cancel_at_period_end: subscription.cancel_at_period_end ?? false,
         })
         .eq("workspace_id", workspace.id);
       break;
@@ -157,6 +158,7 @@ export async function POST(request: Request) {
           stripe_subscription_id: null,
           stripe_price_id: null,
           current_period_end: null,
+          cancel_at_period_end: false,
         })
         .eq("workspace_id", workspace.id);
       break;

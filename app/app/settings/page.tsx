@@ -68,6 +68,8 @@ function SettingsPageInner() {
   const [extraCredits, setExtraCredits] = useState(0);
   const [upgrading, setUpgrading] = useState<string | null>(null);
   const [refilling, setRefilling] = useState(false);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+  const [cancelingPlan, setCancelingPlan] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
   const [hasStripeCustomer, setHasStripeCustomer] = useState(false);
@@ -196,7 +198,7 @@ function SettingsPageInner() {
           const [subRes, countRes] = await Promise.all([
             supabase
               .from("subscriptions")
-              .select("plan_key, status, current_period_end, trial_ends_at, extra_credits")
+              .select("plan_key, status, current_period_end, trial_ends_at, extra_credits, cancel_at_period_end")
               .eq("workspace_id", basicWs.id)
               .single(),
             supabase
@@ -210,6 +212,7 @@ function SettingsPageInner() {
             setPeriodEnd(subRes.data.current_period_end);
             setTrialEndsAt(subRes.data.trial_ends_at);
             setExtraCredits((subRes.data as { extra_credits?: number }).extra_credits ?? 0);
+            setCancelAtPeriodEnd((subRes.data as { cancel_at_period_end?: boolean }).cancel_at_period_end ?? false);
             const { data: planRow } = await supabase.from("plans").select("run_cap").eq("key", subRes.data.plan_key).single();
             if (planRow) setRunCap(planRow.run_cap);
           }
@@ -239,7 +242,7 @@ function SettingsPageInner() {
         const [subRes2, countRes2, custRes] = await Promise.all([
           supabase
             .from("subscriptions")
-            .select("plan_key, status, current_period_end, trial_ends_at")
+            .select("plan_key, status, current_period_end, trial_ends_at, cancel_at_period_end")
             .eq("workspace_id", workspace.id)
             .single(),
           supabase
@@ -259,6 +262,7 @@ function SettingsPageInner() {
           setPeriodEnd(subRes2.data.current_period_end);
           setTrialEndsAt(subRes2.data.trial_ends_at);
           setExtraCredits((subRes2.data as { extra_credits?: number }).extra_credits ?? 0);
+          setCancelAtPeriodEnd((subRes2.data as { cancel_at_period_end?: boolean }).cancel_at_period_end ?? false);
           const { data: planRow } = await supabase.from("plans").select("run_cap").eq("key", subRes2.data.plan_key).single();
           if (planRow) setRunCap(planRow.run_cap);
         }
@@ -335,6 +339,20 @@ function SettingsPageInner() {
       }
     } finally {
       setOpeningPortal(false);
+    }
+  }
+
+  async function handleCancelPlan() {
+    if (!confirm("Are you sure you want to cancel your subscription? You'll keep access until the end of the billing period.")) return;
+    setCancelingPlan(true);
+    try {
+      const res = await fetch("/api/cancel-plan", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        setCancelAtPeriodEnd(true);
+      }
+    } finally {
+      setCancelingPlan(false);
     }
   }
 
@@ -986,14 +1004,25 @@ function SettingsPageInner() {
               );
             })()}
 
-            {periodEnd && status === "active" && (
+            {periodEnd && status === "active" && !cancelAtPeriodEnd && (
               <p className="text-xs mt-1" style={{ color: textMuted, fontVariantNumeric: "tabular-nums" }}>
                 Renews {new Date(periodEnd).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
               </p>
             )}
 
+            {/* Canceling badge */}
+            {cancelAtPeriodEnd && periodEnd && (
+              <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+                style={{ backgroundColor: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.25)", color: "#fbbf24" }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                Cancels {new Date(periodEnd).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} — access continues until then
+              </div>
+            )}
+
             {/* Billing actions */}
-            <div className="flex flex-wrap gap-3 mt-5">
+            <div className="flex flex-wrap items-center gap-3 mt-5">
               {hasStripeCustomer && (
                 <button
                   onClick={handleManageBilling}
@@ -1002,6 +1031,18 @@ function SettingsPageInner() {
                   style={{ color: textPrimary, borderColor: border }}
                 >
                   {openingPortal ? "Opening..." : "Manage Billing"}
+                </button>
+              )}
+              {status === "active" && !cancelAtPeriodEnd && (
+                <button
+                  onClick={handleCancelPlan}
+                  disabled={cancelingPlan}
+                  className="text-sm transition-colors cursor-pointer disabled:opacity-50"
+                  style={{ color: "rgba(255,255,255,0.3)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(239,68,68,0.7)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
+                >
+                  {cancelingPlan ? "Canceling..." : "Cancel plan"}
                 </button>
               )}
             </div>
@@ -1181,7 +1222,10 @@ function SettingsPageInner() {
         </div>
 
         {/* ─── Legal links ─── */}
-        <div className="pt-8 mt-2 flex gap-5 text-xs" style={{ color: "#475569" }}>
+        <div className="pt-8 mt-2 flex flex-wrap gap-5 text-xs" style={{ color: "#475569" }}>
+          <a href="/app/rules" className="hover:text-slate-400 transition-colors">
+            Platform Rules
+          </a>
           <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-slate-400 transition-colors">
             Terms of Service
           </a>

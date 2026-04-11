@@ -249,12 +249,16 @@ export default function OutreachPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("cold_email");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [currentPlanKey, setCurrentPlanKey] = useState<string>("trial");
+  const [creditLimitReached, setCreditLimitReached] = useState<boolean | null>(null);
 
   useEffect(() => {
     fetch("/api/usage")
       .then((r) => r.json())
-      .then((d) => { if (d.planKey) setCurrentPlanKey(d.planKey); })
-      .catch(() => {});
+      .then((d) => {
+        setCreditLimitReached(d.limitReached ?? false);
+        if (d.planKey) setCurrentPlanKey(d.planKey);
+      })
+      .catch(() => { setCreditLimitReached(false); });
   }, []);
 
   /* ── Cold Email state ── */
@@ -474,7 +478,7 @@ export default function OutreachPage() {
                 />
                 <GenerateButton
                   loading={ceLoading}
-                  disabled={!ceName.trim() || !ceRole.trim() || !ceCompany.trim()}
+                  disabled={!ceName.trim() || !ceRole.trim() || !ceCompany.trim() || creditLimitReached === true}
                   onClick={() => callWorkflow("cold_email", { prospect_name: ceName, prospect_role: ceRole, prospect_company: ceCompany, goal: ceGoal, ...(ceExtra.trim() ? { additional_context: ceExtra.trim() } : {}) }, setCeLoading, setCeOutput, setCeError, setCeStreaming, ceStreamTextRef)}
                   label="Generate"
                 />
@@ -507,7 +511,7 @@ export default function OutreachPage() {
                 <PillSelector label="Time since last email" options={followUpDays} value={fuDays} onChange={setFuDays} />
                 <GenerateButton
                   loading={fuLoading}
-                  disabled={!fuContext.trim()}
+                  disabled={!fuContext.trim() || creditLimitReached === true}
                   onClick={() => callWorkflow("follow_up", { context: fuContext, days_since: fuDays }, setFuLoading, setFuOutput, setFuError, setFuStreaming, fuStreamTextRef)}
                   label="Generate"
                 />
@@ -544,7 +548,7 @@ export default function OutreachPage() {
                 />
                 <GenerateButton
                   loading={prLoading}
-                  disabled={!prType.trim() || !prClient.trim()}
+                  disabled={!prType.trim() || !prClient.trim() || creditLimitReached === true}
                   onClick={() => callWorkflow("proposal", { project_type: prType, client_name: prClient, ...(prBudget.trim() ? { budget_range: prBudget } : {}), ...(prExtra.trim() ? { additional_context: prExtra.trim() } : {}) }, setPrLoading, setPrOutput, setPrError, setPrStreaming, prStreamTextRef)}
                   label="Generate"
                 />
@@ -581,7 +585,7 @@ export default function OutreachPage() {
                 />
                 <GenerateButton
                   loading={dpLoading}
-                  disabled={!dpCompany.trim() || !dpIndustry.trim()}
+                  disabled={!dpCompany.trim() || !dpIndustry.trim() || creditLimitReached === true}
                   onClick={() => callWorkflow("discovery_prep", { prospect_company: dpCompany, industry: dpIndustry, call_goal: dpGoal, ...(dpExtra.trim() ? { additional_context: dpExtra.trim() } : {}) }, setDpLoading, setDpOutput, setDpError, setDpStreaming, dpStreamTextRef)}
                   label="Generate"
                 />

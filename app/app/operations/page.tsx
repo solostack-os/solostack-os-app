@@ -255,12 +255,16 @@ export default function OperationsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("sop_generator");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [currentPlanKey, setCurrentPlanKey] = useState<string>("trial");
+  const [creditLimitReached, setCreditLimitReached] = useState<boolean | null>(null);
 
   useEffect(() => {
     fetch("/api/usage")
       .then((r) => r.json())
-      .then((d) => { if (d.planKey) setCurrentPlanKey(d.planKey); })
-      .catch(() => {});
+      .then((d) => {
+        setCreditLimitReached(d.limitReached ?? false);
+        if (d.planKey) setCurrentPlanKey(d.planKey);
+      })
+      .catch(() => { setCreditLimitReached(false); });
   }, []);
 
   /* ── SOP Generator state ── */
@@ -477,7 +481,7 @@ export default function OperationsPage() {
                 />
                 <GenerateButton
                   loading={sopLoading}
-                  disabled={!sopName.trim()}
+                  disabled={!sopName.trim() || creditLimitReached === true}
                   onClick={() => callWorkflow("sop_generator", { process_name: sopName, department: sopDept, detail_level: sopDetail, ...(sopExtra.trim() ? { additional_context: sopExtra.trim() } : {}) }, setSopLoading, setSopOutput, setSopError, setSopStreaming, sopStreamTextRef)}
                   label="Generate"
                 />
@@ -511,7 +515,7 @@ export default function OperationsPage() {
                 <PillSelector label="Work style" options={workStyles} value={wpStyle} onChange={setWpStyle} />
                 <GenerateButton
                   loading={wpLoading}
-                  disabled={!wpFocus.trim() || !wpPriorities.trim()}
+                  disabled={!wpFocus.trim() || !wpPriorities.trim() || creditLimitReached === true}
                   onClick={() => callWorkflow("weekly_plan", { focus_area: wpFocus, priorities: wpPriorities, work_style: wpStyle }, setWpLoading, setWpOutput, setWpError, setWpStreaming, wpStreamTextRef)}
                   label="Generate"
                 />
@@ -546,7 +550,7 @@ export default function OperationsPage() {
                 />
                 <GenerateButton
                   loading={obLoading}
-                  disabled={!obClient.trim() || !obService.trim() || !obDate.trim()}
+                  disabled={!obClient.trim() || !obService.trim() || !obDate.trim() || creditLimitReached === true}
                   onClick={() => callWorkflow("onboarding_doc", { client_name: obClient, service_type: obService, start_date: obDate, key_deliverables: obDeliverables }, setObLoading, setObOutput, setObError, setObStreaming, obStreamTextRef)}
                   label="Generate"
                 />
@@ -581,7 +585,7 @@ export default function OperationsPage() {
                 <PillSelector label="Output format" options={outputFormats} value={pnFormat} onChange={setPnFormat} />
                 <GenerateButton
                   loading={pnLoading}
-                  disabled={!pnTitle.trim() || !pnNotes.trim()}
+                  disabled={!pnTitle.trim() || !pnNotes.trim() || creditLimitReached === true}
                   onClick={() => callWorkflow("process_notes", { process_title: pnTitle, raw_notes: pnNotes, output_format: pnFormat }, setPnLoading, setPnOutput, setPnError, setPnStreaming, pnStreamTextRef)}
                   label="Generate"
                 />
