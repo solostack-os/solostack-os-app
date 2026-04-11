@@ -71,7 +71,7 @@ function FeedbackForm() {
       </p>
 
       <h2 style={{ color: "#f1f5f9", fontSize: 18, fontWeight: 600, margin: "0 0 8px" }}>
-        Every great build starts with what didn't work.
+        Every great build starts with what didn&apos;t work.
       </h2>
       <p style={{ color: "#64748b", fontSize: 14, lineHeight: 1.6, margin: "0 0 28px" }}>
         Your experience shapes the next version. Takes 60 seconds.
