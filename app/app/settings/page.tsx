@@ -71,6 +71,8 @@ function SettingsPageInner() {
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [cancelingPlan, setCancelingPlan] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
   const [hasStripeCustomer, setHasStripeCustomer] = useState(false);
@@ -328,6 +330,36 @@ function SettingsPageInner() {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/");
+  }
+
+  async function handleDeleteAccount() {
+    const confirmed = confirm(
+      "Are you sure you want to delete your account?\n\nThis will permanently delete your workspace, all generated content, and cancel any active subscription. This action cannot be undone."
+    );
+    if (!confirmed) return;
+
+    const doubleConfirmed = confirm(
+      "Last chance — are you absolutely sure? All your data will be permanently deleted."
+    );
+    if (!doubleConfirmed) return;
+
+    setDeletingAccount(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/delete-account", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        router.push("/");
+      } else {
+        setDeleteError(data.error ?? "Failed to delete account. Please contact support@solostack.io");
+        setDeletingAccount(false);
+      }
+    } catch {
+      setDeleteError("Network error. Please try again or contact support@solostack.io");
+      setDeletingAccount(false);
+    }
   }
 
   async function handleManageBilling() {
@@ -1230,6 +1262,23 @@ function SettingsPageInner() {
           >
             {signingOut ? "Signing out..." : "Sign Out"}
           </button>
+        </div>
+
+        {/* ─── Delete Account ─── */}
+        <div className="pt-4">
+          <button
+            onClick={handleDeleteAccount}
+            disabled={deletingAccount}
+            className="w-full py-3 text-sm font-medium rounded-xl border transition-all cursor-pointer disabled:opacity-50"
+            style={{ color: "rgba(248,113,113,0.5)", borderColor: "rgba(248,113,113,0.1)", backgroundColor: "transparent" }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#f87171"; e.currentTarget.style.borderColor = "rgba(248,113,113,0.3)"; e.currentTarget.style.backgroundColor = "rgba(248,113,113,0.05)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(248,113,113,0.5)"; e.currentTarget.style.borderColor = "rgba(248,113,113,0.1)"; e.currentTarget.style.backgroundColor = "transparent"; }}
+          >
+            {deletingAccount ? "Deleting account..." : "Delete Account"}
+          </button>
+          {deleteError && (
+            <p className="mt-2 text-xs text-center" style={{ color: "#f87171" }}>{deleteError}</p>
+          )}
         </div>
 
         {/* ─── Legal links ─── */}
