@@ -34,7 +34,10 @@ export async function POST() {
 
   const session = await stripe.billingPortal.sessions.create({
     customer: workspace.stripe_customer_id,
-    return_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/settings`,
+    // billing_updated=1 tells Settings to re-fetch billing data on return,
+    // so changes made in the portal (cancel, update card, etc.) are reflected
+    // immediately without the user having to manually refresh.
+    return_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/settings?billing_updated=1`,
   });
 
   return NextResponse.json({ url: session.url });

@@ -54,9 +54,10 @@ export default function SettingsPage() {
 function SettingsPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const upgraded   = searchParams.get("upgraded")   === "true";
-  const canceled   = searchParams.get("canceled")   === "true";
-  const reactivate = searchParams.get("reactivate") === "1";
+  const upgraded       = searchParams.get("upgraded")       === "true";
+  const canceled       = searchParams.get("canceled")       === "true";
+  const reactivate     = searchParams.get("reactivate")     === "1";
+  const billingUpdated = searchParams.get("billing_updated") === "1";
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +105,17 @@ function SettingsPageInner() {
   const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
+
+  // When user returns from Stripe Customer Portal, re-fetch billing data.
+  // We wait 2s to give the webhook time to process before reloading.
+  useEffect(() => {
+    if (!billingUpdated) return;
+    const timer = setTimeout(() => {
+      router.replace("/app/settings");
+      window.location.reload();
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [billingUpdated, router]);
 
   // Auto-reactivate subscription if user arrived from cancel email
   useEffect(() => {
