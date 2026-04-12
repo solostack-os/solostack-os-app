@@ -28,7 +28,12 @@ export async function DELETE() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  await admin.from("runs").delete().eq("workspace_id", workspace.id);
+  // Soft-delete all runs — they disappear from the UI but still count
+  // toward credit usage so clearing history doesn't refund credits.
+  await admin
+    .from("runs")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("workspace_id", workspace.id);
 
   return NextResponse.json({ success: true });
 }

@@ -205,6 +205,7 @@ export default function DashboardPage() {
           .select("id, workflow_key, module_key, created_at, outputs(title, output_markdown)")
           .eq("workspace_id", workspace_id)
           .eq("status", "completed")
+          .is("deleted_at", null)
           .order("created_at", { ascending: false })
           .limit(10),
         supabase.from("plans").select("key, run_cap"),

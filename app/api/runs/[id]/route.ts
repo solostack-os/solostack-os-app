@@ -43,9 +43,12 @@ export async function DELETE(
     return NextResponse.json({ error: "Credit not found" }, { status: 404 });
   }
 
-  // Delete outputs first (FK), then the run
-  await admin.from("outputs").delete().eq("run_id", run.id);
-  await admin.from("runs").delete().eq("id", run.id);
+  // Soft-delete: mark the run as deleted so it disappears from the UI
+  // but still counts toward credit usage. Hard-deleting would refund credits.
+  await admin
+    .from("runs")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", run.id);
 
   return NextResponse.json({ ok: true });
 }

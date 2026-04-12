@@ -149,6 +149,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       .from("runs")
       .select("id, workflow_key, input_json, started_at, created_at, outputs(output_markdown)")
       .eq("workspace_id", workspace.id)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(20);
 
