@@ -227,17 +227,11 @@ function SettingsPageInner() {
           setWorkspaceId(basicWs.id);
           setProfileAvailable(false);
 
-          const [subRes, countRes] = await Promise.all([
-            supabase
-              .from("subscriptions")
-              .select("plan_key, status, current_period_end, trial_ends_at, extra_credits, cancel_at_period_end")
-              .eq("workspace_id", basicWs.id)
-              .single(),
-            supabase
-              .from("runs")
-              .select("id", { count: "exact", head: true })
-              .eq("workspace_id", basicWs.id),
-          ]);
+          const subRes = await supabase
+            .from("subscriptions")
+            .select("plan_key, status, current_period_start, current_period_end, trial_ends_at, extra_credits, cancel_at_period_end")
+            .eq("workspace_id", basicWs.id)
+            .single();
           if (subRes.data) {
             setPlanKey(subRes.data.plan_key);
             setStatus(subRes.data.status);
@@ -248,6 +242,17 @@ function SettingsPageInner() {
             const { data: planRow } = await supabase.from("plans").select("run_cap").eq("key", subRes.data.plan_key).single();
             if (planRow) setRunCap(planRow.run_cap);
           }
+          // Count only runs within the current billing period — same logic as
+          // the dashboard. Without this filter, trial runs bleed into the paid
+          // plan count after an upgrade.
+          const isTrial = subRes.data?.plan_key === "trial";
+          const periodStart = !isTrial ? (subRes.data as { current_period_start?: string } | null)?.current_period_start ?? null : null;
+          let countQuery = supabase
+            .from("runs")
+            .select("id", { count: "exact", head: true })
+            .eq("workspace_id", basicWs.id);
+          if (periodStart) countQuery = countQuery.gte("created_at", periodStart);
+          const countRes = await countQuery;
           setCreditsUsed((countRes.count ?? 0) * CREDITS_PER_RUN);
           setLoading(false);
           return;
@@ -271,16 +276,12 @@ function SettingsPageInner() {
         setCompanyEmail(workspace.company_email ?? "");
         setIncludeCompanyDetails(workspace.include_company_details ?? true);
 
-        const [subRes2, countRes2, custRes] = await Promise.all([
+        const [subRes2, custRes] = await Promise.all([
           supabase
             .from("subscriptions")
-            .select("plan_key, status, current_period_end, trial_ends_at, cancel_at_period_end")
+            .select("plan_key, status, current_period_start, current_period_end, trial_ends_at, cancel_at_period_end")
             .eq("workspace_id", workspace.id)
             .single(),
-          supabase
-            .from("runs")
-            .select("id", { count: "exact", head: true })
-            .eq("workspace_id", workspace.id),
           supabase
             .from("workspaces")
             .select("stripe_customer_id")
@@ -298,6 +299,15 @@ function SettingsPageInner() {
           const { data: planRow } = await supabase.from("plans").select("run_cap").eq("key", subRes2.data.plan_key).single();
           if (planRow) setRunCap(planRow.run_cap);
         }
+        // Count only runs within the current billing period.
+        const isTrial2 = subRes2.data?.plan_key === "trial";
+        const periodStart2 = !isTrial2 ? (subRes2.data as { current_period_start?: string } | null)?.current_period_start ?? null : null;
+        let countQuery2 = supabase
+          .from("runs")
+          .select("id", { count: "exact", head: true })
+          .eq("workspace_id", workspace.id);
+        if (periodStart2) countQuery2 = countQuery2.gte("created_at", periodStart2);
+        const countRes2 = await countQuery2;
         setCreditsUsed((countRes2.count ?? 0) * CREDITS_PER_RUN);
         setHasStripeCustomer(!!custRes.data?.stripe_customer_id);
         setLoading(false);
