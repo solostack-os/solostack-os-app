@@ -378,6 +378,32 @@ export default function DashboardPage() {
   };
 
   async function handleUpgrade(target: "starter" | "pro" = "pro") {
+    // Same warning as in Settings — warn about all unused credits before upgrade.
+    if (creditsRemaining > 0) {
+      const planCreditsRemaining = Math.max(0, (runCap ?? 0) - creditsUsed);
+      const lines: string[] = [];
+
+      if (planCreditsRemaining > 0 && extraCredits > 0) {
+        lines.push(
+          `You have ${planCreditsRemaining} unused plan credit${planCreditsRemaining !== 1 ? "s" : ""} and ${extraCredits} top-up credit${extraCredits !== 1 ? "s" : ""} remaining (${creditsRemaining} total).`
+        );
+      } else if (planCreditsRemaining > 0) {
+        lines.push(
+          `You have ${planCreditsRemaining} unused plan credit${planCreditsRemaining !== 1 ? "s" : ""} remaining.`
+        );
+      } else {
+        lines.push(
+          `You have ${extraCredits} unused top-up credit${extraCredits !== 1 ? "s" : ""} remaining.`
+        );
+      }
+
+      lines.push(
+        "\nAll unused credits will be lost when you upgrade. We recommend using them up first.\n\nContinue with the upgrade anyway?"
+      );
+
+      if (!window.confirm(lines.join(""))) return;
+    }
+
     setUpgrading(target);
     const res = await fetch("/api/checkout", {
       method: "POST",
