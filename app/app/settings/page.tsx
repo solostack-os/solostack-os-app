@@ -107,15 +107,15 @@ function SettingsPageInner() {
   const [logoError, setLogoError] = useState<string | null>(null);
 
   // When user returns from Stripe Customer Portal, re-fetch billing data.
-  // We wait 2s to give the webhook time to process before reloading.
+  // Wait 2s to give the webhook time to process, then navigate to the clean
+  // URL (without ?billing_updated=1) which triggers a fresh page load.
   useEffect(() => {
     if (!billingUpdated) return;
     const timer = setTimeout(() => {
-      router.replace("/app/settings");
-      window.location.reload();
+      window.location.href = "/app/settings";
     }, 2000);
     return () => clearTimeout(timer);
-  }, [billingUpdated, router]);
+  }, [billingUpdated]);
 
   // Auto-reactivate subscription if user arrived from cancel email
   useEffect(() => {
