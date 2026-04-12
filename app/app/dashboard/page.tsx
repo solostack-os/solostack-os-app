@@ -658,11 +658,10 @@ export default function DashboardPage() {
 
                 {/* ── Starter CTA — top-up when exhausted, soft upgrade otherwise ── */}
                 {planKey === "starter" && (
-                  <div className="mt-5">
+                  <div className="mt-5 flex flex-wrap items-center gap-2">
                     {isOutOfCredits ? (
-                      /* Credits exhausted — show both options inline */
-                      <div className="flex flex-wrap items-center gap-2">
-                        <div className="relative group">
+                      <>
+                        <div className="relative group inline-flex flex-shrink-0">
                           <div
                             className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
                             style={{ background: `linear-gradient(135deg, ${accent}, #818cf8)` }}
@@ -676,7 +675,7 @@ export default function DashboardPage() {
                             {refilling ? "Redirecting…" : "⚡ Top up 100 credits — $9"}
                           </button>
                         </div>
-                        <div className="relative group">
+                        <div className="relative group inline-flex flex-shrink-0">
                           <div
                             className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
                             style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }}
@@ -690,10 +689,10 @@ export default function DashboardPage() {
                             {upgrading === "pro" ? "Redirecting…" : <>Upgrade to Pro <span style={{ opacity: 0.75, fontWeight: 400 }}>— $39/mo</span> →</>}
                           </button>
                         </div>
-                      </div>
+                      </>
                     ) : (
                       /* Credits available — soft upgrade nudge */
-                      <div className="relative group">
+                      <div className="relative group inline-flex flex-shrink-0">
                         <div
                           className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
                           style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }}
