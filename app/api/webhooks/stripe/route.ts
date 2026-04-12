@@ -250,6 +250,24 @@ export async function POST(request: Request) {
         .single();
       if (!workspace) break;
 
+      // Only revert to trial if this is the subscription currently stored for
+      // the workspace. When a user upgrades, we cancel the OLD subscription —
+      // that fires this event too. By the time it arrives, the workspace already
+      // has the NEW subscription ID set (from checkout.session.completed). If
+      // we didn't check, we'd overwrite Pro → trial immediately after upgrade.
+      const { data: currentSub } = await admin
+        .from("subscriptions")
+        .select("stripe_subscription_id")
+        .eq("workspace_id", workspace.id)
+        .single();
+
+      if (currentSub?.stripe_subscription_id !== subscription.id) {
+        console.log(
+          `[webhook] Skipping subscription.deleted for ${subscription.id} — workspace already has sub ${currentSub?.stripe_subscription_id}`
+        );
+        break;
+      }
+
       await admin
         .from("subscriptions")
         .update({
