@@ -691,7 +691,23 @@ export default function DashboardPage() {
                           </button>
                         </div>
                       </div>
-                    ) : null}
+                    ) : (
+                      /* Credits available — soft upgrade nudge */
+                      <div className="relative group">
+                        <div
+                          className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-75 transition-opacity blur-lg"
+                          style={{ background: "linear-gradient(135deg, #22c55e, #34d399)" }}
+                        />
+                        <button
+                          onClick={() => handleUpgrade("pro")}
+                          disabled={!!upgrading}
+                          className="relative inline-flex items-center text-sm font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
+                          style={{ background: "linear-gradient(135deg, #22c55e, #34d399)", color: "#fff" }}
+                        >
+                          {upgrading === "pro" ? "Redirecting…" : <>Upgrade to Pro <span style={{ opacity: 0.75, fontWeight: 400 }}>— $39/mo</span> →</>}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
