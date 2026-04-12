@@ -556,7 +556,6 @@ export function ExportTemplate({
 
         {/* Content wrapper with horizontal padding */}
         <View style={styles.content}>
-          <Text style={styles.title}>{title}</Text>
 
           <View style={styles.body}>
             {blocks.map((block, idx) => {
