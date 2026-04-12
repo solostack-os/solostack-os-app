@@ -126,6 +126,9 @@ export function UpgradeModal({
                 {refilling ? "Redirecting…" : "⚡ Top up 100 credits"}
               </button>
             </div>
+            <p className="mt-2 text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
+              Top-up credits do not carry over if you change plans.
+            </p>
           </div>
         ) : isStarter ? (
           /* ── Starter: top-up + Pro ──────────────────────────── */
@@ -158,6 +161,9 @@ export function UpgradeModal({
                   {refilling ? "Redirecting…" : "Top up 100 credits"}
                 </button>
               </div>
+              <p className="mt-2 text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
+                Top-up credits do not carry over if you change plans.
+              </p>
             </div>
 
             <div className="mb-3 flex items-center gap-3">

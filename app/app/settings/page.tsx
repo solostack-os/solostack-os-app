@@ -1175,6 +1175,9 @@ function SettingsPageInner() {
                   </div>
                 </div>
               </div>
+              <p className="text-xs mt-3" style={{ color: textMuted }}>
+                Top-up credits are tied to your current plan period and do not carry over if you change plans.
+              </p>
             </div>
           </div>
         )}
@@ -1195,28 +1198,33 @@ function SettingsPageInner() {
               {planKey === "starter" ? (
                 <>
                   {/* Top-up row */}
-                  <div className="flex items-center justify-between mb-4 pb-4" style={{ borderBottom: `1px solid ${border}` }}>
-                    <div>
-                      <p className="text-base font-semibold text-white">Credit Top-up</p>
-                      <p className="text-sm" style={{ color: textMuted }}>100 extra credits — one-time purchase</p>
-                    </div>
-                    <div className="flex items-center gap-4 flex-shrink-0">
-                      <p className="text-base font-bold text-white">$9</p>
-                      <div className="relative group">
-                        <div
-                          className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-70 transition-opacity blur-lg"
-                          style={{ background: `linear-gradient(135deg, ${accent}, ${accentLight})` }}
-                        />
-                        <button
-                          onClick={handleRefill}
-                          disabled={!!refilling || !!upgrading}
-                          className="relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
-                          style={{ background: `linear-gradient(135deg, ${accent}, ${accentLight})`, color: "#fff" }}
-                        >
-                          {refilling ? "Redirecting…" : "Top up"}
-                        </button>
+                  <div className="mb-4 pb-4" style={{ borderBottom: `1px solid ${border}` }}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-base font-semibold text-white">Credit Top-up</p>
+                        <p className="text-sm" style={{ color: textMuted }}>100 extra credits — one-time purchase</p>
+                      </div>
+                      <div className="flex items-center gap-4 flex-shrink-0">
+                        <p className="text-base font-bold text-white">$9</p>
+                        <div className="relative group">
+                          <div
+                            className="absolute -inset-1 rounded-xl opacity-50 group-hover:opacity-70 transition-opacity blur-lg"
+                            style={{ background: `linear-gradient(135deg, ${accent}, ${accentLight})` }}
+                          />
+                          <button
+                            onClick={handleRefill}
+                            disabled={!!refilling || !!upgrading}
+                            className="relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
+                            style={{ background: `linear-gradient(135deg, ${accent}, ${accentLight})`, color: "#fff" }}
+                          >
+                            {refilling ? "Redirecting…" : "Top up"}
+                          </button>
+                        </div>
                       </div>
                     </div>
+                    <p className="text-xs mt-2" style={{ color: textMuted }}>
+                      Top-up credits are tied to your current plan period and do not carry over if you change plans.
+                    </p>
                   </div>
 
                   {/* Upgrade to Pro row */}
