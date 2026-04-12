@@ -88,30 +88,29 @@ export async function POST() {
       .single();
 
     if (workspace?.stripe_customer_id) {
-      const { data: sub } = await admin
-        .from("subscriptions")
-        .select("stripe_subscription_id, status")
-        .eq("workspace_id", workspace.id)
-        .single();
+      // Cancel ALL active or trialing subscriptions for this customer.
+      // We always do the customer lookup (not just relying on the stored ID)
+      // to catch any subscriptions that may have been missed or duplicated.
+      try {
+        const [activeSubs, trialingSubs] = await Promise.all([
+          stripe.subscriptions.list({
+            customer: workspace.stripe_customer_id,
+            status: "active",
+            limit: 10,
+          }),
+          stripe.subscriptions.list({
+            customer: workspace.stripe_customer_id,
+            status: "trialing",
+            limit: 10,
+          }),
+        ]);
 
-      if (sub?.stripe_subscription_id && sub.status === "active") {
-        try {
-          await stripe.subscriptions.cancel(sub.stripe_subscription_id);
-        } catch {
-          // Stale sub ID — try via customer lookup
-          try {
-            const subs = await stripe.subscriptions.list({
-              customer: workspace.stripe_customer_id,
-              status: "active",
-              limit: 1,
-            });
-            if (subs.data.length) {
-              await stripe.subscriptions.cancel(subs.data[0].id);
-            }
-          } catch {
-            console.warn("[delete-account] Could not cancel Stripe subscription");
-          }
-        }
+        const allSubs = [...activeSubs.data, ...trialingSubs.data];
+        await Promise.allSettled(
+          allSubs.map((s) => stripe.subscriptions.cancel(s.id))
+        );
+      } catch {
+        console.warn("[delete-account] Could not cancel Stripe subscriptions");
       }
     }
   } catch {
