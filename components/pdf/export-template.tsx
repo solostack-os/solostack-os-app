@@ -609,14 +609,16 @@ export function ExportTemplate({
               /* eslint-disable-next-line jsx-a11y/alt-text */
               <Image style={styles.footerLogo} src={workspace.logo_url} />
             ) : null}
-            <Text style={styles.footerText}>Generated with SoloStack OS</Text>
           </View>
-          <Text
-            style={styles.pageNumber}
-            render={({ pageNumber, totalPages }) =>
-              `${pageNumber} / ${totalPages}`
-            }
-          />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <Text style={styles.footerText}>Generated with SoloStack.io</Text>
+            <Text
+              style={styles.pageNumber}
+              render={({ pageNumber, totalPages }) =>
+                `${pageNumber} / ${totalPages}`
+              }
+            />
+          </View>
         </View>
       </Page>
     </Document>
