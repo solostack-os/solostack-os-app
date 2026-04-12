@@ -107,13 +107,13 @@ function SettingsPageInner() {
   const [logoError, setLogoError] = useState<string | null>(null);
 
   // When user returns from Stripe Customer Portal, re-fetch billing data.
-  // Wait 2s to give the webhook time to process, then navigate to the clean
+  // Wait 4s to give the webhook time to process, then navigate to the clean
   // URL (without ?billing_updated=1) which triggers a fresh page load.
   useEffect(() => {
     if (!billingUpdated) return;
     const timer = setTimeout(() => {
       window.location.href = "/app/settings";
-    }, 2000);
+    }, 4000);
     return () => clearTimeout(timer);
   }, [billingUpdated]);
 
@@ -690,6 +690,19 @@ function SettingsPageInner() {
       `}</style>
       <div className="max-w-2xl mx-auto px-6 lg:px-8 py-12">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-8" style={{ color: textPrimary }}>Settings</h1>
+
+        {/* ─── Billing sync banner (returning from Stripe portal) ─── */}
+        {billingUpdated && (
+          <div
+            className="rounded-lg px-4 py-3 mb-6 text-sm font-medium flex items-center gap-2"
+            style={{ backgroundColor: "rgba(108,140,255,0.08)", color: "#6c8cff", border: "1px solid rgba(108,140,255,0.2)" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="animate-spin" style={{ flexShrink: 0 }}>
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            </svg>
+            Syncing with Stripe — updating your billing status…
+          </div>
+        )}
 
         {/* ─── Success / Cancel banners ─── */}
         {upgraded && (
