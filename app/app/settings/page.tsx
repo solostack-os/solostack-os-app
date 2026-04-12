@@ -341,13 +341,12 @@ function SettingsPageInner() {
   };
 
   async function handleUpgradeTo(target: "starter" | "pro") {
-    // Warn the user if they have any unused credits — both plan credits and
-    // top-up credits are forfeited on plan change. We want them to be aware
-    // so they can use up remaining credits before upgrading.
+    // Only warn paid users about losing credits — trial users should be
+    // encouraged to upgrade, not second-guessed.
     const planCreditsRemaining = Math.max(0, (runCap ?? 0) - creditsUsed);
     const totalCreditsRemaining = planCreditsRemaining + extraCredits;
 
-    if (totalCreditsRemaining > 0) {
+    if (planKey !== "trial" && totalCreditsRemaining > 0) {
       const lines: string[] = [];
 
       if (planCreditsRemaining > 0 && extraCredits > 0) {

@@ -378,8 +378,9 @@ export default function DashboardPage() {
   };
 
   async function handleUpgrade(target: "starter" | "pro" = "pro") {
-    // Same warning as in Settings — warn about all unused credits before upgrade.
-    if (creditsRemaining > 0) {
+    // Only warn paid users about losing credits — trial users should be
+    // encouraged to upgrade, not second-guessed.
+    if (planKey !== "trial" && creditsRemaining > 0) {
       const planCreditsRemaining = Math.max(0, (runCap ?? 0) - creditsUsed);
       const lines: string[] = [];
 
