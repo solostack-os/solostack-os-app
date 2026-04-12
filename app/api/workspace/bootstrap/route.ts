@@ -108,22 +108,48 @@ export async function POST() {
         replyTo: "dragos@solostack.io",
         to: user.email,
         subject: "your SoloStack workspace is ready",
-        text: `Hey,
+        html: `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#0a0f1e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <div style="max-width:520px;margin:0 auto;padding:48px 24px;">
+    <h1 style="color:#ffffff;font-size:24px;font-weight:700;margin:0 0 8px;">SoloStack OS</h1>
+    <p style="color:#6c8cff;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 32px;">Trial — 7 Days Free</p>
 
-Your SoloStack OS workspace is live. Here's what you have:
+    <h2 style="color:#ffffff;font-size:20px;font-weight:600;margin:0 0 16px;">Welcome. Your workspace is ready.</h2>
+    <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 24px;">
+      You have 60 credits and 7 days to explore SoloStack OS — AI-powered marketing, outreach, and operations, all in one place.
+    </p>
 
-- 60 credits
-- 7 days to explore
-- Marketing, Outreach, and Operations — all ready to use
+    <div style="background:rgba(108,140,255,0.06);border:1px solid rgba(108,140,255,0.15);border-radius:12px;padding:20px 24px;margin:0 0 28px;">
+      <p style="color:#94a3b8;font-size:14px;margin:0 0 12px;font-weight:500;">Get started in 3 steps:</p>
+      <p style="color:#94a3b8;font-size:14px;margin:0 0 8px;line-height:1.5;">→ Set up your <strong style="color:#f1f5f9;">Brand Context</strong> in Settings — this makes every output feel like yours, not a template.</p>
+      <p style="color:#94a3b8;font-size:14px;margin:0 0 8px;line-height:1.5;">→ Run your first workflow in <strong style="color:#f1f5f9;">Marketing</strong> or <strong style="color:#f1f5f9;">Outreach</strong>.</p>
+      <p style="color:#94a3b8;font-size:14px;margin:0;line-height:1.5;">→ Try <strong style="color:#f1f5f9;">Operations</strong> for proposals, onboarding docs, and client assets.</p>
+    </div>
 
-One thing worth doing first: go to Settings and fill in your Brand Context. It takes 2 minutes and makes every output feel like it came from you, not a template.
+    <div style="margin:0 0 28px;">
+      <a href="https://solostack.io/app"
+         style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#6c8cff,#818cf8);color:#ffffff;text-decoration:none;border-radius:10px;font-size:14px;font-weight:600;">
+        Open your workspace →
+      </a>
+    </div>
 
-→ solostack.io/app
+    <p style="color:#94a3b8;font-size:14px;line-height:1.6;margin:0 0 24px;">
+      If anything feels off or you get stuck — reply here. I read every message.
+    </p>
 
-If anything feels off or you get stuck, just reply here. I read every message.
+    <p style="color:#475569;font-size:13px;line-height:1.6;margin:0 0 0;">
+      📬 If this landed in Promotions, move it to Primary so you don't miss updates from us.
+    </p>
 
-Dragos
-SoloStack`,
+    <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;margin-top:32px;">
+      <p style="color:#475569;font-size:13px;margin:0 0 4px;">Dragos · <a href="mailto:dragos@solostack.io" style="color:#6c8cff;text-decoration:none;">dragos@solostack.io</a></p>
+      <p style="color:#475569;font-size:13px;margin:0;">&copy; 2026 SoloStack OS. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`,
       });
     } catch (emailErr) {
       console.error("[bootstrap] Failed to send welcome email:", emailErr);
