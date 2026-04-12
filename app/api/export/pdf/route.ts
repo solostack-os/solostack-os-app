@@ -9,6 +9,38 @@ import {
   type HeaderVariant,
 } from "@/components/pdf/export-template";
 import { getLogoBrightness } from "@/lib/pdf/logo-brightness";
+import sharp from "sharp";
+
+/**
+ * react-pdf's <Image> component does not support SVG sources.
+ * If the logo URL points to an SVG (by content-type or extension),
+ * we rasterise it to a PNG via Sharp and return a base64 data URL
+ * that react-pdf can render. For all other formats we return the
+ * original URL unchanged.
+ */
+async function resolveLogoUrl(url: string | null | undefined): Promise<string | null> {
+  if (!url) return null;
+  try {
+    const isSvgUrl = /\.svg(\?|$)/i.test(url);
+    if (!isSvgUrl) {
+      // Check content-type header for SVGs served without .svg extension
+      const headRes = await fetch(url, { method: "HEAD" }).catch(() => null);
+      const ct = headRes?.headers.get("content-type") ?? "";
+      if (!ct.includes("svg")) return url; // not SVG, return as-is
+    }
+    // Fetch and rasterise
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const pngBuffer = await sharp(buffer)
+      .resize(400, 400, { fit: "inside", withoutEnlargement: true })
+      .png()
+      .toBuffer();
+    return `data:image/png;base64,${pngBuffer.toString("base64")}`;
+  } catch {
+    return url; // fallback to original on any error
+  }
+}
 
 // React-PDF needs Node APIs (Buffer, stream, native modules), so this route
 // must run on the Node runtime rather than edge.
@@ -92,8 +124,10 @@ export async function POST(request: Request) {
     if (wsBasic) workspaceRow = wsBasic;
   }
 
+  const resolvedLogoUrl = await resolveLogoUrl(workspaceRow?.logo_url);
+
   const workspace: ExportWorkspaceData = {
-    logo_url: workspaceRow?.logo_url ?? null,
+    logo_url: resolvedLogoUrl,
     primary_color: workspaceRow?.brand_color_primary ?? null,
     secondary_color: workspaceRow?.brand_color_secondary ?? null,
     legal_name: workspaceRow?.legal_name ?? null,
