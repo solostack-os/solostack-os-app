@@ -2,6 +2,42 @@
 
 import { useState } from "react";
 
+/**
+ * Strip markdown syntax from a string so it can be pasted as clean plain
+ * text into emails, social media, messaging apps, etc.
+ * The original markdown is preserved in state and used for PDF export —
+ * only the clipboard receives the cleaned version.
+ */
+function stripMarkdown(text: string): string {
+  return text
+    // Headings: ## Title → Title
+    .replace(/^#{1,6}\s+/gm, "")
+    // Bold+italic: ***text*** / ___text___
+    .replace(/\*{3}(.+?)\*{3}/gs, "$1")
+    .replace(/_{3}(.+?)_{3}/gs, "$1")
+    // Bold: **text** / __text__
+    .replace(/\*{2}(.+?)\*{2}/gs, "$1")
+    .replace(/_{2}(.+?)_{2}/gs, "$1")
+    // Italic: *text* / _text_  (single, non-greedy)
+    .replace(/\*([^*\n]+?)\*/g, "$1")
+    .replace(/_([^_\n]+?)_/g, "$1")
+    // Inline code: `code`
+    .replace(/`(.+?)`/g, "$1")
+    // Links: [text](url) → text
+    .replace(/\[(.+?)\]\(.+?\)/g, "$1")
+    // Horizontal rules (---, ***)
+    .replace(/^[-*_]{3,}\s*$/gm, "")
+    // Bullet points: - item / * item → item
+    .replace(/^[\-*]\s+/gm, "")
+    // Numbered lists: 1. item → item
+    .replace(/^\d+\.\s+/gm, "")
+    // Blockquotes: > text → text
+    .replace(/^>\s+/gm, "")
+    // Collapse 3+ blank lines to 2
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 /* ─── Shared design tokens (same across all module pages) ─── */
 const surface = "#111827";
 const border = "rgba(255,255,255,0.06)";
@@ -163,7 +199,7 @@ export function OutputCards({
               )}
 
               <button
-                onClick={() => onCopy(card, idx)}
+                onClick={() => onCopy(stripMarkdown(card), idx)}
                 className="flex flex-col items-center gap-1 rounded-md px-2 py-1.5 transition-all opacity-60 hover:opacity-100 cursor-pointer"
                 style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                 aria-label="Copy"
