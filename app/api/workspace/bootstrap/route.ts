@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST() {
   // 1. Get the authenticated user via the SSR client (respects cookies/session)
@@ -95,6 +98,58 @@ export async function POST() {
       { error: "Failed to create subscription", detail: subError?.message },
       { status: 500 }
     );
+  }
+
+  // Send welcome email for new trial users (non-blocking)
+  if (user.email) {
+    try {
+      await resend.emails.send({
+        from: "SoloStack <noreply@solostack.io>",
+        replyTo: "SoloStack Support <support@solostack.io>",
+        to: user.email,
+        subject: "Welcome to SoloStack OS — your trial is ready.",
+        html: `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#0a0f1e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <div style="max-width:520px;margin:0 auto;padding:48px 24px;">
+    <h1 style="color:#ffffff;font-size:24px;font-weight:700;margin:0 0 8px;">SoloStack OS</h1>
+    <p style="color:#6c8cff;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 32px;">Trial — 7 Days Free</p>
+
+    <h2 style="color:#ffffff;font-size:20px;font-weight:600;margin:0 0 16px;">Welcome. Your workspace is ready.</h2>
+    <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 24px;">
+      You have 60 credits and 7 days to explore SoloStack OS — AI-powered marketing, outreach, and operations, all in one place.
+    </p>
+
+    <div style="background:rgba(108,140,255,0.06);border:1px solid rgba(108,140,255,0.15);border-radius:12px;padding:20px 24px;margin:0 0 28px;">
+      <p style="color:#94a3b8;font-size:14px;margin:0 0 12px;font-weight:500;">Get started in 3 steps:</p>
+      <p style="color:#94a3b8;font-size:14px;margin:0 0 8px;line-height:1.5;">→ Set up your <strong style="color:#f1f5f9;">Brand Context</strong> in Settings — this makes every output feel like yours, not a template.</p>
+      <p style="color:#94a3b8;font-size:14px;margin:0 0 8px;line-height:1.5;">→ Run your first workflow in <strong style="color:#f1f5f9;">Marketing</strong> or <strong style="color:#f1f5f9;">Outreach</strong>.</p>
+      <p style="color:#94a3b8;font-size:14px;margin:0;line-height:1.5;">→ Try <strong style="color:#f1f5f9;">Operations</strong> for proposals, onboarding docs, and client assets.</p>
+    </div>
+
+    <div style="margin:0 0 28px;">
+      <a href="https://solostack.io/app"
+         style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#6c8cff,#818cf8);color:#ffffff;text-decoration:none;border-radius:10px;font-size:14px;font-weight:600;">
+        Open your workspace →
+      </a>
+    </div>
+
+    <p style="color:#94a3b8;font-size:14px;line-height:1.6;margin:0 0 0;">
+      If you have questions or run into anything — reply to this email. It goes directly to the founder.
+    </p>
+
+    <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;margin-top:32px;">
+      <p style="color:#475569;font-size:13px;margin:0 0 4px;">Questions? <a href="mailto:support@solostack.io" style="color:#6c8cff;text-decoration:none;">support@solostack.io</a></p>
+      <p style="color:#475569;font-size:13px;margin:0;">&copy; 2026 SoloStack OS. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`,
+      });
+    } catch (emailErr) {
+      console.error("[bootstrap] Failed to send welcome email:", emailErr);
+    }
   }
 
   return NextResponse.json({
