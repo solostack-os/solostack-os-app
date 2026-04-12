@@ -99,7 +99,7 @@ export function UpgradeModal({
             ? "Your Pro plan includes 1,000 credits / month. Top up to keep generating."
             : isStarter
             ? "Your Starter plan includes 300 credits / month. Top up to keep going, or upgrade for more."
-            : "Your Trial includes 30 credits. Pick a plan to keep generating."}
+            : "Your Trial includes 60 credits. Pick a plan to keep generating."}
         </p>
 
         {isPro ? (

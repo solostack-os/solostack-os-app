@@ -633,7 +633,7 @@ export default function MarketingPage() {
                     ))}
                   </div>
                 </div>
-                <GenerateButton loading={spLoading} disabled={!spTopic.trim() || creditLimitReached === true} onClick={handleSpGenerate} label="Generate" />
+                <GenerateButton loading={spLoading} disabled={!spTopic.trim()} onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } handleSpGenerate(); }} label="Generate" />
                 <ErrorMsg error={spError} />
               </div>
               </div>
@@ -658,8 +658,8 @@ export default function MarketingPage() {
                 <TopicInput value={acTopic} onChange={(v) => { setAcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. Summer sale on premium headphones" loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
                 <GenerateButton
                   loading={acLoading}
-                  disabled={!acTopic.trim() || creditLimitReached === true}
-                  onClick={() => callWorkflow("ad_copy", { platform: acPlatform, goal: acGoal, topic: acTopic }, setAcLoading, setAcOutput, setAcError, setAcStreaming, acStreamTextRef)}
+                  disabled={!acTopic.trim()}
+                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("ad_copy", { platform: acPlatform, goal: acGoal, topic: acTopic }, setAcLoading, setAcOutput, setAcError, setAcStreaming, acStreamTextRef); }}
                   label="Generate"
                 />
                 <ErrorMsg error={acError} />
@@ -686,8 +686,8 @@ export default function MarketingPage() {
                 <TopicInput value={lpTopic} onChange={(v) => { setLpTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. AI-powered project management tool" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
                 <GenerateButton
                   loading={lpLoading}
-                  disabled={!lpTopic.trim() || creditLimitReached === true}
-                  onClick={() => callWorkflow("landing_page", { section: lpSection, goal: lpGoal, topic: lpTopic }, setLpLoading, setLpOutput, setLpError, setLpStreaming, lpStreamTextRef)}
+                  disabled={!lpTopic.trim()}
+                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("landing_page", { section: lpSection, goal: lpGoal, topic: lpTopic }, setLpLoading, setLpOutput, setLpError, setLpStreaming, lpStreamTextRef); }}
                   label="Generate"
                 />
                 <ErrorMsg error={lpError} />
@@ -713,8 +713,8 @@ export default function MarketingPage() {
                 <TopicInput value={ecTopic} onChange={(v) => { setEcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. New feature launch announcement" maxLen={300} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
                 <GenerateButton
                   loading={ecLoading}
-                  disabled={!ecTopic.trim() || creditLimitReached === true}
-                  onClick={() => callWorkflow("email_campaign", { email_type: ecType, topic: ecTopic }, setEcLoading, setEcOutput, setEcError, setEcStreaming, ecStreamTextRef)}
+                  disabled={!ecTopic.trim()}
+                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("email_campaign", { email_type: ecType, topic: ecTopic }, setEcLoading, setEcOutput, setEcError, setEcStreaming, ecStreamTextRef); }}
                   label="Generate"
                 />
                 <ErrorMsg error={ecError} />
@@ -740,8 +740,8 @@ export default function MarketingPage() {
                 <TopicInput value={cbTopic} onChange={(v) => { setCbTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. How to build a personal brand in 2025" maxLen={2000} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
                 <GenerateButton
                   loading={cbLoading}
-                  disabled={!cbTopic.trim() || creditLimitReached === true}
-                  onClick={() => callWorkflow("content_brief", { content_type: cbType, topic: cbTopic }, setCbLoading, setCbOutput, setCbError, setCbStreaming, cbStreamTextRef)}
+                  disabled={!cbTopic.trim()}
+                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("content_brief", { content_type: cbType, topic: cbTopic }, setCbLoading, setCbOutput, setCbError, setCbStreaming, cbStreamTextRef); }}
                   label="Generate"
                 />
                 <ErrorMsg error={cbError} />

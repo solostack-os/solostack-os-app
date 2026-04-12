@@ -146,7 +146,7 @@ export async function POST() {
     </p>
 
     <div style="background:rgba(108,140,255,0.06);border:1px solid rgba(108,140,255,0.15);border-radius:12px;padding:20px 24px;margin:0 0 24px;">
-      <p style="color:#94a3b8;font-size:14px;margin:0 0 4px;">After your access ends, your account will revert to the <strong style="color:#f1f5f9;">Trial tier</strong> with a fresh 30-credit allocation. Your workspace data will be preserved.</p>
+      <p style="color:#94a3b8;font-size:14px;margin:0 0 4px;">After your access ends, your account will revert to the <strong style="color:#f1f5f9;">Trial tier</strong> with a fresh 60-credit allocation. Your workspace data will be preserved.</p>
     </div>
 
     <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin:0 0 20px;">

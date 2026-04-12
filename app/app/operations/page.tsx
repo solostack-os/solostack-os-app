@@ -481,8 +481,8 @@ export default function OperationsPage() {
                 />
                 <GenerateButton
                   loading={sopLoading}
-                  disabled={!sopName.trim() || creditLimitReached === true}
-                  onClick={() => callWorkflow("sop_generator", { process_name: sopName, department: sopDept, detail_level: sopDetail, ...(sopExtra.trim() ? { additional_context: sopExtra.trim() } : {}) }, setSopLoading, setSopOutput, setSopError, setSopStreaming, sopStreamTextRef)}
+                  disabled={!sopName.trim()}
+                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("sop_generator", { process_name: sopName, department: sopDept, detail_level: sopDetail, ...(sopExtra.trim() ? { additional_context: sopExtra.trim() } : {}) }, setSopLoading, setSopOutput, setSopError, setSopStreaming, sopStreamTextRef); }}
                   label="Generate"
                 />
                 <ErrorMsg error={sopError} />
@@ -515,8 +515,8 @@ export default function OperationsPage() {
                 <PillSelector label="Work style" options={workStyles} value={wpStyle} onChange={setWpStyle} />
                 <GenerateButton
                   loading={wpLoading}
-                  disabled={!wpFocus.trim() || !wpPriorities.trim() || creditLimitReached === true}
-                  onClick={() => callWorkflow("weekly_plan", { focus_area: wpFocus, priorities: wpPriorities, work_style: wpStyle }, setWpLoading, setWpOutput, setWpError, setWpStreaming, wpStreamTextRef)}
+                  disabled={!wpFocus.trim() || !wpPriorities.trim()}
+                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("weekly_plan", { focus_area: wpFocus, priorities: wpPriorities, work_style: wpStyle }, setWpLoading, setWpOutput, setWpError, setWpStreaming, wpStreamTextRef); }}
                   label="Generate"
                 />
                 <ErrorMsg error={wpError} />
@@ -550,8 +550,8 @@ export default function OperationsPage() {
                 />
                 <GenerateButton
                   loading={obLoading}
-                  disabled={!obClient.trim() || !obService.trim() || !obDate.trim() || creditLimitReached === true}
-                  onClick={() => callWorkflow("onboarding_doc", { client_name: obClient, service_type: obService, start_date: obDate, key_deliverables: obDeliverables }, setObLoading, setObOutput, setObError, setObStreaming, obStreamTextRef)}
+                  disabled={!obClient.trim() || !obService.trim() || !obDate.trim()}
+                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("onboarding_doc", { client_name: obClient, service_type: obService, start_date: obDate, key_deliverables: obDeliverables }, setObLoading, setObOutput, setObError, setObStreaming, obStreamTextRef); }}
                   label="Generate"
                 />
                 <ErrorMsg error={obError} />
@@ -585,8 +585,8 @@ export default function OperationsPage() {
                 <PillSelector label="Output format" options={outputFormats} value={pnFormat} onChange={setPnFormat} />
                 <GenerateButton
                   loading={pnLoading}
-                  disabled={!pnTitle.trim() || !pnNotes.trim() || creditLimitReached === true}
-                  onClick={() => callWorkflow("process_notes", { process_title: pnTitle, raw_notes: pnNotes, output_format: pnFormat }, setPnLoading, setPnOutput, setPnError, setPnStreaming, pnStreamTextRef)}
+                  disabled={!pnTitle.trim() || !pnNotes.trim()}
+                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("process_notes", { process_title: pnTitle, raw_notes: pnNotes, output_format: pnFormat }, setPnLoading, setPnOutput, setPnError, setPnStreaming, pnStreamTextRef); }}
                   label="Generate"
                 />
                 <ErrorMsg error={pnError} />

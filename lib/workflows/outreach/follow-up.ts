@@ -32,8 +32,10 @@ Rules:
 - ${timingGuidance[input.days_since]}
 - Each variation must have a "Subject:" line and a "Body:" section.
 - Separate each variation with a horizontal rule (---).
-- Conversational, human tone. No buzzwords.
-- Each email should take a slightly different angle.
+- Conversational, human tone. No buzzwords or generic filler phrases.
+- Each email should take a clearly different angle (e.g. one adds new value, one is direct/brief, one offers an easy out or reframes the conversation).
+- Each email body should be at least 3-5 sentences — enough to feel human and purposeful, not a one-liner.
+- Reference specific details from the original email context to make each follow-up feel personal and relevant, not copy-pasted.
 - Output only the emails. No preamble, no explanation, no numbering.`;
 
   const userPrompt = `Write 3 follow-up emails. The original outreach was about: ${input.context}. It has been ${input.days_since.replace("_", " ")} since the last email.`;

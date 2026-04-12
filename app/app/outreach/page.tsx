@@ -478,8 +478,8 @@ export default function OutreachPage() {
                 />
                 <GenerateButton
                   loading={ceLoading}
-                  disabled={!ceName.trim() || !ceRole.trim() || !ceCompany.trim() || creditLimitReached === true}
-                  onClick={() => callWorkflow("cold_email", { prospect_name: ceName, prospect_role: ceRole, prospect_company: ceCompany, goal: ceGoal, ...(ceExtra.trim() ? { additional_context: ceExtra.trim() } : {}) }, setCeLoading, setCeOutput, setCeError, setCeStreaming, ceStreamTextRef)}
+                  disabled={!ceName.trim() || !ceRole.trim() || !ceCompany.trim()}
+                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("cold_email", { prospect_name: ceName, prospect_role: ceRole, prospect_company: ceCompany, goal: ceGoal, ...(ceExtra.trim() ? { additional_context: ceExtra.trim() } : {}) }, setCeLoading, setCeOutput, setCeError, setCeStreaming, ceStreamTextRef); }}
                   label="Generate"
                 />
                 <ErrorMsg error={ceError} />
@@ -506,13 +506,13 @@ export default function OutreachPage() {
                   value={fuContext}
                   onChange={setFuContext}
                   placeholder="e.g. I reached out about our design services after seeing their rebrand announcement..."
-                  maxLen={500}
+                  maxLen={1500}
                 />
                 <PillSelector label="Time since last email" options={followUpDays} value={fuDays} onChange={setFuDays} />
                 <GenerateButton
                   loading={fuLoading}
-                  disabled={!fuContext.trim() || creditLimitReached === true}
-                  onClick={() => callWorkflow("follow_up", { context: fuContext, days_since: fuDays }, setFuLoading, setFuOutput, setFuError, setFuStreaming, fuStreamTextRef)}
+                  disabled={!fuContext.trim()}
+                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("follow_up", { context: fuContext, days_since: fuDays }, setFuLoading, setFuOutput, setFuError, setFuStreaming, fuStreamTextRef); }}
                   label="Generate"
                 />
                 <ErrorMsg error={fuError} />
@@ -548,8 +548,8 @@ export default function OutreachPage() {
                 />
                 <GenerateButton
                   loading={prLoading}
-                  disabled={!prType.trim() || !prClient.trim() || creditLimitReached === true}
-                  onClick={() => callWorkflow("proposal", { project_type: prType, client_name: prClient, ...(prBudget.trim() ? { budget_range: prBudget } : {}), ...(prExtra.trim() ? { additional_context: prExtra.trim() } : {}) }, setPrLoading, setPrOutput, setPrError, setPrStreaming, prStreamTextRef)}
+                  disabled={!prType.trim() || !prClient.trim()}
+                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("proposal", { project_type: prType, client_name: prClient, ...(prBudget.trim() ? { budget_range: prBudget } : {}), ...(prExtra.trim() ? { additional_context: prExtra.trim() } : {}) }, setPrLoading, setPrOutput, setPrError, setPrStreaming, prStreamTextRef); }}
                   label="Generate"
                 />
                 <ErrorMsg error={prError} />
@@ -585,8 +585,8 @@ export default function OutreachPage() {
                 />
                 <GenerateButton
                   loading={dpLoading}
-                  disabled={!dpCompany.trim() || !dpIndustry.trim() || creditLimitReached === true}
-                  onClick={() => callWorkflow("discovery_prep", { prospect_company: dpCompany, industry: dpIndustry, call_goal: dpGoal, ...(dpExtra.trim() ? { additional_context: dpExtra.trim() } : {}) }, setDpLoading, setDpOutput, setDpError, setDpStreaming, dpStreamTextRef)}
+                  disabled={!dpCompany.trim() || !dpIndustry.trim()}
+                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("discovery_prep", { prospect_company: dpCompany, industry: dpIndustry, call_goal: dpGoal, ...(dpExtra.trim() ? { additional_context: dpExtra.trim() } : {}) }, setDpLoading, setDpOutput, setDpError, setDpStreaming, dpStreamTextRef); }}
                   label="Generate"
                 />
                 <ErrorMsg error={dpError} />

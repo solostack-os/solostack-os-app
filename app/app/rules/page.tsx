@@ -102,7 +102,7 @@ export default function RulesPage() {
           <Rule>Credits are <Highlight>not carried over</Highlight> to the next billing period. Unused credits expire at the end of the month for paid plans.</Rule>
           <Rule>Top-up credits (purchased as one-time add-ons) <Highlight>do not expire</Highlight> and are consumed before your monthly allocation.</Rule>
           <Rule>If you run out of credits mid-month, you can purchase a top-up ($9 for 100 credits) or upgrade to a higher plan.</Rule>
-          <Rule>Trial accounts receive <Highlight>30 credits total</Highlight> — no monthly reset.</Rule>
+          <Rule>Trial accounts receive <Highlight>60 credits total</Highlight> — no monthly reset.</Rule>
         </Section>
 
         {/* Billing & Subscriptions */}
@@ -117,7 +117,7 @@ export default function RulesPage() {
         >
           <Rule>Subscriptions are billed <Highlight>monthly</Highlight> on the anniversary of your upgrade date.</Rule>
           <Rule>You can cancel your subscription at any time from Settings → Plan &amp; Billing. After cancellation, you retain full access until the end of the current billing period — no partial refunds are issued.</Rule>
-          <Rule>After the billing period ends, your account <Highlight>automatically reverts to the Trial tier</Highlight> with a fresh 30-credit allocation.</Rule>
+          <Rule>After the billing period ends, your account <Highlight>automatically reverts to the Trial tier</Highlight> with a fresh 60-credit allocation.</Rule>
           <Rule>Subscription renewals are processed automatically. We send a reminder email <Highlight>7 days before</Highlight> each renewal date.</Rule>
           <Rule>If a payment fails, Stripe will retry automatically. You will receive an email notification for each failed attempt.</Rule>
           <Rule>To manage or update your payment method, use the <Highlight>Manage Billing</Highlight> button in Settings — this opens the secure Stripe Customer Portal.</Rule>

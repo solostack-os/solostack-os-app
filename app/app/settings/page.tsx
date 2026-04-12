@@ -21,7 +21,7 @@ const textMuted = "#94a3b8";
 const border = "rgba(255,255,255,0.06)";
 
 const planDetails: Record<string, { name: string; credits: string; color: string }> = {
-  trial: { name: "Trial", credits: "30 credits total", color: accent },
+  trial: { name: "Trial", credits: "60 credits total", color: accent },
   starter: { name: "Starter", credits: "300 credits / month", color: accent },
   pro: { name: "Pro", credits: "1,000 credits / month", color: "#5eead4" },
 };
