@@ -82,9 +82,34 @@ export async function POST(request: Request) {
       if (priceId === process.env.STRIPE_STARTER_PRICE_ID) planKey = "starter";
       else if (priceId === process.env.STRIPE_PRO_PRICE_ID) planKey = "pro";
 
-      // Cancel any OTHER active subscriptions for this customer to prevent
-      // duplicate billing. This runs AFTER payment is confirmed, so the user
-      // keeps their existing plan if they abandon the checkout.
+      // ── STEP 1: Write the new plan to DB FIRST ─────────────────────────
+      // This must happen before we cancel old subscriptions. Stripe fires
+      // customer.subscription.updated / customer.subscription.deleted for the
+      // cancelled sub. Those events arrive asynchronously — if DB already has
+      // the new sub ID written, the guards in those handlers will skip them
+      // and NOT overwrite the new plan.
+      await admin.from("subscriptions").upsert(
+        {
+          workspace_id: workspaceId,
+          plan_key: planKey,
+          stripe_subscription_id: subscriptionId,
+          stripe_price_id: priceId,
+          status: "active",
+          current_period_start: new Date(
+            subscription.current_period_start * 1000
+          ).toISOString(),
+          current_period_end: new Date(
+            subscription.current_period_end * 1000
+          ).toISOString(),
+        },
+        { onConflict: "workspace_id" }
+      );
+
+      // ── STEP 2: Cancel any OTHER active subscriptions ──────────────────
+      // Now that the new plan is already in DB, cancelling old subs is safe.
+      // customer.subscription.deleted will fire for each cancelled sub, but
+      // the guard there checks the stored sub ID — it will see the new one
+      // and skip the revert. Same for customer.subscription.updated.
       if (subscription.customer) {
         try {
           const [activeSubs, trialingSubs] = await Promise.all([
@@ -109,23 +134,6 @@ export async function POST(request: Request) {
           console.warn("[webhook] Could not cancel old subscriptions on upgrade");
         }
       }
-
-      await admin.from("subscriptions").upsert(
-        {
-          workspace_id: workspaceId,
-          plan_key: planKey,
-          stripe_subscription_id: subscriptionId,
-          stripe_price_id: priceId,
-          status: "active",
-          current_period_start: new Date(
-            subscription.current_period_start * 1000
-          ).toISOString(),
-          current_period_end: new Date(
-            subscription.current_period_end * 1000
-          ).toISOString(),
-        },
-        { onConflict: "workspace_id" }
-      );
 
       // Send welcome email (non-blocking)
       const customerEmail = session.customer_details?.email ?? session.customer_email ?? "";
@@ -201,18 +209,34 @@ export async function POST(request: Request) {
         .single();
       if (!workspace) break;
 
+      // Fetch the current stored subscription so we can:
+      // a) Skip events for OLD subscriptions (e.g. status→canceled on upgrade)
+      // b) Detect real plan changes vs. simple renewals
+      const { data: currentSub } = await admin
+        .from("subscriptions")
+        .select("plan_key, stripe_subscription_id")
+        .eq("workspace_id", workspace.id)
+        .single();
+
+      // Guard: only process this event if it's for the subscription the
+      // workspace currently holds. When a user upgrades, we cancel the old sub
+      // — Stripe fires subscription.updated (status→canceled) for the old one.
+      // If we processed that, we'd overwrite the new Pro plan with the old
+      // Starter plan key. Skip it.
+      if (
+        currentSub?.stripe_subscription_id &&
+        currentSub.stripe_subscription_id !== subscription.id
+      ) {
+        console.log(
+          `[webhook] Skipping subscription.updated for ${subscription.id} — workspace holds ${currentSub.stripe_subscription_id}`
+        );
+        break;
+      }
+
       const priceId = subscription.items.data[0].price.id;
       let planKey = "trial";
       if (priceId === process.env.STRIPE_STARTER_PRICE_ID) planKey = "starter";
       else if (priceId === process.env.STRIPE_PRO_PRICE_ID) planKey = "pro";
-
-      // Fetch the current plan_key before updating so we can detect a real
-      // plan change (upgrade/downgrade) vs. a simple renewal of the same plan.
-      const { data: currentSub } = await admin
-        .from("subscriptions")
-        .select("plan_key")
-        .eq("workspace_id", workspace.id)
-        .single();
 
       const planChanged = currentSub?.plan_key !== planKey;
 
