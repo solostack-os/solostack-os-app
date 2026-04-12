@@ -13,11 +13,11 @@ function stripMarkdown(text: string): string {
     // Headings: ## Title → Title
     .replace(/^#{1,6}\s+/gm, "")
     // Bold+italic: ***text*** / ___text___
-    .replace(/\*{3}(.+?)\*{3}/gs, "$1")
-    .replace(/_{3}(.+?)_{3}/gs, "$1")
+    .replace(/\*{3}(.+?)\*{3}/g, "$1")
+    .replace(/_{3}(.+?)_{3}/g, "$1")
     // Bold: **text** / __text__
-    .replace(/\*{2}(.+?)\*{2}/gs, "$1")
-    .replace(/_{2}(.+?)_{2}/gs, "$1")
+    .replace(/\*{2}(.+?)\*{2}/g, "$1")
+    .replace(/_{2}(.+?)_{2}/g, "$1")
     // Italic: *text* / _text_  (single, non-greedy)
     .replace(/\*([^*\n]+?)\*/g, "$1")
     .replace(/_([^_\n]+?)_/g, "$1")
