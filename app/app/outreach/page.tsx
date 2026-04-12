@@ -255,8 +255,10 @@ export default function OutreachPage() {
     fetch("/api/usage")
       .then((r) => r.json())
       .then((d) => {
-        setCreditLimitReached(d.limitReached ?? false);
+        const limited = d.limitReached ?? false;
+        setCreditLimitReached(limited);
         if (d.planKey) setCurrentPlanKey(d.planKey);
+        if (limited) setShowUpgradeModal(true);
       })
       .catch(() => { setCreditLimitReached(false); });
   }, []);
