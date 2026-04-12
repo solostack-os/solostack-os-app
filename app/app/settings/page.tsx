@@ -319,6 +319,15 @@ function SettingsPageInner() {
   };
 
   async function handleUpgradeTo(target: "starter" | "pro") {
+    // Warn the user if they have unused top-up credits — those are reset on
+    // plan change and won't carry over to the new plan.
+    if (extraCredits > 0) {
+      const confirmed = window.confirm(
+        `You have ${extraCredits} unused top-up credit${extraCredits !== 1 ? "s" : ""}.\n\nThese credits will be lost when you upgrade. Use them up first, or proceed now and they'll be forfeited.\n\nContinue with the upgrade?`
+      );
+      if (!confirmed) return;
+    }
+
     setUpgrading(target);
     const res = await fetch("/api/checkout", {
       method: "POST",

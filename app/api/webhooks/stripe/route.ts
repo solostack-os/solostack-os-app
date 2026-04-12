@@ -88,6 +88,17 @@ export async function POST(request: Request) {
       // cancelled sub. Those events arrive asynchronously — if DB already has
       // the new sub ID written, the guards in those handlers will skip them
       // and NOT overwrite the new plan.
+
+      // Check the previous plan so we can reset top-up credits on plan change.
+      // Users are warned on the frontend before upgrading that unused top-up
+      // credits will be forfeited — this enforces it server-side.
+      const { data: prevSub } = await admin
+        .from("subscriptions")
+        .select("plan_key")
+        .eq("workspace_id", workspaceId)
+        .single();
+      const planChanged = prevSub?.plan_key !== planKey;
+
       await admin.from("subscriptions").upsert(
         {
           workspace_id: workspaceId,
@@ -101,6 +112,10 @@ export async function POST(request: Request) {
           current_period_end: new Date(
             subscription.current_period_end * 1000
           ).toISOString(),
+          // Reset top-up credits when changing plans. The user is warned
+          // about this before initiating checkout. On re-subscriptions to
+          // the same plan (e.g. after cancellation), credits are preserved.
+          ...(planChanged ? { extra_credits: 0 } : {}),
         },
         { onConflict: "workspace_id" }
       );
