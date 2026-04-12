@@ -56,7 +56,37 @@ export async function POST(request: Request) {
     customerId = await ensureFreshCustomer();
   }
 
-  // 5. Create Checkout Session
+  // 5. Cancel any existing active/trialing subscriptions for this customer.
+  //    This prevents duplicate billing when a user upgrades or changes plans.
+  //    We cancel immediately (not at period end) since the new plan checkout
+  //    will be the source of truth going forward.
+  if (customerId) {
+    try {
+      const existingSubs = await stripe.subscriptions.list({
+        customer: customerId,
+        status: "active",
+        limit: 10,
+      });
+      for (const sub of existingSubs.data) {
+        await stripe.subscriptions.cancel(sub.id);
+      }
+      // Also cancel any trialing subscriptions
+      const trialingSubs = await stripe.subscriptions.list({
+        customer: customerId,
+        status: "trialing",
+        limit: 10,
+      });
+      for (const sub of trialingSubs.data) {
+        await stripe.subscriptions.cancel(sub.id);
+      }
+    } catch (cancelErr) {
+      // Non-fatal — log but proceed. Worst case: Stripe's own deduplication
+      // or the webhook handler will resolve the state.
+      console.error("[checkout] Failed to cancel existing subscriptions:", cancelErr);
+    }
+  }
+
+  // 6. Create Checkout Session
   // If the stored customer ID is stale (e.g. from test mode), recreate it and retry once.
   let session;
   try {
