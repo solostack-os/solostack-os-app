@@ -106,15 +106,26 @@ function SettingsPageInner() {
   const [uploading, setUploading] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
 
-  // When user returns from Stripe Customer Portal, re-fetch billing data.
-  // Wait 4s to give the webhook time to process, then navigate to the clean
-  // URL (without ?billing_updated=1) which triggers a fresh page load.
+  // When user returns from Stripe Customer Portal, proactively sync billing
+  // data by calling /api/billing/sync — which fetches the latest subscription
+  // state directly from Stripe and writes it to the DB. This is more reliable
+  // than waiting for a webhook to arrive within an arbitrary timeout.
   useEffect(() => {
     if (!billingUpdated) return;
-    const timer = setTimeout(() => {
-      window.location.href = "/app/settings";
-    }, 4000);
-    return () => clearTimeout(timer);
+    let cancelled = false;
+    async function syncAndReload() {
+      try {
+        await fetch("/api/billing/sync", { method: "POST" });
+      } catch {
+        // Non-fatal — even if sync fails we still reload so the webhook
+        // (which may have already arrived) takes effect.
+      }
+      if (!cancelled) {
+        window.location.href = "/app/settings";
+      }
+    }
+    syncAndReload();
+    return () => { cancelled = true; };
   }, [billingUpdated]);
 
   // Auto-reactivate subscription if user arrived from cancel email
@@ -262,7 +273,8 @@ function SettingsPageInner() {
           let countQuery = supabase
             .from("runs")
             .select("id", { count: "exact", head: true })
-            .eq("workspace_id", basicWs.id);
+            .eq("workspace_id", basicWs.id)
+            .is("deleted_at", null);
           if (periodStart) countQuery = countQuery.gte("created_at", periodStart);
           const countRes = await countQuery;
           setCreditsUsed((countRes.count ?? 0) * CREDITS_PER_RUN);
@@ -317,7 +329,8 @@ function SettingsPageInner() {
         let countQuery2 = supabase
           .from("runs")
           .select("id", { count: "exact", head: true })
-          .eq("workspace_id", workspace.id);
+          .eq("workspace_id", workspace.id)
+          .is("deleted_at", null);
         if (periodStart2) countQuery2 = countQuery2.gte("created_at", periodStart2);
         const countRes2 = await countQuery2;
         setCreditsUsed((countRes2.count ?? 0) * CREDITS_PER_RUN);
