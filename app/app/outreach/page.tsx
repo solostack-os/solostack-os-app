@@ -510,7 +510,7 @@ export default function OutreachPage() {
                   value={fuContext}
                   onChange={setFuContext}
                   placeholder="e.g. I reached out about our design services after seeing their rebrand announcement..."
-                  maxLen={1500}
+                  maxLen={5000}
                 />
                 <PillSelector label="Time since last email" options={followUpDays} value={fuDays} onChange={setFuDays} />
                 <GenerateButton
