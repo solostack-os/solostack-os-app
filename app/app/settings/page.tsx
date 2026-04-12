@@ -329,12 +329,34 @@ function SettingsPageInner() {
   };
 
   async function handleUpgradeTo(target: "starter" | "pro") {
-    // Warn the user if they have unused top-up credits — those are reset on
-    // plan change and won't carry over to the new plan.
-    if (extraCredits > 0) {
-      const confirmed = window.confirm(
-        `You have ${extraCredits} unused top-up credit${extraCredits !== 1 ? "s" : ""}.\n\nThese credits will be lost when you upgrade. Use them up first, or proceed now and they'll be forfeited.\n\nContinue with the upgrade?`
+    // Warn the user if they have any unused credits — both plan credits and
+    // top-up credits are forfeited on plan change. We want them to be aware
+    // so they can use up remaining credits before upgrading.
+    const planCreditsRemaining = Math.max(0, (runCap ?? 0) - creditsUsed);
+    const totalCreditsRemaining = planCreditsRemaining + extraCredits;
+
+    if (totalCreditsRemaining > 0) {
+      const lines: string[] = [];
+
+      if (planCreditsRemaining > 0 && extraCredits > 0) {
+        lines.push(
+          `You have ${planCreditsRemaining} unused plan credit${planCreditsRemaining !== 1 ? "s" : ""} and ${extraCredits} top-up credit${extraCredits !== 1 ? "s" : ""} remaining (${totalCreditsRemaining} total).`
+        );
+      } else if (planCreditsRemaining > 0) {
+        lines.push(
+          `You have ${planCreditsRemaining} unused plan credit${planCreditsRemaining !== 1 ? "s" : ""} remaining.`
+        );
+      } else {
+        lines.push(
+          `You have ${extraCredits} unused top-up credit${extraCredits !== 1 ? "s" : ""} remaining.`
+        );
+      }
+
+      lines.push(
+        "\nAll unused credits will be lost when you upgrade. We recommend using them up first.\n\nContinue with the upgrade anyway?"
       );
+
+      const confirmed = window.confirm(lines.join(""));
       if (!confirmed) return;
     }
 
