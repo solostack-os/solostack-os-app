@@ -279,7 +279,7 @@ function SettingsPageInner() {
         const [subRes2, custRes] = await Promise.all([
           supabase
             .from("subscriptions")
-            .select("plan_key, status, current_period_start, current_period_end, trial_ends_at, cancel_at_period_end")
+            .select("plan_key, status, current_period_start, current_period_end, trial_ends_at, extra_credits, cancel_at_period_end")
             .eq("workspace_id", workspace.id)
             .single(),
           supabase
