@@ -178,6 +178,16 @@ export async function POST(request: Request) {
       if (priceId === process.env.STRIPE_STARTER_PRICE_ID) planKey = "starter";
       else if (priceId === process.env.STRIPE_PRO_PRICE_ID) planKey = "pro";
 
+      // Fetch the current plan_key before updating so we can detect a real
+      // plan change (upgrade/downgrade) vs. a simple renewal of the same plan.
+      const { data: currentSub } = await admin
+        .from("subscriptions")
+        .select("plan_key")
+        .eq("workspace_id", workspace.id)
+        .single();
+
+      const planChanged = currentSub?.plan_key !== planKey;
+
       await admin
         .from("subscriptions")
         .update({
@@ -191,6 +201,10 @@ export async function POST(request: Request) {
             subscription.current_period_end * 1000
           ).toISOString(),
           cancel_at_period_end: subscription.cancel_at_period_end ?? false,
+          // Reset top-up credits when the plan changes — extra credits were
+          // purchased for the previous plan's period and don't carry over.
+          // On simple renewals (same plan), extra_credits are left intact.
+          ...(planChanged ? { extra_credits: 0 } : {}),
         })
         .eq("workspace_id", workspace.id);
       break;
