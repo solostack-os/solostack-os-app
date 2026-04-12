@@ -385,6 +385,10 @@ export default function OutreachPage() {
       setStreaming(false);
       setOutput(full);
       window.dispatchEvent(new Event("recents:refresh"));
+      fetch("/api/usage").then(r => r.json()).then(d => {
+        setCreditLimitReached(d.limitReached ?? false);
+        if (d.planKey) setCurrentPlanKey(d.planKey);
+      }).catch(() => {});
     } catch {
       setError("Network error");
     } finally {
