@@ -227,9 +227,10 @@ export async function POST(request: Request) {
       // Fetch the current stored subscription so we can:
       // a) Skip events for OLD subscriptions (e.g. status→canceled on upgrade)
       // b) Detect real plan changes vs. simple renewals
+      // c) Detect billing period renewals (current_period_start changed)
       const { data: currentSub } = await admin
         .from("subscriptions")
-        .select("plan_key, stripe_subscription_id")
+        .select("plan_key, stripe_subscription_id, current_period_start")
         .eq("workspace_id", workspace.id)
         .single();
 
@@ -255,23 +256,32 @@ export async function POST(request: Request) {
 
       const planChanged = currentSub?.plan_key !== planKey;
 
+      // Detect a billing period renewal: current_period_start moved forward.
+      // On renewal, top-up credits expire — users should use them within the
+      // month they purchased them, not accumulate them indefinitely.
+      const newPeriodStart = new Date(
+        subscription.current_period_start * 1000
+      ).toISOString();
+      const periodRenewed =
+        currentSub?.current_period_start != null &&
+        newPeriodStart > currentSub.current_period_start;
+
       await admin
         .from("subscriptions")
         .update({
           plan_key: planKey,
           stripe_price_id: priceId,
           status: subscription.status,
-          current_period_start: new Date(
-            subscription.current_period_start * 1000
-          ).toISOString(),
+          current_period_start: newPeriodStart,
           current_period_end: new Date(
             subscription.current_period_end * 1000
           ).toISOString(),
           cancel_at_period_end: subscription.cancel_at_period_end ?? false,
-          // Reset top-up credits when the plan changes — extra credits were
-          // purchased for the previous plan's period and don't carry over.
-          // On simple renewals (same plan), extra_credits are left intact.
-          ...(planChanged ? { extra_credits: 0 } : {}),
+          // Reset top-up credits on plan change OR on monthly renewal.
+          // Plan change: user is moving to a new plan, credits don't carry over.
+          // Renewal: credits expire at end of billing period — we want active
+          // users, not people hoarding $9 top-ups for 6 months.
+          ...(planChanged || periodRenewed ? { extra_credits: 0 } : {}),
         })
         .eq("workspace_id", workspace.id);
       break;
