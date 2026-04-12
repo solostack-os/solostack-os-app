@@ -82,6 +82,34 @@ export async function POST(request: Request) {
       if (priceId === process.env.STRIPE_STARTER_PRICE_ID) planKey = "starter";
       else if (priceId === process.env.STRIPE_PRO_PRICE_ID) planKey = "pro";
 
+      // Cancel any OTHER active subscriptions for this customer to prevent
+      // duplicate billing. This runs AFTER payment is confirmed, so the user
+      // keeps their existing plan if they abandon the checkout.
+      if (subscription.customer) {
+        try {
+          const [activeSubs, trialingSubs] = await Promise.all([
+            stripe.subscriptions.list({
+              customer: subscription.customer as string,
+              status: "active",
+              limit: 10,
+            }),
+            stripe.subscriptions.list({
+              customer: subscription.customer as string,
+              status: "trialing",
+              limit: 10,
+            }),
+          ]);
+          const allOtherSubs = [...activeSubs.data, ...trialingSubs.data].filter(
+            (s) => s.id !== subscriptionId
+          );
+          await Promise.allSettled(
+            allOtherSubs.map((s) => stripe.subscriptions.cancel(s.id))
+          );
+        } catch {
+          console.warn("[webhook] Could not cancel old subscriptions on upgrade");
+        }
+      }
+
       await admin.from("subscriptions").upsert(
         {
           workspace_id: workspaceId,
