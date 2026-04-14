@@ -3,26 +3,27 @@
 import { useState, useEffect, useCallback } from "react";
 import { GlowCard } from "@/components/ui/glow-card";
 
-/* ─── Design tokens (match app) ─── */
+/* ─── Design tokens (exact match with app) ─── */
+const bg = "#0a0f1e";
 const surface = "#111827";
-const inputBg = "#0d1526";
 const border = "rgba(255,255,255,0.06)";
 const textPrimary = "#f1f5f9";
 const textMuted = "#94a3b8";
 
-/* ─── Module accent colors (consistent with app sidebar) ─── */
-const moduleColors = {
-  marketing: "#6c8cff",
-  outreach: "#5eead4",
-  operations: "#f59e0b",
+/* ─── Module colors (exact match with app sidebar) ─── */
+const moduleThemes = {
+  marketing: { accent: "#6c8cff", light: "#818cf8", label: "Marketing OS" },
+  outreach: { accent: "#22c55e", light: "#34d399", label: "Outreach OS" },
+  operations: { accent: "#f97316", light: "#fb923c", label: "Operations OS" },
 };
 
-/* ─── Sparkle icon (matches app generate button) ─── */
-function SparkleIcon({ color }: { color: string }) {
+/* ─── Sparkle icon (exact match with app TopicInput) ─── */
+function SparkleIcon({ color, size = 16 }: { color: string; size?: number }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      className="w-4 h-4"
+      width={size}
+      height={size}
       fill="none"
       viewBox="0 0 24 24"
       stroke={color}
@@ -37,97 +38,175 @@ function SparkleIcon({ color }: { color: string }) {
   );
 }
 
-/* ─── Demo scenarios ─── */
-const demos = [
+/* ─── Demo scenarios — each mimics the real app form ─── */
+interface DemoScenario {
+  moduleKey: "marketing" | "outreach" | "operations";
+  workflow: string;
+  fields: Array<
+    | { type: "pills"; label: string; options: string[]; selected: number }
+    | { type: "topic"; label: string; value: string; placeholder: string }
+    | { type: "text"; label: string; value: string; placeholder: string }
+    | { type: "number"; label: string; options: string[]; selected: number }
+  >;
+  outputs: Array<{ label: string; text: string }>;
+}
+
+const demos: DemoScenario[] = [
   {
-    module: "Marketing OS",
-    moduleKey: "marketing" as const,
+    moduleKey: "marketing",
     workflow: "Social Posts",
-    inputLabel: "Topic",
-    inputText: "Launch announcement for our new brand strategy service",
-    outputs: [
+    fields: [
       {
-        label: "LinkedIn",
-        text: "We just launched something we\u2019ve been building for months. If you\u2019re a service business tired of guessing your next move\u2014this is for you.",
+        type: "pills",
+        label: "Platform",
+        options: ["Instagram", "LinkedIn", "Facebook"],
+        selected: 1,
       },
       {
-        label: "Instagram",
-        text: "New service alert \u2014 Brand strategy packages designed for solo founders who want clarity, not fluff. Link in bio.",
+        type: "topic",
+        label: "Topic",
+        value: "Launch announcement for our new brand strategy service",
+        placeholder: "e.g. Why small businesses need a content strategy",
+      },
+      {
+        type: "number",
+        label: "Number of posts",
+        options: ["1", "2", "3"],
+        selected: 1,
+      },
+    ],
+    outputs: [
+      {
+        label: "Post 1",
+        text: "We just launched something we\u2019ve been building for months. Brand strategy for service businesses who want clarity, not templates. If you\u2019re tired of guessing your next move \u2014 this is for you.",
+      },
+      {
+        label: "Post 2",
+        text: "Most solo founders skip brand strategy because it sounds expensive and abstract. We made it practical: clear positioning, real messaging, and a plan you can actually execute on. Starting at $1,500.",
       },
     ],
   },
   {
-    module: "Outreach OS",
-    moduleKey: "outreach" as const,
+    moduleKey: "outreach",
     workflow: "Cold Email",
-    inputLabel: "Prospect",
-    inputText: "Sarah Chen, Head of Marketing at Bloom Studio",
+    fields: [
+      {
+        type: "text",
+        label: "Prospect name",
+        value: "Sarah Chen",
+        placeholder: "e.g. Sarah Chen",
+      },
+      {
+        type: "text",
+        label: "Role",
+        value: "VP of Marketing",
+        placeholder: "e.g. VP of Marketing",
+      },
+      {
+        type: "text",
+        label: "Company",
+        value: "Bloom Studio",
+        placeholder: "e.g. Acme Corp",
+      },
+      {
+        type: "pills",
+        label: "Goal",
+        options: ["Book a call", "Get a reply", "Share a resource"],
+        selected: 0,
+      },
+    ],
     outputs: [
       {
         label: "Subject",
         text: "Quick question about Bloom\u2019s content pipeline",
       },
       {
-        label: "Body",
-        text: "Hi Sarah, I noticed Bloom Studio shifted toward video-first content this quarter. We help agencies like yours turn one brief into a full campaign. Worth a 15-min call?",
+        label: "Email",
+        text: "Hi Sarah,\n\nI noticed Bloom Studio shifted toward video-first content this quarter \u2014 smart move for the agency space.\n\nWe help marketing teams turn one content brief into a full cross-platform campaign without the back-and-forth. Figured it might be worth a quick 15-minute call?\n\nHappy to share how it works if you\u2019re open to it.",
       },
     ],
   },
   {
-    module: "Operations OS",
-    moduleKey: "operations" as const,
+    moduleKey: "operations",
     workflow: "Client Onboarding",
-    inputLabel: "Client",
-    inputText: "Meridian Consulting \u2014 Brand identity project, 6 weeks",
+    fields: [
+      {
+        type: "text",
+        label: "Client name",
+        value: "Meridian Consulting",
+        placeholder: "e.g. Bloom Skincare",
+      },
+      {
+        type: "text",
+        label: "Service type",
+        value: "Brand identity",
+        placeholder: "e.g. Brand identity",
+      },
+      {
+        type: "text",
+        label: "Start date",
+        value: "May 1, 2026",
+        placeholder: "e.g. May 1, 2025",
+      },
+    ],
     outputs: [
       {
         label: "Timeline",
-        text: "Week 1\u20132: Discovery & research \u2022 Week 3\u20134: Strategy & concepts \u2022 Week 5\u20136: Refinement & delivery",
+        text: "Week 1\u20132: Discovery & brand audit\nWeek 3\u20134: Strategy & concept development\nWeek 5: Refinement & revisions\nWeek 6: Final delivery & handoff",
       },
       {
         label: "Next steps",
-        text: "1. Schedule kickoff call \u2022 2. Share brand assets \u2022 3. Complete intake questionnaire \u2022 4. Confirm milestones",
+        text: "1. Schedule kickoff call (before May 1)\n2. Share existing brand assets via shared folder\n3. Complete brand intake questionnaire\n4. Confirm milestone review dates",
       },
     ],
   },
 ];
 
-const TYPING_SPEED = 35;
-const PAUSE_AFTER_TYPING = 600;
-const GENERATING_DURATION = 1200;
-const OUTPUT_STAGGER = 250;
-const DISPLAY_DURATION = 4000;
+/* ─── Timing constants ─── */
+const TYPING_SPEED = 30;
+const PAUSE_AFTER_TYPING = 500;
+const GENERATING_DURATION = 1400;
+const OUTPUT_STAGGER = 300;
+const DISPLAY_DURATION = 4500;
 
 export function HeroDemo() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [typed, setTyped] = useState("");
-  const [phase, setPhase] = useState<
-    "typing" | "generating" | "output"
-  >("typing");
+  const [phase, setPhase] = useState<"filling" | "generating" | "output">("filling");
+  const [fillProgress, setFillProgress] = useState(0);
   const [visibleOutputs, setVisibleOutputs] = useState(0);
 
   const demo = demos[activeIndex];
-  const color = moduleColors[demo.moduleKey];
+  const theme = moduleThemes[demo.moduleKey];
+
+  // Find the typing field (topic or last text field)
+  const typingFieldIndex = demo.fields.findIndex((f) => f.type === "topic");
+  const actualTypingIndex =
+    typingFieldIndex >= 0
+      ? typingFieldIndex
+      : demo.fields.reduce(
+          (last, f, i) => (f.type === "text" ? i : last),
+          0
+        );
+  const typingField = demo.fields[actualTypingIndex];
+  const typingValue = "value" in typingField ? typingField.value : "";
 
   const advanceToNext = useCallback(() => {
     setActiveIndex((i) => (i + 1) % demos.length);
-    setTyped("");
-    setPhase("typing");
+    setPhase("filling");
+    setFillProgress(0);
     setVisibleOutputs(0);
   }, []);
 
-  // Typing phase
+  // Filling (typing) phase
   useEffect(() => {
-    if (phase !== "typing") return;
-    if (typed.length >= demo.inputText.length) {
+    if (phase !== "filling") return;
+    if (fillProgress >= typingValue.length) {
       const t = setTimeout(() => setPhase("generating"), PAUSE_AFTER_TYPING);
       return () => clearTimeout(t);
     }
-    const t = setTimeout(() => {
-      setTyped(demo.inputText.slice(0, typed.length + 1));
-    }, TYPING_SPEED);
+    const t = setTimeout(() => setFillProgress((p) => p + 1), TYPING_SPEED);
     return () => clearTimeout(t);
-  }, [phase, typed, demo.inputText]);
+  }, [phase, fillProgress, typingValue.length]);
 
   // Generating phase
   useEffect(() => {
@@ -136,13 +215,13 @@ export function HeroDemo() {
     return () => clearTimeout(t);
   }, [phase]);
 
-  // Output phase — stagger outputs then hold
+  // Output phase
   useEffect(() => {
     if (phase !== "output") return;
     if (visibleOutputs < demo.outputs.length) {
       const t = setTimeout(
         () => setVisibleOutputs((v) => v + 1),
-        visibleOutputs === 0 ? 100 : OUTPUT_STAGGER
+        visibleOutputs === 0 ? 150 : OUTPUT_STAGGER
       );
       return () => clearTimeout(t);
     }
@@ -150,133 +229,271 @@ export function HeroDemo() {
     return () => clearTimeout(t);
   }, [phase, visibleOutputs, demo.outputs.length, advanceToNext]);
 
+  const showForm = phase === "filling" || phase === "generating";
+
   return (
     <div className="w-full max-w-md lg:max-w-lg">
       <GlowCard>
-        <div
-          className="rounded-xl overflow-hidden"
-          style={{ backgroundColor: surface }}
-        >
-          {/* Top bar — mimics app window chrome */}
+        <div className="rounded-xl overflow-hidden" style={{ backgroundColor: surface }}>
+          {/* ── Top bar (app-style window chrome) ── */}
           <div
-            className="flex items-center justify-between px-4 py-2.5"
+            className="flex items-center gap-2 px-4 py-2.5"
             style={{ borderBottom: `1px solid ${border}` }}
           >
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-white/10" />
-                <span className="w-2 h-2 rounded-full bg-white/10" />
-                <span className="w-2 h-2 rounded-full bg-white/10" />
-              </div>
-              <img
-                src="/logo.png"
-                alt=""
-                className="h-4 w-4 object-contain ml-1.5"
-              />
-              <span
-                className="text-[11px] font-medium"
-                style={{ color }}
-              >
-                {demo.module}
-              </span>
-              <span className="text-[11px]" style={{ color: textMuted }}>
-                / {demo.workflow}
-              </span>
+            <div className="flex gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-white/10" />
+              <span className="w-2 h-2 rounded-full bg-white/10" />
+              <span className="w-2 h-2 rounded-full bg-white/10" />
             </div>
+            <img src="/logo.png" alt="" className="h-4 w-4 object-contain ml-1.5" />
+            <span className="text-[11px] font-medium" style={{ color: theme.accent }}>
+              {theme.label}
+            </span>
+            <span className="text-[11px]" style={{ color: textMuted }}>
+              / {demo.workflow}
+            </span>
           </div>
 
-          <div className="p-4">
-            {/* Input area */}
-            <div className="mb-3">
-              <p
-                className="text-[10px] uppercase tracking-widest mb-1.5 font-medium"
-                style={{ color: textMuted }}
-              >
-                {demo.inputLabel}
-              </p>
-              <div
-                className="relative rounded-lg px-3 py-2.5 text-[13px] leading-relaxed min-h-[42px]"
-                style={{
-                  backgroundColor: inputBg,
-                  border: `1px solid ${border}`,
-                  color: textPrimary,
-                }}
-              >
-                {typed}
-                {phase === "typing" && (
-                  <span
-                    className="inline-block w-[2px] h-[0.9em] ml-0.5 align-middle animate-cursor-blink"
-                    style={{ backgroundColor: color }}
-                  />
-                )}
-                {/* Sparkle icon — like the real app input */}
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40">
-                  <SparkleIcon color={color} />
-                </span>
-              </div>
-            </div>
+          {/* ── Accent gradient bar (like real app GlowCard) ── */}
+          <div
+            className="h-[2px]"
+            style={{
+              background: `linear-gradient(90deg, ${theme.accent}, ${theme.light})`,
+            }}
+          />
 
-            {/* Generate button — styled like the real app */}
-            <button
-              className="w-full flex items-center justify-center gap-2 rounded-lg py-2.5 text-[13px] font-medium mb-3 transition-all duration-300"
-              style={{
-                backgroundColor:
-                  phase === "generating"
-                    ? `${color}18`
-                    : `${color}22`,
-                color: color,
-                border: `1px solid ${color}33`,
-              }}
-              tabIndex={-1}
-            >
-              {phase === "generating" ? (
-                <>
-                  <span
-                    className="w-3.5 h-3.5 rounded-full animate-demo-pulse"
-                    style={{ backgroundColor: color }}
-                  />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <SparkleIcon color={color} />
-                  Generate
-                </>
-              )}
-            </button>
+          {/* ── Form / Output area ── */}
+          <div className="p-4 sm:p-5">
+            {showForm ? (
+              /* ── FORM FIELDS (mimics real app layout) ── */
+              <div className="space-y-4">
+                {demo.fields.map((field, fi) => (
+                  <div key={`${activeIndex}-${fi}`}>
+                    {/* Label */}
+                    <p
+                      className="text-[12px] font-medium mb-1.5"
+                      style={{ color: textPrimary }}
+                    >
+                      {field.label}
+                    </p>
 
-            {/* Output area */}
-            <div className="space-y-2 min-h-[120px]">
-              {demo.outputs.map((output, i) => (
-                <div
-                  key={`${activeIndex}-${output.label}`}
-                  className="rounded-lg px-3 py-2.5 transition-all duration-300"
-                  style={{
-                    backgroundColor: inputBg,
-                    borderLeft: `3px solid ${color}`,
-                    opacity:
-                      phase === "output" && i < visibleOutputs ? 1 : 0,
-                    transform:
-                      phase === "output" && i < visibleOutputs
-                        ? "translateY(0)"
-                        : "translateY(6px)",
-                  }}
-                >
-                  <p
-                    className="text-[9px] uppercase tracking-widest mb-1 font-medium"
-                    style={{ color }}
+                    {/* Pills */}
+                    {field.type === "pills" && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {field.options.map((opt, oi) => (
+                          <span
+                            key={opt}
+                            className="px-3 py-1.5 text-[11px] rounded-lg border transition-all"
+                            style={{
+                              backgroundColor:
+                                oi === field.selected
+                                  ? `${theme.accent}18`
+                                  : "transparent",
+                              borderColor:
+                                oi === field.selected
+                                  ? theme.accent
+                                  : border,
+                              color:
+                                oi === field.selected
+                                  ? theme.accent
+                                  : textMuted,
+                            }}
+                          >
+                            {opt}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Number selector */}
+                    {field.type === "number" && (
+                      <div className="flex gap-1.5">
+                        {field.options.map((opt, oi) => (
+                          <span
+                            key={opt}
+                            className="w-9 h-8 flex items-center justify-center text-[12px] rounded-lg border transition-all"
+                            style={{
+                              backgroundColor:
+                                oi === field.selected
+                                  ? `${theme.accent}18`
+                                  : "transparent",
+                              borderColor:
+                                oi === field.selected
+                                  ? theme.accent
+                                  : border,
+                              color:
+                                oi === field.selected
+                                  ? theme.accent
+                                  : textMuted,
+                            }}
+                          >
+                            {opt}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Topic input with sparkle */}
+                    {field.type === "topic" && (
+                      <div>
+                        <div
+                          className="relative rounded-lg px-3 py-2 text-[12px] leading-relaxed"
+                          style={{
+                            backgroundColor: bg,
+                            border: `1px solid ${border}`,
+                            color: textPrimary,
+                          }}
+                        >
+                          {fi === actualTypingIndex ? (
+                            <>
+                              {typingValue.slice(0, fillProgress)}
+                              <span
+                                className="inline-block w-[2px] h-[0.9em] ml-0.5 align-middle animate-cursor-blink"
+                                style={{ backgroundColor: theme.accent }}
+                              />
+                            </>
+                          ) : (
+                            <span style={{ color: textMuted }}>{field.placeholder}</span>
+                          )}
+                          {/* Sparkle button */}
+                          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 opacity-50">
+                            <SparkleIcon color={theme.accent} />
+                          </span>
+                        </div>
+                        <div className="flex justify-between mt-1">
+                          <span className="text-[10px]" style={{ color: textMuted }}>
+                            Output language follows your input language
+                          </span>
+                          <span
+                            className="text-[10px] tabular-nums"
+                            style={{ color: textMuted }}
+                          >
+                            {fi === actualTypingIndex ? fillProgress : 0}/200
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Text input */}
+                    {field.type === "text" && (
+                      <div
+                        className="rounded-lg px-3 py-2 text-[12px] leading-relaxed min-h-[34px]"
+                        style={{
+                          backgroundColor: bg,
+                          border: `1px solid ${border}`,
+                          color: textPrimary,
+                        }}
+                      >
+                        {fi === actualTypingIndex ? (
+                          <>
+                            {typingValue.slice(0, fillProgress)}
+                            <span
+                              className="inline-block w-[2px] h-[0.9em] ml-0.5 align-middle animate-cursor-blink"
+                              style={{ backgroundColor: theme.accent }}
+                            />
+                          </>
+                        ) : (
+                          <span style={{ color: textPrimary }}>{field.value}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {/* ── Generate button (exact app style: gradient + glow) ── */}
+                <div className="relative group mt-1">
+                  {phase !== "generating" && (
+                    <div
+                      className="absolute -inset-1 rounded-2xl blur-xl opacity-40"
+                      style={{
+                        background: `linear-gradient(135deg, ${theme.accent}, ${theme.light})`,
+                      }}
+                    />
+                  )}
+                  <div
+                    className="relative w-full py-3 text-[13px] font-semibold rounded-xl text-center text-white flex items-center justify-center gap-2"
+                    style={{
+                      background: `linear-gradient(135deg, ${theme.accent}, ${theme.light})`,
+                      opacity: phase === "generating" ? 0.6 : 1,
+                    }}
                   >
-                    {output.label}
-                  </p>
-                  <p
-                    className="text-[12px] leading-relaxed"
-                    style={{ color: textPrimary }}
-                  >
-                    {output.text}
-                  </p>
+                    {phase === "generating" ? (
+                      <>
+                        <span
+                          className="h-3.5 w-3.5 rounded-full border-2 animate-spin"
+                          style={{
+                            borderColor: "rgba(255,255,255,0.3)",
+                            borderTopColor: "#fff",
+                          }}
+                        />
+                        Generating...
+                      </>
+                    ) : (
+                      "Generate"
+                    )}
+                  </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : (
+              /* ── OUTPUT CARDS (mimics real app output) ── */
+              <div>
+                {/* Output header */}
+                <div className="flex justify-between items-center px-0.5 mb-3">
+                  <span
+                    className="text-[10px] font-medium uppercase tracking-wider"
+                    style={{ color: textMuted }}
+                  >
+                    Output
+                  </span>
+                  <span
+                    className="text-[10px] uppercase tracking-wider"
+                    style={{ color: textMuted }}
+                  >
+                    Copy
+                  </span>
+                </div>
+
+                <div className="space-y-2.5">
+                  {demo.outputs.map((output, i) => (
+                    <div
+                      key={`${activeIndex}-out-${i}`}
+                      className="rounded-xl overflow-hidden transition-all duration-400"
+                      style={{
+                        backgroundColor: surface,
+                        border: `1px solid ${border}`,
+                        opacity: i < visibleOutputs ? 1 : 0,
+                        transform:
+                          i < visibleOutputs
+                            ? "translateY(0)"
+                            : "translateY(8px)",
+                      }}
+                    >
+                      {/* Gradient bar */}
+                      <div
+                        className="h-[2px]"
+                        style={{
+                          background: `linear-gradient(90deg, ${theme.accent}, ${theme.light})`,
+                        }}
+                      />
+                      <div className="px-4 py-3">
+                        <p
+                          className="text-[9px] font-medium uppercase tracking-wider mb-1.5"
+                          style={{ color: theme.accent }}
+                        >
+                          {output.label}
+                        </p>
+                        <p
+                          className="text-[12px] leading-relaxed whitespace-pre-wrap"
+                          style={{ color: textPrimary }}
+                        >
+                          {output.text}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </GlowCard>
@@ -290,7 +507,7 @@ export function HeroDemo() {
             style={{
               backgroundColor:
                 i === activeIndex
-                  ? moduleColors[d.moduleKey]
+                  ? moduleThemes[d.moduleKey].accent
                   : "rgba(255,255,255,0.15)",
               transform: i === activeIndex ? "scale(1.3)" : "scale(1)",
             }}
@@ -308,13 +525,6 @@ export function HeroDemo() {
           }
           .animate-cursor-blink {
             animation: cursor-blink 0.8s step-end infinite;
-          }
-          @keyframes demo-pulse {
-            0%, 100% { opacity: 0.4; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
-          }
-          .animate-demo-pulse {
-            animation: demo-pulse 1s ease-in-out infinite;
           }
         `,
         }}

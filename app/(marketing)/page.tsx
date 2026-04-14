@@ -273,20 +273,18 @@ function ProblemSection() {
 
         <div className="grid sm:grid-cols-3 gap-6">
           {painPoints.map((p) => (
-            <div
-              key={p.title}
-              className="flex flex-col gap-3 p-5 rounded-xl"
-              style={{ backgroundColor: surface, border: `1px solid ${border}` }}
-            >
-              <div style={{ color: accent }}>{p.icon}</div>
-              <h3 className="text-sm font-semibold text-white">{p.title}</h3>
-              <p
-                className="text-sm leading-relaxed"
-                style={{ color: textMuted }}
-              >
-                {p.text}
-              </p>
-            </div>
+            <GlowCard key={p.title} className="p-5">
+              <div className="flex flex-col gap-3">
+                <div style={{ color: accent }}>{p.icon}</div>
+                <h3 className="text-sm font-semibold text-white">{p.title}</h3>
+                <p
+                  className="text-sm leading-relaxed"
+                  style={{ color: textMuted }}
+                >
+                  {p.text}
+                </p>
+              </div>
+            </GlowCard>
           ))}
         </div>
       </div>
