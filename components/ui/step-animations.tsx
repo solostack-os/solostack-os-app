@@ -227,27 +227,51 @@ export function StepTwoAnimation() {
 }
 
 /* ════════════════════════════════════════════════════════════
-   STEP 3 — Output appearing + export
+   STEP 3 — Output appearing + copy + PDF export
    ════════════════════════════════════════════════════════════ */
+
+/* Mini PDF icon */
+function PdfIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <rect x="4" y="2" width="16" height="20" rx="2" stroke="#ef4444" strokeWidth="1.5" fill="#ef444415" />
+      <path d="M8 7h8M8 10h8M8 13h5" stroke="#ef4444" strokeWidth="1" strokeLinecap="round" />
+      <rect x="13" y="15" width="5" height="3" rx="0.5" fill="#ef4444" />
+      <text x="15.5" y="17.3" textAnchor="middle" fill="white" fontSize="2.5" fontWeight="bold">PDF</text>
+    </svg>
+  );
+}
+
+type Step3Phase = "idle" | "generating" | "output" | "copied" | "exporting" | "exported";
+
 export function StepThreeAnimation() {
-  const [phase, setPhase] = useState<"idle" | "generating" | "output" | "exported">("idle");
+  const [phase, setPhase] = useState<Step3Phase>("idle");
 
   useEffect(() => {
+    let timeouts: ReturnType<typeof setTimeout>[] = [];
     const cycle = () => {
       setPhase("idle");
-      setTimeout(() => setPhase("generating"), 400);
-      setTimeout(() => setPhase("output"), 1600);
-      setTimeout(() => setPhase("exported"), 3000);
-      setTimeout(cycle, 5000);
+      timeouts = [
+        setTimeout(() => setPhase("generating"), 400),
+        setTimeout(() => setPhase("output"), 1600),
+        setTimeout(() => setPhase("copied"), 2600),
+        setTimeout(() => setPhase("exporting"), 3600),
+        setTimeout(() => setPhase("exported"), 4400),
+        setTimeout(cycle, 6500),
+      ];
     };
-
     cycle();
-    return () => {};
+    return () => timeouts.forEach(clearTimeout);
   }, []);
+
+  const showOutput = phase !== "idle" && phase !== "generating";
+  const isCopied = phase === "copied" || phase === "exporting" || phase === "exported";
+  const isExporting = phase === "exporting";
+  const isExported = phase === "exported";
 
   return (
     <div
-      className="rounded-lg overflow-hidden mt-4 flex flex-col"
+      className="rounded-lg overflow-hidden mt-4 flex flex-col relative"
       style={{ backgroundColor: surface, border: `1px solid ${border}`, height: CARD_HEIGHT }}
     >
       {/* Mini top bar */}
@@ -263,7 +287,7 @@ export function StepThreeAnimation() {
         </span>
       </div>
 
-      <div className="p-3 flex-1 flex flex-col justify-center">
+      <div className="p-3 flex-1 flex flex-col justify-center relative">
         {phase === "idle" && (
           <div className="flex items-center justify-center py-6">
             <span className="text-[9px]" style={{ color: textMuted }}>
@@ -287,14 +311,8 @@ export function StepThreeAnimation() {
           </div>
         )}
 
-        {(phase === "output" || phase === "exported") && (
-          <div
-            className="space-y-1.5 transition-all duration-500"
-            style={{
-              opacity: 1,
-              transform: "translateY(0)",
-            }}
-          >
+        {showOutput && (
+          <div className="space-y-1.5 transition-all duration-500">
             {/* Output preview lines */}
             <div
               className="rounded px-2 py-1.5"
@@ -319,6 +337,46 @@ export function StepThreeAnimation() {
             </div>
           </div>
         )}
+
+        {/* PDF floating up overlay */}
+        {(isExporting || isExported) && (
+          <div
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            style={{
+              background: `radial-gradient(ellipse at center, ${surface}ee, transparent 70%)`,
+            }}
+          >
+            <div
+              className="flex flex-col items-center gap-1.5 transition-all duration-500"
+              style={{
+                opacity: isExported ? 1 : 0.7,
+                transform: isExported ? "translateY(0) scale(1)" : "translateY(12px) scale(0.9)",
+              }}
+            >
+              <div
+                className="rounded-lg p-2.5 transition-all duration-500"
+                style={{
+                  backgroundColor: `${surface}`,
+                  border: `1px solid ${isExported ? "#ef444440" : border}`,
+                  boxShadow: isExported
+                    ? "0 4px 20px rgba(239,68,68,0.15), 0 0 40px rgba(239,68,68,0.05)"
+                    : "0 4px 12px rgba(0,0,0,0.3)",
+                }}
+              >
+                <PdfIcon size={22} />
+              </div>
+              <span
+                className="text-[8px] font-medium transition-all duration-300"
+                style={{
+                  color: isExported ? "#ef4444" : textMuted,
+                  opacity: isExported ? 1 : 0,
+                }}
+              >
+                social-posts.pdf
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Export bar */}
@@ -326,7 +384,7 @@ export function StepThreeAnimation() {
         className="px-3 py-2 flex justify-between items-center transition-all duration-500 flex-shrink-0 mt-auto"
         style={{
           borderTop: `1px solid ${border}`,
-          opacity: phase === "output" || phase === "exported" ? 1 : 0.3,
+          opacity: showOutput ? 1 : 0.3,
         }}
       >
         <span className="text-[9px]" style={{ color: textMuted }}>
@@ -336,18 +394,22 @@ export function StepThreeAnimation() {
           <span
             className="text-[9px] px-2 py-0.5 rounded transition-all duration-300"
             style={{
-              color: phase === "exported" ? bg : textMuted,
-              backgroundColor: phase === "exported" ? accentTeal : "transparent",
-              border: phase === "exported" ? "none" : `1px solid ${border}`,
+              color: isCopied ? bg : textMuted,
+              backgroundColor: isCopied ? accentTeal : "transparent",
+              border: isCopied ? "none" : `1px solid ${border}`,
             }}
           >
-            {phase === "exported" ? "Copied ✓" : "Copy"}
+            {isCopied ? "Copied ✓" : "Copy"}
           </span>
           <span
-            className="text-[9px] px-2 py-0.5 rounded"
-            style={{ color: textMuted, border: `1px solid ${border}` }}
+            className="text-[9px] px-2 py-0.5 rounded transition-all duration-300"
+            style={{
+              color: isExported ? bg : textMuted,
+              backgroundColor: isExported ? "#ef4444" : "transparent",
+              border: isExported ? "none" : `1px solid ${border}`,
+            }}
           >
-            Export
+            {isExporting ? "Exporting..." : isExported ? "PDF ✓" : "Export PDF"}
           </span>
         </div>
       </div>
