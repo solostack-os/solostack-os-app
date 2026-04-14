@@ -77,6 +77,12 @@ function Navbar() {
             </a>
           </div>
           <a
+            href="/auth/login"
+            className="text-sm text-slate-300 hover:text-white transition"
+          >
+            Log in
+          </a>
+          <a
             href="/auth/signup"
             className="text-sm font-medium px-4 py-2 transition-opacity hover:opacity-90"
             style={{ backgroundColor: accent, color: bg, borderRadius: 8 }}
@@ -635,7 +641,8 @@ const plans = [
     features: [
       "1,000 credits / month",
       "All 3 modules",
-      "PDF exports",
+      "Brand voice & tone memory",
+      "Advanced PDF templates",
       "Priority support",
     ],
     cta: "Start Your 7-Day Free Trial",
@@ -1066,8 +1073,8 @@ export default function MarketingPage() {
       <HowItWorks />
       <Modules />
       <IsIsNot />
-      <Pricing />
       <Trust />
+      <Pricing />
       <FAQ />
       <FinalCTA />
       <Footer />
