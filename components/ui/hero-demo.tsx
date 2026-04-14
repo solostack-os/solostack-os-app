@@ -57,7 +57,6 @@ function CursorIcon({ size = 20 }: { size?: number }) {
 interface DemoScenario {
   moduleKey: "marketing" | "outreach" | "operations";
   workflow: string;
-  /* Marketing demo uses special cursor-driven flow */
   useCursorFlow?: boolean;
   fields: Array<
     | { type: "pills"; label: string; options: string[]; selected: number }
@@ -65,7 +64,6 @@ interface DemoScenario {
     | { type: "text"; label: string; value: string; placeholder: string }
     | { type: "number"; label: string; options: string[]; selected: number }
   >;
-  /* Suggestions that appear when sparkle is clicked (marketing only) */
   suggestions?: string[];
   outputs: Array<{ label: string; text: string }>;
 }
@@ -197,12 +195,12 @@ const OUTPUT_STAGGER = 300;
 const DISPLAY_DURATION = 4500;
 
 /* ─── Cursor flow timing (marketing demo only) ─── */
-const CURSOR_MOVE_SPEED = 600; // ms per cursor move
-const CURSOR_CLICK_PAUSE = 300; // pause after "click"
-const SPARKLE_LOADING = 900; // fake AI suggestion loading
-const SUGGESTION_REVEAL_STAGGER = 80; // stagger each pill appearing
-const CURSOR_TO_SUGGESTION_PAUSE = 500; // wait before moving to a suggestion
-const SUGGESTION_FILL_PAUSE = 300; // pause after selecting suggestion before Generate
+const CURSOR_MOVE_SPEED = 600;
+const CURSOR_CLICK_PAUSE = 300;
+const SPARKLE_LOADING = 900;
+const SUGGESTION_REVEAL_STAGGER = 80;
+const CURSOR_TO_SUGGESTION_PAUSE = 500;
+const SUGGESTION_FILL_PAUSE = 300;
 
 /*
  * Cursor-driven flow phases for Marketing demo:
@@ -229,7 +227,6 @@ type CursorPhase =
   | "generating"
   | "output";
 
-/* ─── Standard (non-cursor) flow phases for Outreach & Operations ─── */
 type StandardPhase = "filling" | "generating" | "output";
 
 export function HeroDemo() {
@@ -242,13 +239,17 @@ export function HeroDemo() {
 
   /* Cursor flow state (marketing) */
   const [cursorPhase, setCursorPhase] = useState<CursorPhase>("idle");
-  const [cursorPos, setCursorPos] = useState({ x: 85, y: 75 }); // % based
   const [clicking, setClicking] = useState(false);
   const [visibleSuggestions, setVisibleSuggestions] = useState(0);
   const [selectedSuggestion, setSelectedSuggestion] = useState(-1);
   const [topicFilled, setTopicFilled] = useState(false);
 
-  const formRef = useRef<HTMLDivElement>(null);
+  /* Refs for precise cursor targeting */
+  const cardRef = useRef<HTMLDivElement>(null);
+  const sparkleRef = useRef<HTMLSpanElement>(null);
+  const firstSuggestionRef = useRef<HTMLSpanElement>(null);
+  const generateRef = useRef<HTMLDivElement>(null);
+  const [cursorXY, setCursorXY] = useState<{ left: number; top: number }>({ left: -40, top: -40 });
 
   const demo = demos[activeIndex];
   const theme = moduleThemes[demo.moduleKey];
@@ -266,15 +267,27 @@ export function HeroDemo() {
   const typingField = demo.fields[actualTypingIndex];
   const typingValue = "value" in typingField ? typingField.value : "";
 
+  /** Move cursor to center of a ref element, relative to cardRef */
+  const moveCursorTo = useCallback(
+    (targetRef: React.RefObject<HTMLElement | null>) => {
+      if (!cardRef.current || !targetRef.current) return;
+      const card = cardRef.current.getBoundingClientRect();
+      const el = targetRef.current.getBoundingClientRect();
+      setCursorXY({
+        left: el.left - card.left + el.width / 2,
+        top: el.top - card.top + el.height / 2,
+      });
+    },
+    []
+  );
+
   const advanceToNext = useCallback(() => {
     setActiveIndex((i) => (i + 1) % demos.length);
-    /* Reset standard */
     setPhase("filling");
     setFillProgress(0);
     setVisibleOutputs(0);
-    /* Reset cursor */
     setCursorPhase("idle");
-    setCursorPos({ x: 85, y: 75 });
+    setCursorXY({ left: -40, top: -40 });
     setClicking(false);
     setVisibleSuggestions(0);
     setSelectedSuggestion(-1);
@@ -290,18 +303,15 @@ export function HeroDemo() {
 
     switch (cursorPhase) {
       case "idle":
-        // Start: brief pause then cursor appears moving to sparkle
         t = setTimeout(() => setCursorPhase("cursorToSparkle"), 800);
         break;
 
       case "cursorToSparkle":
-        // Move cursor to sparkle button position (top-right of topic input)
-        setCursorPos({ x: 88, y: 48 });
+        moveCursorTo(sparkleRef);
         t = setTimeout(() => setCursorPhase("sparkleClick"), CURSOR_MOVE_SPEED);
         break;
 
       case "sparkleClick":
-        // Show click effect
         setClicking(true);
         t = setTimeout(() => {
           setClicking(false);
@@ -310,12 +320,10 @@ export function HeroDemo() {
         break;
 
       case "sparkleLoading":
-        // Show loading spinner on sparkle
         t = setTimeout(() => setCursorPhase("suggestionsIn"), SPARKLE_LOADING);
         break;
 
       case "suggestionsIn": {
-        // Stagger-reveal suggestion pills
         const totalSuggestions = demo.suggestions?.length ?? 0;
         if (visibleSuggestions < totalSuggestions) {
           t = setTimeout(
@@ -332,8 +340,8 @@ export function HeroDemo() {
       }
 
       case "cursorToSuggestion":
-        // Move cursor to first suggestion pill
-        setCursorPos({ x: 42, y: 62 });
+        // Small delay to let DOM render suggestion refs
+        requestAnimationFrame(() => moveCursorTo(firstSuggestionRef));
         t = setTimeout(
           () => setCursorPhase("suggestionClick"),
           CURSOR_MOVE_SPEED
@@ -346,7 +354,6 @@ export function HeroDemo() {
         t = setTimeout(() => {
           setClicking(false);
           setTopicFilled(true);
-          // Brief pause to show topic filled, then move to Generate
           setTimeout(
             () => setCursorPhase("cursorToGenerate"),
             SUGGESTION_FILL_PAUSE
@@ -355,8 +362,7 @@ export function HeroDemo() {
         break;
 
       case "cursorToGenerate":
-        // Move cursor to Generate button
-        setCursorPos({ x: 50, y: 92 });
+        moveCursorTo(generateRef);
         t = setTimeout(
           () => setCursorPhase("generateClick"),
           CURSOR_MOVE_SPEED
@@ -397,10 +403,10 @@ export function HeroDemo() {
     demo.suggestions?.length,
     demo.outputs.length,
     advanceToNext,
+    moveCursorTo,
   ]);
 
   /* ─────────── STANDARD FLOW (Outreach, Operations) ─────────── */
-  // Filling (typing) phase
   useEffect(() => {
     if (isCursorFlow) return;
     if (phase !== "filling") return;
@@ -412,7 +418,6 @@ export function HeroDemo() {
     return () => clearTimeout(t);
   }, [isCursorFlow, phase, fillProgress, typingValue.length]);
 
-  // Generating phase
   useEffect(() => {
     if (isCursorFlow) return;
     if (phase !== "generating") return;
@@ -420,7 +425,6 @@ export function HeroDemo() {
     return () => clearTimeout(t);
   }, [isCursorFlow, phase]);
 
-  // Output phase
   useEffect(() => {
     if (isCursorFlow) return;
     if (phase !== "output") return;
@@ -458,19 +462,16 @@ export function HeroDemo() {
       cursorPhase === "cursorToSuggestion" ||
       cursorPhase === "suggestionClick");
 
-  /* The topic text for marketing cursor flow */
   const cursorTopicText =
-    isCursorFlow && topicFilled
-      ? demo.suggestions?.[0] ?? ""
-      : "";
+    isCursorFlow && topicFilled ? (demo.suggestions?.[0] ?? "") : "";
 
   return (
-    <div className="w-full max-w-md lg:max-w-lg">
-      <GlowCard>
+    <div className="w-full" style={{ maxWidth: 480 }}>
+      <GlowCard className="w-full">
         <div
-          className="rounded-xl overflow-hidden relative"
-          style={{ backgroundColor: surface, minHeight: 380 }}
-          ref={formRef}
+          ref={cardRef}
+          className="rounded-xl overflow-hidden relative w-full"
+          style={{ backgroundColor: surface }}
         >
           {/* ── Top bar (app-style window chrome) ── */}
           <div
@@ -482,8 +483,15 @@ export function HeroDemo() {
               <span className="w-2 h-2 rounded-full bg-white/10" />
               <span className="w-2 h-2 rounded-full bg-white/10" />
             </div>
-            <img src="/logo.png" alt="" className="h-4 w-4 object-contain ml-1.5" />
-            <span className="text-[11px] font-medium" style={{ color: theme.accent }}>
+            <img
+              src="/logo.png"
+              alt=""
+              className="h-4 w-4 object-contain ml-1.5"
+            />
+            <span
+              className="text-[11px] font-medium"
+              style={{ color: theme.accent }}
+            >
               {theme.label}
             </span>
             <span className="text-[11px]" style={{ color: textMuted }}>
@@ -491,7 +499,7 @@ export function HeroDemo() {
             </span>
           </div>
 
-          {/* ── Accent gradient bar (like real app GlowCard) ── */}
+          {/* ── Accent gradient bar ── */}
           <div
             className="h-[2px]"
             style={{
@@ -502,11 +510,9 @@ export function HeroDemo() {
           {/* ── Form / Output area ── */}
           <div className="p-4 sm:p-5" style={{ minHeight: 340 }}>
             {showForm ? (
-              /* ── FORM FIELDS (mimics real app layout) ── */
               <div className="space-y-4">
                 {demo.fields.map((field, fi) => (
                   <div key={`${activeIndex}-${fi}`}>
-                    {/* Label */}
                     <p
                       className="text-[12px] font-medium mb-1.5"
                       style={{ color: textPrimary }}
@@ -582,7 +588,6 @@ export function HeroDemo() {
                             minHeight: 36,
                           }}
                         >
-                          {/* Topic text content */}
                           {isCursorFlow ? (
                             cursorTopicText ? (
                               <span>{cursorTopicText}</span>
@@ -605,15 +610,16 @@ export function HeroDemo() {
                             </span>
                           )}
 
-                          {/* Sparkle button */}
+                          {/* Sparkle button — ref for cursor targeting */}
                           <span
+                            ref={isCursorFlow ? sparkleRef : undefined}
                             className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-md transition-colors"
                             style={{
                               opacity: showSparkleLoading ? 1 : 0.5,
                               backgroundColor:
-                                (isCursorFlow &&
-                                  (cursorPhase === "sparkleClick" ||
-                                    cursorPhase === "sparkleLoading"))
+                                isCursorFlow &&
+                                (cursorPhase === "sparkleClick" ||
+                                  cursorPhase === "sparkleLoading")
                                   ? "rgba(255,255,255,0.1)"
                                   : "transparent",
                             }}
@@ -632,12 +638,20 @@ export function HeroDemo() {
                           </span>
                         </div>
 
-                        {/* Suggestions row (cursor flow only) */}
-                        {showSuggestions && demo.suggestions && (
-                          <div className="flex flex-wrap gap-1.5 mt-2.5">
-                            {demo.suggestions.map((s, si) => (
+                        {/* Suggestions row — always rendered during cursor flow to reserve layout space */}
+                        {isCursorFlow && (
+                          <div
+                            className="flex flex-wrap gap-1.5 mt-2.5 overflow-hidden transition-all duration-300"
+                            style={{
+                              maxHeight: showSuggestions ? 100 : 0,
+                              opacity: showSuggestions ? 1 : 0,
+                              marginTop: showSuggestions ? 10 : 0,
+                            }}
+                          >
+                            {demo.suggestions?.map((s, si) => (
                               <span
                                 key={si}
+                                ref={si === 0 ? firstSuggestionRef : undefined}
                                 className="px-2.5 py-1 text-[10px] rounded-full border transition-all"
                                 style={{
                                   borderColor:
@@ -667,7 +681,10 @@ export function HeroDemo() {
                         )}
 
                         <div className="flex justify-between mt-1">
-                          <span className="text-[10px]" style={{ color: textMuted }}>
+                          <span
+                            className="text-[10px]"
+                            style={{ color: textMuted }}
+                          >
                             Output language follows your input language
                           </span>
                           <span
@@ -704,15 +721,17 @@ export function HeroDemo() {
                             />
                           </>
                         ) : (
-                          <span style={{ color: textPrimary }}>{field.value}</span>
+                          <span style={{ color: textPrimary }}>
+                            {field.value}
+                          </span>
                         )}
                       </div>
                     )}
                   </div>
                 ))}
 
-                {/* ── Generate button (exact app style: gradient + glow) ── */}
-                <div className="relative group mt-1">
+                {/* ── Generate button ── */}
+                <div className="relative group mt-1" ref={isCursorFlow ? generateRef : undefined}>
                   {!isGenerating && (
                     <div
                       className="absolute -inset-1 rounded-2xl blur-xl opacity-40"
@@ -746,9 +765,8 @@ export function HeroDemo() {
                 </div>
               </div>
             ) : showOutputs ? (
-              /* ── OUTPUT CARDS (mimics real app output) ── */
+              /* ── OUTPUT CARDS ── */
               <div>
-                {/* Output header */}
                 <div className="flex justify-between items-center px-0.5 mb-3">
                   <span
                     className="text-[10px] font-medium uppercase tracking-wider"
@@ -780,7 +798,6 @@ export function HeroDemo() {
                         transition: "all 0.4s ease-out",
                       }}
                     >
-                      {/* Gradient bar */}
                       <div
                         className="h-[2px]"
                         style={{
@@ -813,15 +830,14 @@ export function HeroDemo() {
             <div
               className="absolute pointer-events-none z-50"
               style={{
-                left: `${cursorPos.x}%`,
-                top: `${cursorPos.y}%`,
+                left: cursorXY.left,
+                top: cursorXY.top,
                 transition: `left ${CURSOR_MOVE_SPEED}ms cubic-bezier(0.4, 0, 0.2, 1), top ${CURSOR_MOVE_SPEED}ms cubic-bezier(0.4, 0, 0.2, 1)`,
                 transform: clicking ? "scale(0.85)" : "scale(1)",
                 filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
               }}
             >
               <CursorIcon size={20} />
-              {/* Click ripple */}
               {clicking && (
                 <div
                   className="absolute -top-1 -left-1 w-6 h-6 rounded-full animate-ping"
@@ -854,7 +870,6 @@ export function HeroDemo() {
         ))}
       </div>
 
-      {/* Inline keyframes */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
