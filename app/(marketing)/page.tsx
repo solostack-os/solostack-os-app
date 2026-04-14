@@ -100,7 +100,7 @@ function Hero() {
       <div
         className="absolute left-1/2 top-[55%] -translate-x-1/2 w-[600px] h-[320px] rounded-full blur-[120px] opacity-25 pointer-events-none"
         style={{
-          background: `radial-gradient(ellipse at center, ${accent}, ${accentTeal}, transparent 70%)`,
+          background: `radial-gradient(ellipse at center, ${accent}, ${accent}88, transparent 70%)`,
         }}
       />
 
@@ -110,7 +110,7 @@ function Hero() {
           {/* Eyebrow */}
           <span
             className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full mb-5"
-            style={{ color: accentTeal, border: `1px solid ${accentTeal}33` }}
+            style={{ color: accent, border: `1px solid ${accent}33` }}
           >
             AI operating workspace for service businesses
           </span>
@@ -118,15 +118,7 @@ function Hero() {
           {/* Headline */}
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-white mb-5">
             The AI workspace that already knows{" "}
-            <span
-              style={{
-                background: `linear-gradient(135deg, ${accent}, ${accentTeal})`,
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              your business.
-            </span>
+            <span style={{ color: accent }}>your business.</span>
           </h1>
 
           {/* Subheadline */}
@@ -904,7 +896,7 @@ function FinalCTA() {
       />
       <div className="relative z-10 max-w-xl mx-auto">
         <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-          Stop restarting AI from zero every time you work.
+          Stop restarting <span style={{ color: accent }}>AI</span> from zero every time you work.
         </h2>
         <p
           className="text-sm mb-8 leading-relaxed"
