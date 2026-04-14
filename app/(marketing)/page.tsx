@@ -640,17 +640,52 @@ function Pricing() {
           outputs in hand.
         </p>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 items-center">
           {plans.map((p) => (
-            <GlowCard key={p.name} className="p-6 flex flex-col gap-5">
+            <div
+              key={p.name}
+              className="relative rounded-xl p-6 flex flex-col gap-5 transition-transform duration-300 hover:translate-y-[-2px]"
+              style={{
+                backgroundColor: surface,
+                border: p.highlighted ? "1px solid transparent" : `1px solid ${border}`,
+                transform: p.highlighted ? "scale(1.05)" : "scale(1)",
+                zIndex: p.highlighted ? 2 : 1,
+                background: p.highlighted
+                  ? `radial-gradient(ellipse at 50% 0%, rgba(108,140,255,.08), transparent 60%), linear-gradient(175deg, #14213d 0%, ${surface} 100%)`
+                  : surface,
+                boxShadow: p.highlighted
+                  ? "0 0 0 1px rgba(108,140,255,.2), 0 8px 40px rgba(0,0,0,.35), 0 0 48px rgba(108,140,255,.1), 0 0 96px rgba(0,200,255,.06)"
+                  : "0 4px 24px rgba(0,0,0,0.2)",
+              }}
+            >
+              {/* Gradient border pseudo-element for popular card */}
+              {p.highlighted && (
+                <div
+                  className="absolute rounded-xl pointer-events-none"
+                  style={{
+                    inset: "-1px",
+                    background: "linear-gradient(135deg, #5eead4, #6c8cff, #8b5cf6)",
+                    zIndex: -1,
+                    opacity: 0.6,
+                    borderRadius: "inherit",
+                  }}
+                />
+              )}
+
+              {/* Most Popular tag */}
               {p.highlighted && (
                 <span
-                  className="absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-semibold uppercase tracking-wider px-3 py-0.5 rounded-full z-10"
-                  style={{ backgroundColor: accent, color: bg }}
+                  className="absolute -top-4 left-1/2 -translate-x-1/2 text-[11px] font-extrabold uppercase tracking-wider px-5 py-1.5 rounded-full z-10 whitespace-nowrap"
+                  style={{
+                    background: "linear-gradient(135deg, #5eead4, #6c8cff, #8b5cf6)",
+                    color: "#fff",
+                    boxShadow: "0 4px 16px rgba(108,140,255,.3), 0 0 32px rgba(94,234,212,.12)",
+                  }}
                 >
                   Most Popular
                 </span>
               )}
+
               <div>
                 <h3 className="text-base font-semibold text-white">
                   {p.name}
@@ -686,21 +721,25 @@ function Pricing() {
                   </li>
                 ))}
               </ul>
-              <a
-                href="/auth/signup"
-                className="block text-center text-sm font-medium py-2.5 transition-opacity hover:opacity-90"
-                style={{
-                  backgroundColor: p.highlighted ? accent : "transparent",
-                  color: p.highlighted ? bg : textMuted,
-                  border: p.highlighted
-                    ? "none"
-                    : `1px solid rgba(148,163,184,0.3)`,
-                  borderRadius: 8,
-                }}
-              >
-                {p.cta}
-              </a>
-            </GlowCard>
+              {p.highlighted ? (
+                <a href="/auth/signup">
+                  <ShinyButton>{p.cta}</ShinyButton>
+                </a>
+              ) : (
+                <a
+                  href="/auth/signup"
+                  className="block text-center text-sm font-bold py-3.5 transition-all duration-300 hover:border-white/30 hover:text-white hover:translate-y-[-1px]"
+                  style={{
+                    color: textMuted,
+                    border: `1px solid ${border}`,
+                    borderRadius: 999,
+                    background: "rgba(255,255,255,0.02)",
+                  }}
+                >
+                  {p.cta}
+                </a>
+              )}
+            </div>
           ))}
         </div>
 
