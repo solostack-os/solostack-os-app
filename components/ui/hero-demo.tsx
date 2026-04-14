@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { GlowCard } from "@/components/ui/glow-card";
+/* GlowCard removed — its pseudo-elements cause width instability on desktop */
 
 /* ─── Design tokens (exact match with app) ─── */
 const bg = "#0a0f1e";
@@ -467,12 +467,15 @@ export function HeroDemo() {
 
   return (
     <div className="w-full" style={{ maxWidth: 480 }}>
-      <GlowCard className="w-full">
-        <div
-          ref={cardRef}
-          className="rounded-xl overflow-hidden relative w-full"
-          style={{ backgroundColor: surface }}
-        >
+      <div
+        ref={cardRef}
+        className="rounded-xl overflow-hidden relative w-full"
+        style={{
+          backgroundColor: surface,
+          border: `1px solid ${border}`,
+          boxShadow: `0 0 40px -10px rgba(108,140,255,0.15), 0 1rem 2rem -1rem rgba(0,0,0,0.5)`,
+        }}
+      >
           {/* ── Top bar (app-style window chrome) ── */}
           <div
             className="flex items-center gap-2 px-4 py-2.5"
@@ -851,7 +854,6 @@ export function HeroDemo() {
             </div>
           )}
         </div>
-      </GlowCard>
 
       {/* Dot indicators */}
       <div className="flex items-center justify-center gap-2 mt-4">
