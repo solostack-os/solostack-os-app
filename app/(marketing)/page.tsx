@@ -6,6 +6,7 @@ import { HeroBackground } from "@/components/ui/hero-background";
 import { GlowCard } from "@/components/ui/glow-card";
 import { HeroDemo } from "@/components/ui/hero-demo";
 import { Reveal } from "@/components/ui/reveal";
+import { StepOneAnimation, StepTwoAnimation, StepThreeAnimation } from "@/components/ui/step-animations";
 
 /* ─── Design Tokens ─── */
 const bg = "#0a0f1e";
@@ -264,7 +265,7 @@ function ProblemSection() {
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
             Chat tools help once. Running a business means{" "}
-            <span style={{ color: accent }}>repeating yourself.</span>
+            <span className="whitespace-nowrap" style={{ color: accent }}>repeating yourself.</span>
           </h2>
           <p
             className="text-sm text-center max-w-2xl mx-auto mb-12 leading-relaxed"
@@ -346,22 +347,26 @@ function HowItWorks() {
         </Reveal>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {steps.map((s, i) => (
-            <Reveal key={s.num} delay={i * 150}>
-              <div className="flex flex-col gap-3">
-                <span className="text-3xl font-bold" style={{ color: accent }}>
-                  {s.num}
-                </span>
-                <h3 className="text-base font-semibold text-white">{s.title}</h3>
-                <p
-                  className="text-sm leading-relaxed"
-                  style={{ color: textMuted }}
-                >
-                  {s.text}
-                </p>
-              </div>
-            </Reveal>
-          ))}
+          {steps.map((s, i) => {
+            const StepAnim = [StepOneAnimation, StepTwoAnimation, StepThreeAnimation][i];
+            return (
+              <Reveal key={s.num} delay={i * 150}>
+                <div className="flex flex-col gap-3">
+                  <span className="text-3xl font-bold" style={{ color: accent }}>
+                    {s.num}
+                  </span>
+                  <h3 className="text-base font-semibold text-white">{s.title}</h3>
+                  <p
+                    className="text-sm leading-relaxed"
+                    style={{ color: textMuted }}
+                  >
+                    {s.text}
+                  </p>
+                  {StepAnim && <StepAnim />}
+                </div>
+              </Reveal>
+            );
+          })}
         </div>
 
         {/* Mid-page CTA */}
