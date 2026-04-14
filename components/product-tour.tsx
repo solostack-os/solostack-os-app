@@ -191,10 +191,9 @@ export function ProductTour({ onComplete }: { onComplete: () => void }) {
     }
   }
 
-  // SVG overlay with spotlight cutout
-  const svgW = window.innerWidth;
-  const svgH = window.innerHeight;
-  const r = 12; // border-radius for cutout
+  const overlayBg = "rgba(0,0,0,0.6)";
+  const vw = typeof window !== "undefined" ? window.innerWidth : 0;
+  const vh = typeof window !== "undefined" ? window.innerHeight : 0;
 
   return (
     <div
@@ -204,35 +203,17 @@ export function ProductTour({ onComplete }: { onComplete: () => void }) {
         transition: "opacity 200ms ease",
         pointerEvents: visible ? "auto" : "none",
       }}
+      onClick={finish}
     >
-      {/* Dark overlay with spotlight cutout */}
-      <svg
-        className="fixed inset-0 w-full h-full"
-        style={{ pointerEvents: "none" }}
-        viewBox={`0 0 ${svgW} ${svgH}`}
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <mask id="tour-mask">
-            <rect width={svgW} height={svgH} fill="white" />
-            <rect
-              x={spot.left}
-              y={spot.top}
-              width={spot.width}
-              height={spot.height}
-              rx={r}
-              fill="black"
-            />
-          </mask>
-        </defs>
-        <rect
-          width={svgW}
-          height={svgH}
-          fill="rgba(0,0,0,0.6)"
-          mask="url(#tour-mask)"
-          style={{ backdropFilter: "blur(2px)" }}
-        />
-      </svg>
+      {/* 4-div overlay: top, bottom, left, right around the spotlight cutout */}
+      {/* Top */}
+      <div className="fixed left-0 w-full" style={{ top: 0, height: Math.max(0, spot.top), backgroundColor: overlayBg, transition: "all 200ms ease" }} />
+      {/* Bottom */}
+      <div className="fixed left-0 w-full" style={{ top: spot.top + spot.height, height: Math.max(0, vh - spot.top - spot.height), backgroundColor: overlayBg, transition: "all 200ms ease" }} />
+      {/* Left */}
+      <div className="fixed" style={{ top: spot.top, left: 0, width: Math.max(0, spot.left), height: spot.height, backgroundColor: overlayBg, transition: "all 200ms ease" }} />
+      {/* Right */}
+      <div className="fixed" style={{ top: spot.top, left: spot.left + spot.width, width: Math.max(0, vw - spot.left - spot.width), height: spot.height, backgroundColor: overlayBg, transition: "all 200ms ease" }} />
 
       {/* Spotlight glow ring */}
       <div
@@ -242,13 +223,11 @@ export function ProductTour({ onComplete }: { onComplete: () => void }) {
           left: spot.left - 2,
           width: spot.width + 4,
           height: spot.height + 4,
-          boxShadow: `0 0 0 2px ${accent}40, 0 0 20px ${accent}30`,
+          border: `2px solid ${accent}50`,
+          boxShadow: `0 0 0 1px ${accent}25, 0 0 24px ${accent}35, inset 0 0 12px ${accent}15`,
           transition: "all 200ms ease",
         }}
       />
-
-      {/* Click-through overlay (dismiss on click outside tooltip) */}
-      <div className="fixed inset-0" onClick={finish} />
 
       {/* Tooltip card */}
       <div
