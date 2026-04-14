@@ -5,6 +5,7 @@ import { ShinyButton } from "@/components/ui/shiny-button";
 import { HeroBackground } from "@/components/ui/hero-background";
 import { GlowCard } from "@/components/ui/glow-card";
 import { HeroDemo } from "@/components/ui/hero-demo";
+import { Reveal } from "@/components/ui/reveal";
 
 /* ─── Design Tokens ─── */
 const bg = "#0a0f1e";
@@ -106,7 +107,7 @@ function Hero() {
 
       <div className="relative z-10 max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
         {/* Left — Copy */}
-        <div className="flex-1 text-center lg:text-left max-w-xl">
+        <Reveal variant="fade-up" duration={800} className="flex-1 text-center lg:text-left max-w-xl">
           {/* Eyebrow */}
           <span
             className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full mb-5"
@@ -154,12 +155,12 @@ function Hero() {
             <span style={{ color: accent }}>No credit card</span> required &middot; 60 credits included &middot; Full
             access to all modules
           </p>
-        </div>
+        </Reveal>
 
         {/* Right — Animated Demo */}
-        <div className="flex-shrink-0 w-full lg:w-auto">
+        <Reveal variant="fade-left" delay={300} duration={800} className="flex-shrink-0 w-full lg:w-auto">
           <HeroDemo />
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -252,41 +253,45 @@ function ProblemSection() {
   return (
     <section className="py-20 px-6">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-3">
-          <span
-            className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
-            style={{ color: accent, border: `1px solid ${accent}33` }}
+        <Reveal>
+          <div className="text-center mb-3">
+            <span
+              className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
+              style={{ color: accent, border: `1px solid ${accent}33` }}
+            >
+              The blank-chat problem
+            </span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
+            Chat tools help once. Running a business means{" "}
+            <span style={{ color: accent }}>repeating yourself.</span>
+          </h2>
+          <p
+            className="text-sm text-center max-w-2xl mx-auto mb-12 leading-relaxed"
+            style={{ color: textMuted }}
           >
-            The blank-chat problem
-          </span>
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
-          Chat tools help once. Running a business means{" "}
-          <span style={{ color: accent }}>repeating yourself.</span>
-        </h2>
-        <p
-          className="text-sm text-center max-w-2xl mx-auto mb-12 leading-relaxed"
-          style={{ color: textMuted }}
-        >
-          Every time you open a blank chat, you re-explain what you sell, who
-          you serve, and how you sound. SoloStack turns that repeated setup into
-          reusable business context.
-        </p>
+            Every time you open a blank chat, you re-explain what you sell, who
+            you serve, and how you sound. SoloStack turns that repeated setup into
+            reusable business context.
+          </p>
+        </Reveal>
 
         <div className="grid sm:grid-cols-3 gap-6">
-          {painPoints.map((p) => (
-            <GlowCard key={p.title} className="p-5">
-              <div className="flex flex-col gap-3">
-                <div style={{ color: accent }}>{p.icon}</div>
-                <h3 className="text-sm font-semibold text-white">{p.title}</h3>
-                <p
-                  className="text-sm leading-relaxed"
-                  style={{ color: textMuted }}
-                >
-                  {p.text}
-                </p>
-              </div>
-            </GlowCard>
+          {painPoints.map((p, i) => (
+            <Reveal key={p.title} delay={i * 120}>
+              <GlowCard className="p-5 transition-transform duration-300 hover:translate-y-[-4px]">
+                <div className="flex flex-col gap-3">
+                  <div style={{ color: accent }}>{p.icon}</div>
+                  <h3 className="text-sm font-semibold text-white">{p.title}</h3>
+                  <p
+                    className="text-sm leading-relaxed"
+                    style={{ color: textMuted }}
+                  >
+                    {p.text}
+                  </p>
+                </div>
+              </GlowCard>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -319,51 +324,57 @@ function HowItWorks() {
   return (
     <section id="how-it-works" className="py-20 px-6">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-3">
-          <span
-            className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
-            style={{ color: accent, border: `1px solid ${accent}33` }}
+        <Reveal>
+          <div className="text-center mb-3">
+            <span
+              className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
+              style={{ color: accent, border: `1px solid ${accent}33` }}
+            >
+              How it works
+            </span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
+            From setup to first output in minutes.
+          </h2>
+          <p
+            className="text-sm text-center max-w-2xl mx-auto mb-12 leading-relaxed"
+            style={{ color: textMuted }}
           >
-            How it works
-          </span>
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
-          From setup to first output in minutes.
-        </h2>
-        <p
-          className="text-sm text-center max-w-2xl mx-auto mb-12 leading-relaxed"
-          style={{ color: textMuted }}
-        >
-          No complex configuration. No learning curve. Set your context, pick a
-          workflow, use the output.
-        </p>
+            No complex configuration. No learning curve. Set your context, pick a
+            workflow, use the output.
+          </p>
+        </Reveal>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {steps.map((s) => (
-            <div key={s.num} className="flex flex-col gap-3">
-              <span className="text-3xl font-bold" style={{ color: accent }}>
-                {s.num}
-              </span>
-              <h3 className="text-base font-semibold text-white">{s.title}</h3>
-              <p
-                className="text-sm leading-relaxed"
-                style={{ color: textMuted }}
-              >
-                {s.text}
-              </p>
-            </div>
+          {steps.map((s, i) => (
+            <Reveal key={s.num} delay={i * 150}>
+              <div className="flex flex-col gap-3">
+                <span className="text-3xl font-bold" style={{ color: accent }}>
+                  {s.num}
+                </span>
+                <h3 className="text-base font-semibold text-white">{s.title}</h3>
+                <p
+                  className="text-sm leading-relaxed"
+                  style={{ color: textMuted }}
+                >
+                  {s.text}
+                </p>
+              </div>
+            </Reveal>
           ))}
         </div>
 
         {/* Mid-page CTA */}
-        <div className="text-center mt-12">
-          <a href="/auth/signup">
-            <ShinyButton>Start Your 7-Day Free Trial</ShinyButton>
-          </a>
-          <p className="mt-3 text-xs" style={{ color: textMuted }}>
-            No credit card required &middot; 60 credits included
-          </p>
-        </div>
+        <Reveal delay={200}>
+          <div className="text-center mt-12">
+            <a href="/auth/signup">
+              <ShinyButton>Start Your 7-Day Free Trial</ShinyButton>
+            </a>
+            <p className="mt-3 text-xs" style={{ color: textMuted }}>
+              No credit card required &middot; 60 credits included
+            </p>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -445,28 +456,31 @@ function Modules() {
   return (
     <section id="modules" className="py-20 px-6">
       <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-3">
-          <span
-            className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
-            style={{ color: accent, border: `1px solid ${accent}33` }}
+        <Reveal>
+          <div className="text-center mb-3">
+            <span
+              className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
+              style={{ color: accent, border: `1px solid ${accent}33` }}
+            >
+              What you can create
+            </span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
+            Start with the deliverable you need.
+          </h2>
+          <p
+            className="text-sm text-center max-w-2xl mx-auto mb-12 leading-relaxed"
+            style={{ color: textMuted }}
           >
-            What you can create
-          </span>
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
-          Start with the deliverable you need.
-        </h2>
-        <p
-          className="text-sm text-center max-w-2xl mx-auto mb-12 leading-relaxed"
-          style={{ color: textMuted }}
-        >
-          SoloStack is built around the tasks you repeat every week — not
-          abstract AI features.
-        </p>
+            SoloStack is built around the tasks you repeat every week — not
+            abstract AI features.
+          </p>
+        </Reveal>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {modules.map((m) => (
-            <GlowCard key={m.title} className="p-6">
+          {modules.map((m, i) => (
+            <Reveal key={m.title} delay={i * 120}>
+              <GlowCard className="p-6 transition-transform duration-300 hover:translate-y-[-4px]">
               {/* Gradient top border */}
               <div
                 className="absolute top-0 left-0 right-0 h-[2px]"
@@ -485,6 +499,7 @@ function Modules() {
                 </p>
               </div>
             </GlowCard>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -512,14 +527,17 @@ function IsIsNot() {
   return (
     <section className="py-20 px-6">
       <div className="max-w-5xl mx-auto">
-        <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10">
-          What SoloStack is — and what it{" "}
-          <span style={{ color: accent }}>is not.</span>
-        </h2>
+        <Reveal>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10">
+            What SoloStack is — and what it{" "}
+            <span style={{ color: accent }}>is not.</span>
+          </h2>
+        </Reveal>
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* IS card */}
-          <GlowCard className="p-6 sm:p-8">
+          <Reveal delay={0}>
+            <GlowCard className="p-6 sm:p-8 transition-transform duration-300 hover:translate-y-[-4px]">
             <h3 className="text-lg font-semibold text-white mb-5">
               SoloStack OS{" "}
               <span style={{ color: accentTeal }}>IS:</span>
@@ -539,28 +557,31 @@ function IsIsNot() {
               ))}
             </ul>
           </GlowCard>
+          </Reveal>
 
           {/* IS NOT card */}
-          <GlowCard className="p-6 sm:p-8">
-            <h3 className="text-lg font-semibold text-white mb-5">
-              SoloStack OS is{" "}
-              <span style={{ color: accent }}>NOT:</span>
-            </h3>
-            <ul className="space-y-3">
-              {isNotItems.map((item) => (
-                <li
-                  key={item}
-                  className="flex items-start gap-2.5 text-sm leading-relaxed"
-                  style={{ color: textMuted }}
-                >
-                  <span style={{ color: accent }} className="mt-0.5">
-                    &#10007;
-                  </span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </GlowCard>
+          <Reveal delay={150}>
+            <GlowCard className="p-6 sm:p-8 transition-transform duration-300 hover:translate-y-[-4px]">
+              <h3 className="text-lg font-semibold text-white mb-5">
+                SoloStack OS is{" "}
+                <span style={{ color: accent }}>NOT:</span>
+              </h3>
+              <ul className="space-y-3">
+                {isNotItems.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-start gap-2.5 text-sm leading-relaxed"
+                    style={{ color: textMuted }}
+                  >
+                    <span style={{ color: accent }} className="mt-0.5">
+                      &#10007;
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </GlowCard>
+          </Reveal>
         </div>
       </div>
     </section>
@@ -619,13 +640,14 @@ function Pricing() {
   return (
     <section id="pricing" className="py-20 px-6">
       <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-3">
-          <span
-            className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
-            style={{ color: accent, border: `1px solid ${accent}33` }}
-          >
-            Pricing
-          </span>
+        <Reveal>
+          <div className="text-center mb-3">
+            <span
+              className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
+              style={{ color: accent, border: `1px solid ${accent}33` }}
+            >
+              Pricing
+            </span>
         </div>
         <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
           Start free. Upgrade when SoloStack becomes part of your{" "}
@@ -639,9 +661,11 @@ function Pricing() {
           business context, use all 3 modules, and decide after you have real
           outputs in hand.
         </p>
+        </Reveal>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 items-center">
-          {plans.map((p) => (
+          {plans.map((p, i) => (
+            <Reveal key={p.name} delay={i * 120} variant={i === 1 ? "scale-in" : "fade-up"}>
             <div
               key={p.name}
               className="relative rounded-xl p-6 flex flex-col gap-5 transition-transform duration-300 hover:translate-y-[-2px]"
@@ -740,16 +764,19 @@ function Pricing() {
                 </a>
               )}
             </div>
+            </Reveal>
           ))}
         </div>
 
         {/* Top-up info */}
-        <p
-          className="text-center text-xs mt-8"
-          style={{ color: textMuted }}
-        >
-          Need more credits? Add 100 extra credits anytime for $9.
-        </p>
+        <Reveal delay={300}>
+          <p
+            className="text-center text-xs mt-8"
+            style={{ color: textMuted }}
+          >
+            Need more credits? Add 100 extra credits anytime for $9.
+          </p>
+        </Reveal>
       </div>
     </section>
   );
@@ -780,28 +807,31 @@ function Trust() {
   return (
     <section className="py-20 px-6">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-3">
-          <span
-            className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
-            style={{ color: accent, border: `1px solid ${accent}33` }}
+        <Reveal>
+          <div className="text-center mb-3">
+            <span
+              className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
+              style={{ color: accent, border: `1px solid ${accent}33` }}
+            >
+              What happens after signup
+            </span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
+            You don&rsquo;t need to &ldquo;set up a system&rdquo; to get value.
+          </h2>
+          <p
+            className="text-sm text-center max-w-2xl mx-auto mb-12 leading-relaxed"
+            style={{ color: textMuted }}
           >
-            What happens after signup
-          </span>
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
-          You don&rsquo;t need to &ldquo;set up a system&rdquo; to get value.
-        </h2>
-        <p
-          className="text-sm text-center max-w-2xl mx-auto mb-12 leading-relaxed"
-          style={{ color: textMuted }}
-        >
-          Sign up, add your business context, and run your first workflow. The
-          goal is fast first value — not a long implementation project.
-        </p>
+            Sign up, add your business context, and run your first workflow. The
+            goal is fast first value — not a long implementation project.
+          </p>
+        </Reveal>
 
         <div className="grid sm:grid-cols-3 gap-6">
-          {onboardingSteps.map((s) => (
-            <GlowCard key={s.step} className="p-5 text-center">
+          {onboardingSteps.map((s, i) => (
+            <Reveal key={s.step} delay={i * 120}>
+              <GlowCard className="p-5 text-center transition-transform duration-300 hover:translate-y-[-4px]">
               <div className="flex flex-col gap-3">
                 <span
                   className="text-2xl font-bold mx-auto w-10 h-10 flex items-center justify-center rounded-full"
@@ -818,6 +848,7 @@ function Trust() {
                 </p>
               </div>
             </GlowCard>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -865,10 +896,13 @@ function FAQ() {
   return (
     <section className="py-20 px-6">
       <div className="max-w-3xl mx-auto">
-        <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10">
-          Questions before you start?
-        </h2>
+        <Reveal>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10">
+            Questions before you start?
+          </h2>
+        </Reveal>
 
+        <Reveal delay={100}>
         <div className="space-y-3">
           {faqs.map((faq, i) => (
             <div
@@ -915,6 +949,7 @@ function FAQ() {
             </div>
           ))}
         </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -936,7 +971,7 @@ function FinalCTA() {
         scale={35}
         speed={65}
       />
-      <div className="relative z-10 max-w-xl mx-auto">
+      <Reveal className="relative z-10 max-w-xl mx-auto">
         <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
           <span style={{ color: accent }}>Stop restarting AI from zero</span> every time you work.
         </h2>
@@ -954,7 +989,7 @@ function FinalCTA() {
           <span style={{ color: accent }}>No credit card</span> required &middot; 60 credits included &middot; Cancel
           anytime
         </p>
-      </div>
+      </Reveal>
     </section>
   );
 }
