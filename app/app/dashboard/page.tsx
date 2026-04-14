@@ -251,6 +251,13 @@ export default function DashboardPage() {
     bootstrap();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Listen for "Restart tour" from sidebar
+  useEffect(() => {
+    const handler = () => setShowTour(true);
+    window.addEventListener("tour:restart", handler);
+    return () => window.removeEventListener("tour:restart", handler);
+  }, []);
+
   const handleCopy = useCallback(async (text: string, idx: number) => {
     await navigator.clipboard.writeText(text);
     setCopiedIdx(idx);

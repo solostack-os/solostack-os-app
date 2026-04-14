@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 
 const accent = "#6c8cff";
 const surface = "#111827";
@@ -162,7 +163,9 @@ export function ProductTour({ onComplete }: { onComplete: () => void }) {
     ...s,
   });
 
-  return (
+  // Portal to document.body so overlay escapes any parent stacking context
+  // (the dashboard wraps content in `isolation: isolate` which traps z-index)
+  return createPortal(
     <div
       style={{
         opacity: visible ? 1 : 0,
@@ -228,6 +231,7 @@ export function ProductTour({ onComplete }: { onComplete: () => void }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -480,7 +480,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ completed: false }),
-              }).then(() => window.location.reload());
+              });
+              window.dispatchEvent(new Event("tour:restart"));
             }}
             className="flex items-center gap-1.5 text-xs cursor-pointer transition-opacity opacity-50 hover:opacity-80"
             style={{ color: textMuted }}
