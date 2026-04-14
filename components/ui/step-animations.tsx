@@ -234,9 +234,9 @@ export function StepTwoAnimation() {
 function PdfIcon({ size = 14 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <rect x="4" y="2" width="16" height="20" rx="2" stroke="#ef4444" strokeWidth="1.5" fill="#ef444415" />
-      <path d="M8 7h8M8 10h8M8 13h5" stroke="#ef4444" strokeWidth="1" strokeLinecap="round" />
-      <rect x="13" y="15" width="5" height="3" rx="0.5" fill="#ef4444" />
+      <rect x="4" y="2" width="16" height="20" rx="2" stroke={accent} strokeWidth="1.5" fill={`${accent}15`} />
+      <path d="M8 7h8M8 10h8M8 13h5" stroke={accent} strokeWidth="1" strokeLinecap="round" />
+      <rect x="13" y="15" width="5" height="3" rx="0.5" fill={accent} />
       <text x="15.5" y="17.3" textAnchor="middle" fill="white" fontSize="2.5" fontWeight="bold">PDF</text>
     </svg>
   );
@@ -357,9 +357,9 @@ export function StepThreeAnimation() {
                 className="rounded-lg p-2.5 transition-all duration-500"
                 style={{
                   backgroundColor: `${surface}`,
-                  border: `1px solid ${isExported ? "#ef444440" : border}`,
+                  border: `1px solid ${isExported ? `${accent}40` : border}`,
                   boxShadow: isExported
-                    ? "0 4px 20px rgba(239,68,68,0.15), 0 0 40px rgba(239,68,68,0.05)"
+                    ? "0 4px 20px rgba(108,140,255,0.15), 0 0 40px rgba(108,140,255,0.05)"
                     : "0 4px 12px rgba(0,0,0,0.3)",
                 }}
               >
@@ -368,7 +368,7 @@ export function StepThreeAnimation() {
               <span
                 className="text-[8px] font-medium transition-all duration-300"
                 style={{
-                  color: isExported ? "#ef4444" : textMuted,
+                  color: isExported ? accent : textMuted,
                   opacity: isExported ? 1 : 0,
                 }}
               >
@@ -405,7 +405,7 @@ export function StepThreeAnimation() {
             className="text-[9px] px-2 py-0.5 rounded transition-all duration-300"
             style={{
               color: isExported ? bg : textMuted,
-              backgroundColor: isExported ? "#ef4444" : "transparent",
+              backgroundColor: isExported ? accent : "transparent",
               border: isExported ? "none" : `1px solid ${border}`,
             }}
           >
