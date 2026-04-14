@@ -189,8 +189,22 @@ function ProofStrip() {
         className="text-xs sm:text-sm tracking-wide"
         style={{ color: textMuted }}
       >
-        One business context&ensp;&middot;&ensp;14 workflows&ensp;&middot;&ensp;Marketing,
-        outreach &amp; operations in one workspace
+        One business context&ensp;&middot;&ensp;14 workflows&ensp;&middot;&ensp;3 modules&ensp;&middot;&ensp;Outputs in any language
+      </p>
+      <p
+        className="text-xs mt-2 tracking-wide"
+        style={{ color: `${textMuted}99` }}
+      >
+        Built by a solo operator for solo operators&ensp;&middot;&ensp;
+        <a
+          href="https://www.linkedin.com/company/advanguard"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="transition-opacity hover:opacity-80"
+          style={{ color: accent, textDecoration: "none" }}
+        >
+          Advanguard
+        </a>
       </p>
     </section>
   );
