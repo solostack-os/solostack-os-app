@@ -133,7 +133,6 @@ export default function DashboardPage() {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [exportingRunId, setExportingRunId] = useState<string | null>(null);
   const [showTour, setShowTour] = useState(false);
-  const [bootKey, setBootKey] = useState(0);
   const router = useRouter();
   const supabase = createClient();
 
@@ -147,13 +146,6 @@ export default function DashboardPage() {
     }
     window.addEventListener("pageshow", handlePageShow);
     return () => window.removeEventListener("pageshow", handlePageShow);
-  }, []);
-
-  // Re-run bootstrap when returning from onboarding
-  useEffect(() => {
-    const handler = () => { setLoading(true); setBootKey((k) => k + 1); };
-    window.addEventListener("onboarding:complete", handler);
-    return () => window.removeEventListener("onboarding:complete", handler);
   }, []);
 
   useEffect(() => {
@@ -221,11 +213,12 @@ export default function DashboardPage() {
       setWorkspaceName(workspace.name ?? "My Workspace");
       if (runs) setRecentRuns(runs as unknown as RecentRun[]);
 
-      // Tour: show for first-time users (DB flag + localStorage)
-      const dbFlag = (workspace as { tour_completed?: boolean }).tour_completed;
-      const lsFlag = localStorage.getItem("solostack_tour_completed");
-      const shouldShowTour = dbFlag !== true && lsFlag !== "true";
-      console.log("[dashboard] tour check:", { dbFlag, lsFlag, shouldShowTour });
+      // Tour: show for first-time users (DB flag + localStorage + onboarding flag)
+      const dbDone = (workspace as { tour_completed?: boolean }).tour_completed === true;
+      const lsDone = localStorage.getItem("solostack_tour_completed") === "true";
+      const freshFromOnboarding = sessionStorage.getItem("solostack_show_tour") === "1";
+      if (freshFromOnboarding) sessionStorage.removeItem("solostack_show_tour");
+      const shouldShowTour = freshFromOnboarding || (!dbDone && !lsDone);
 
       if (subscription) {
         const isTrial = subscription.plan_key === "trial";
@@ -259,7 +252,7 @@ export default function DashboardPage() {
     }
 
     bootstrap();
-  }, [bootKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Listen for "Restart tour" from sidebar
   useEffect(() => {

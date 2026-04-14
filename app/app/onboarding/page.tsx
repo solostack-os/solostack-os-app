@@ -108,7 +108,7 @@ export default function OnboardingPage() {
       return;
     }
 
-    window.dispatchEvent(new Event("onboarding:complete"));
+    sessionStorage.setItem("solostack_show_tour", "1");
     router.push("/app/dashboard");
   }
 
