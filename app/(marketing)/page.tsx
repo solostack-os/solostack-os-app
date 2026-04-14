@@ -197,13 +197,13 @@ function ProofStrip() {
       >
         Built by a solo operator for solo operators&ensp;&middot;&ensp;
         <a
-          href="https://www.linkedin.com/company/advanguard"
+          href="https://www.linkedin.com/in/stanescudragos/"
           target="_blank"
           rel="noopener noreferrer"
           className="transition-opacity hover:opacity-80"
           style={{ color: accent, textDecoration: "none" }}
         >
-          Advanguard
+          Meet the founder
         </a>
       </p>
     </section>
