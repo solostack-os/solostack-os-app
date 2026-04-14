@@ -11,7 +11,7 @@ const textMuted = "#94a3b8";
 
 /* ─── FIXED CARD DIMENSIONS — never changes across phases or modules ─── */
 const CARD_WIDTH = 480; // px, desktop; mobile uses 100%
-const CONTENT_HEIGHT = 380; // px, inner content area below top bar
+const CONTENT_HEIGHT = 400; // px, inner content area below top bar
 
 /* ─── Module colors (exact match with app sidebar) ─── */
 const moduleThemes = {
@@ -65,7 +65,7 @@ const demos: DemoScenario[] = [
     fields: [
       { type: "pills", label: "Platform", options: ["Instagram", "LinkedIn", "Facebook"], selected: 1 },
       { type: "topic", label: "Topic", value: "Launch announcement for our new brand strategy service", placeholder: "e.g. Why small businesses need a content strategy" },
-      { type: "number", label: "Number of posts", options: ["1", "2", "3"], selected: 1 },
+      { type: "number", label: "Number of posts", options: ["1", "2", "3"], selected: 2 },
     ],
     suggestions: [
       "Launch announcement for our new brand strategy service",
@@ -80,6 +80,10 @@ const demos: DemoScenario[] = [
       {
         label: "Post 2",
         text: "Most solo founders skip brand strategy because it sounds expensive. We made it practical: clear positioning, real messaging, and a plan you can execute on.",
+      },
+      {
+        label: "Post 3",
+        text: "Your brand isn\u2019t your logo. It\u2019s how people feel when they hear your name. We help you define that \u2014 then turn it into content that converts.",
       },
     ],
   },
@@ -99,7 +103,7 @@ const demos: DemoScenario[] = [
       },
       {
         label: "Email",
-        text: "Hi Sarah,\n\nI noticed Bloom Studio shifted toward video-first content \u2014 smart move for the agency space.\n\nWe help marketing teams turn one brief into a full cross-platform campaign. Worth a quick 15-min call?\n\nHappy to share how it works.",
+        text: "Hi Sarah,\n\nI noticed Bloom Studio shifted toward video-first content this quarter \u2014 smart move for the agency space.\n\nWe help marketing teams turn one content brief into a full cross-platform campaign without the back-and-forth. Figured it might be worth a quick 15-minute call?\n\nHappy to share how it works if you\u2019re open to it.",
       },
     ],
   },
@@ -114,11 +118,11 @@ const demos: DemoScenario[] = [
     outputs: [
       {
         label: "Timeline",
-        text: "Week 1\u20132: Discovery & brand audit\nWeek 3\u20134: Strategy & concept development\nWeek 5: Refinement & revisions\nWeek 6: Final delivery & handoff",
+        text: "Week 1\u20132: Discovery & brand audit\nWeek 3\u20134: Strategy & concept development\nWeek 5: Refinement & revisions\nWeek 6: Final delivery & asset handoff",
       },
       {
         label: "Next steps",
-        text: "1. Schedule kickoff call (before May 1)\n2. Share existing brand assets\n3. Complete brand intake questionnaire\n4. Confirm milestone review dates",
+        text: "1. Schedule kickoff call (before May 1)\n2. Share existing brand assets via shared folder\n3. Complete brand intake questionnaire\n4. Confirm milestone review dates\n5. Set up Slack channel for async updates",
       },
     ],
   },
@@ -330,7 +334,8 @@ export function HeroDemo() {
         {/* ── Content area — FIXED height, overflow hidden ── */}
         <div className="p-4 sm:p-5 overflow-hidden" style={{ height: CONTENT_HEIGHT }}>
           {showForm ? (
-            <div className="space-y-3">
+            <div className="flex flex-col h-full" style={{ height: CONTENT_HEIGHT - 40 }}>
+              <div className="space-y-3 flex-shrink-0">
               {demo.fields.map((field, fi) => (
                 <div key={`${activeIndex}-${fi}`}>
                   <p className="text-[12px] font-medium mb-1.5" style={{ color: textPrimary }}>{field.label}</p>
@@ -429,9 +434,10 @@ export function HeroDemo() {
                   )}
                 </div>
               ))}
+              </div>
 
-              {/* Generate button */}
-              <div className="relative group mt-1" ref={isCursorFlow ? generateRef : undefined}>
+              {/* Generate button — pinned to bottom via mt-auto */}
+              <div className="relative group mt-auto" ref={isCursorFlow ? generateRef : undefined}>
                 {!isGenerating && (
                   <div className="absolute -inset-1 rounded-2xl blur-xl opacity-40" style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.light})` }} />
                 )}
