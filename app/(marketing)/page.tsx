@@ -535,9 +535,11 @@ Here's what changed for me: I stopped trying to be creative from scratch and sta
 
 One business context. One workflow. Draft ready in 2 minutes.
 
-The content isn't the bottleneck. The blank page is.
+The content isn't the bottleneck anymore. The blank page is. And once you remove the blank page, you realize you had more to say than you thought.
 
-#ConsultingLife #SmallBusinessGrowth`,
+Three posts. One sitting. All on-brand.
+
+#ConsultingLife #SmallBusinessGrowth #ContentStrategy`,
   },
   {
     module: "Outreach OS",
@@ -549,9 +551,14 @@ Hi Sarah,
 
 I noticed Bloom Studio recently expanded into brand strategy — congrats on the growth.
 
-We help design agencies turn one brief into a full cross-platform campaign without the back-and-forth. Figured it might be worth a quick 15-minute call?
+We help design agencies turn one brief into a full cross-platform campaign without the back-and-forth. Instead of 3 rounds of revisions, your team gets a structured first draft that's already on-brand.
 
-Happy to share how it works if you're open to it.`,
+Figured it might be worth a quick 15-minute call to see if it fits your workflow?
+
+Happy to share a 2-min walkthrough if you're open to it. Either way, congrats again on the expansion.
+
+Best,
+Alex`,
   },
   {
     module: "Operations OS",
@@ -559,13 +566,17 @@ Happy to share how it works if you're open to it.`,
     accent: accentOrange,
     content: `SOP: Client Onboarding
 
-Purpose: Standardize the first 7 days of every new client engagement.
+Purpose: Standardize the first 7 days of every new client engagement to ensure consistent delivery and a professional first impression.
 
-Step 1: Send welcome email with project timeline and shared folder link within 2 hours of contract signing.
+Step 1: Send welcome email with project timeline and shared folder link within 2 hours of contract signing. Use the Welcome Email template.
 
-Step 2: Schedule kickoff call for Day 2-3. Share agenda template in advance.
+Step 2: Schedule kickoff call for Day 2-3. Share agenda template in advance. Confirm attendees from both sides.
 
-Step 3: Send brand intake questionnaire...`,
+Step 3: Send brand intake questionnaire within 24 hours of kickoff. Include tone of voice, visual guidelines, and competitor references.
+
+Step 4: Create internal project channel and assign team leads by end of Day 3. Pin the project brief and timeline.
+
+Step 5: Deliver first draft or audit within 5 business days. Send via shared folder with a summary email.`,
   },
 ];
 
