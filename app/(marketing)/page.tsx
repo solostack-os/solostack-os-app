@@ -593,7 +593,7 @@ function OutputExamples() {
           </p>
         </Reveal>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-6" style={{ gridAutoRows: "1fr" }}>
           {outputExamples.map((ex, i) => (
             <Reveal key={ex.module} delay={i * 120}>
               <div
@@ -603,10 +603,14 @@ function OutputExamples() {
                   border: `1px solid ${border}`,
                 }}
               >
-                {/* Color top bar */}
+                {/* Color top bar — thicker with subtle glow */}
                 <div
-                  className="h-[3px] flex-shrink-0"
-                  style={{ background: `linear-gradient(90deg, ${ex.accent}, ${ex.accent}60)` }}
+                  className="flex-shrink-0"
+                  style={{
+                    height: 4,
+                    background: `linear-gradient(90deg, ${ex.accent}, ${ex.accent}60)`,
+                    boxShadow: `0 2px 12px ${ex.accent}30, 0 1px 4px ${ex.accent}20`,
+                  }}
                 />
 
                 {/* Header */}
@@ -619,16 +623,16 @@ function OutputExamples() {
                     <span style={{ color: textMuted }}>·</span>{" "}
                     <span style={{ color: textMuted }}>{ex.type}</span>
                   </span>
-                  {/* Decorative copy/export icons */}
-                  <div className="flex items-center gap-2">
+                  {/* Decorative icons — muted to signal non-interactive */}
+                  <div className="flex items-center gap-2" style={{ opacity: 0.4 }}>
                     <span
-                      className="text-[9px] px-1.5 py-0.5 rounded"
+                      className="text-[8px] px-1.5 py-0.5 rounded"
                       style={{ color: textMuted, border: `1px solid ${border}` }}
                     >
                       Copy
                     </span>
                     <span
-                      className="text-[9px] px-1.5 py-0.5 rounded"
+                      className="text-[8px] px-1.5 py-0.5 rounded"
                       style={{ color: textMuted, border: `1px solid ${border}` }}
                     >
                       PDF
@@ -636,20 +640,24 @@ function OutputExamples() {
                   </div>
                 </div>
 
-                {/* Output content */}
-                <div className="px-4 pt-4 pb-0 flex-1 relative">
+                {/* Output content — monospace, darker bg to feel like app output */}
+                <div
+                  className="px-4 pt-4 pb-0 flex-1 relative overflow-hidden"
+                  style={{ maxHeight: 240 }}
+                >
                   <div
-                    className="text-[12px] leading-[1.7] whitespace-pre-line"
+                    className="text-[11px] leading-[1.75] whitespace-pre-line"
                     style={{
-                      color: "#cbd5e1",
-                      fontFamily: "monospace",
+                      color: "#94a3b8",
+                      fontFamily: "'Courier New', Courier, monospace",
+                      letterSpacing: "-0.01em",
                     }}
                   >
                     {ex.content}
                   </div>
-                  {/* Fade-out gradient at bottom */}
+                  {/* Fade-out gradient on all cards */}
                   <div
-                    className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none"
+                    className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none"
                     style={{
                       background: `linear-gradient(to bottom, transparent, ${surface})`,
                     }}
