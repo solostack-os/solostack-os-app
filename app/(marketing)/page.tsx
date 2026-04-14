@@ -521,6 +521,166 @@ function Modules() {
 }
 
 /* ════════════════════════════════════════════════════════════
+   SECTION 6B — OUTPUT EXAMPLES
+   ════════════════════════════════════════════════════════════ */
+const outputExamples = [
+  {
+    module: "Marketing OS",
+    type: "Social Post",
+    accent: accent,
+    content: `Most consultants spend Monday morning staring at a blank content calendar.
+
+Here's what changed for me: I stopped trying to be creative from scratch and started with a system.
+
+One business context. One workflow. Draft ready in 2 minutes.
+
+The content isn't the bottleneck. The blank page is.
+
+#ConsultingLife #SmallBusinessGrowth`,
+  },
+  {
+    module: "Outreach OS",
+    type: "Cold Email",
+    accent: accentTeal,
+    content: `Subject: Quick question about your content workflow
+
+Hi Sarah,
+
+I noticed Bloom Studio recently expanded into brand strategy — congrats on the growth.
+
+We help design agencies turn one brief into a full cross-platform campaign without the back-and-forth. Figured it might be worth a quick 15-minute call?
+
+Happy to share how it works if you're open to it.`,
+  },
+  {
+    module: "Operations OS",
+    type: "SOP",
+    accent: accentOrange,
+    content: `SOP: Client Onboarding
+
+Purpose: Standardize the first 7 days of every new client engagement.
+
+Step 1: Send welcome email with project timeline and shared folder link within 2 hours of contract signing.
+
+Step 2: Schedule kickoff call for Day 2-3. Share agenda template in advance.
+
+Step 3: Send brand intake questionnaire...`,
+  },
+];
+
+function OutputExamples() {
+  return (
+    <section className="py-20 px-6">
+      <div className="max-w-5xl mx-auto">
+        <Reveal>
+          <div className="text-center mb-3">
+            <span
+              className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
+              style={{ color: accent, border: `1px solid ${accent}33` }}
+            >
+              Real Output
+            </span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
+            See what SoloStack{" "}
+            <span style={{ color: accent }}>actually produces.</span>
+          </h2>
+          <p
+            className="text-sm text-center max-w-2xl mx-auto mb-12 leading-relaxed"
+            style={{ color: textMuted }}
+          >
+            Every output uses your business context. No generic templates.
+          </p>
+        </Reveal>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {outputExamples.map((ex, i) => (
+            <Reveal key={ex.module} delay={i * 120}>
+              <div
+                className="h-full rounded-xl overflow-hidden flex flex-col transition-transform duration-300 hover:translate-y-[-4px]"
+                style={{
+                  backgroundColor: surface,
+                  border: `1px solid ${border}`,
+                }}
+              >
+                {/* Color top bar */}
+                <div
+                  className="h-[3px] flex-shrink-0"
+                  style={{ background: `linear-gradient(90deg, ${ex.accent}, ${ex.accent}60)` }}
+                />
+
+                {/* Header */}
+                <div
+                  className="px-4 py-3 flex items-center justify-between flex-shrink-0"
+                  style={{ borderBottom: `1px solid ${border}` }}
+                >
+                  <span className="text-[11px] font-medium" style={{ color: ex.accent }}>
+                    {ex.module}{" "}
+                    <span style={{ color: textMuted }}>·</span>{" "}
+                    <span style={{ color: textMuted }}>{ex.type}</span>
+                  </span>
+                  {/* Decorative copy/export icons */}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="text-[9px] px-1.5 py-0.5 rounded"
+                      style={{ color: textMuted, border: `1px solid ${border}` }}
+                    >
+                      Copy
+                    </span>
+                    <span
+                      className="text-[9px] px-1.5 py-0.5 rounded"
+                      style={{ color: textMuted, border: `1px solid ${border}` }}
+                    >
+                      PDF
+                    </span>
+                  </div>
+                </div>
+
+                {/* Output content */}
+                <div className="px-4 pt-4 pb-0 flex-1 relative">
+                  <div
+                    className="text-[12px] leading-[1.7] whitespace-pre-line"
+                    style={{
+                      color: "#cbd5e1",
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    {ex.content}
+                  </div>
+                  {/* Fade-out gradient at bottom */}
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none"
+                    style={{
+                      background: `linear-gradient(to bottom, transparent, ${surface})`,
+                    }}
+                  />
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <Reveal delay={400}>
+          <div className="text-center mt-12">
+            <a
+              href="/auth/signup"
+              className="inline-block text-sm font-medium px-6 py-3 transition-opacity hover:opacity-90"
+              style={{ backgroundColor: accent, color: bg, borderRadius: 10 }}
+            >
+              Start Your 7-Day Free Trial
+            </a>
+            <p className="text-xs mt-3" style={{ color: textMuted }}>
+              Generate your first output in under a minute.
+            </p>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════
    SECTION 7 — WHAT THIS IS / WHAT THIS IS NOT
    ════════════════════════════════════════════════════════════ */
 function IsIsNot() {
@@ -1072,6 +1232,7 @@ export default function MarketingPage() {
       <ProblemSection />
       <HowItWorks />
       <Modules />
+      <OutputExamples />
       <IsIsNot />
       <Trust />
       <Pricing />
