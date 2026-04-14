@@ -213,11 +213,9 @@ export default function DashboardPage() {
       setWorkspaceName(workspace.name ?? "My Workspace");
       if (runs) setRecentRuns(runs as unknown as RecentRun[]);
 
-      // Tour: check DB flag + localStorage
+      // Tour: show for first-time users (DB flag + localStorage)
       const tourCompleted = (workspace as { tour_completed?: boolean }).tour_completed === true;
-      const localFlag = localStorage.getItem("solostack_tour_completed");
-      const shouldShowTour = !tourCompleted && localFlag !== "true";
-      console.log("Tour auto-start check:", { workspaceTourCompleted: tourCompleted, localStorage: localFlag, shouldShowTour });
+      const shouldShowTour = !tourCompleted && localStorage.getItem("solostack_tour_completed") !== "true";
 
       if (subscription) {
         const isTrial = subscription.plan_key === "trial";
@@ -473,7 +471,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ─── Quick Generate CTA ─── */}
-        <div style={fadeUp(1)} className="mb-16">
+        <div style={fadeUp(1)} className="mb-16" data-tour="main-content">
           <GlowCard glowColor="blue">
             <div className="p-8 sm:p-10" style={{ backgroundColor: "rgba(17,24,39,0.8)", borderRadius: "inherit" }}>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">

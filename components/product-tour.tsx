@@ -73,7 +73,6 @@ export function ProductTour({ onComplete }: { onComplete: () => void }) {
     const el = document.querySelector(selector);
     if (el) {
       const r = el.getBoundingClientRect();
-      console.log(`[tour] step ${idx} selector="${selector}" rect=`, { top: r.top, left: r.left, width: r.width, height: r.height });
       setSpot({
         top: r.top - pad,
         left: r.left - pad,
@@ -81,7 +80,7 @@ export function ProductTour({ onComplete }: { onComplete: () => void }) {
         height: r.height + pad * 2,
       });
     } else {
-      console.warn(`[tour] step ${idx} selector="${selector}" NOT FOUND, using fallback`);
+      console.warn(`[tour] element not found: ${selector}`);
       setSpot({
         top: window.innerHeight / 3,
         left: window.innerWidth / 4,
@@ -132,23 +131,25 @@ export function ProductTour({ onComplete }: { onComplete: () => void }) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
-  // Tooltip positioning
+  // Tooltip positioning with boundary clamping
+  const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+  const tw = 340;
+  const th = 220; // estimated tooltip height
+  const margin = 80;
+
   let tooltipStyle: React.CSSProperties;
   if (mobile) {
     tooltipStyle = { position: "fixed", bottom: 72, left: 16, right: 16, zIndex: 70 };
   } else {
     const spaceRight = vw - (spot.left + spot.width + 16);
-    const tw = 340;
     if (spaceRight >= tw) {
-      let top = spot.top;
-      if (top > vh - 220) top = vh - 220;
-      if (top < 16) top = 16;
-      tooltipStyle = { position: "fixed", top, left: spot.left + spot.width + 16, width: tw, zIndex: 70 };
+      const top = clamp(spot.top, margin, vh - th - margin);
+      const left = clamp(spot.left + spot.width + 16, margin, vw - tw - margin);
+      tooltipStyle = { position: "fixed", top, left, width: tw, zIndex: 70 };
     } else {
-      let left = spot.left;
-      if (left + tw > vw - 16) left = vw - tw - 16;
-      if (left < 16) left = 16;
-      tooltipStyle = { position: "fixed", top: spot.top + spot.height + 16, left, width: tw, zIndex: 70 };
+      const top = clamp(spot.top + spot.height + 16, margin, vh - th - margin);
+      const left = clamp(spot.left, margin, vw - tw - margin);
+      tooltipStyle = { position: "fixed", top, left, width: tw, zIndex: 70 };
     }
   }
 

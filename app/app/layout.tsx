@@ -366,8 +366,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="mx-5 mt-6 mb-2 h-px" style={{ backgroundColor: border }} />
 
         {/* Recent runs */}
-        <div className="flex-1 px-3 flex flex-col min-h-0" data-tour="recents">
-          <div className="group/recents flex items-center gap-1 px-4 mb-2 flex-shrink-0">
+        <div className="flex-1 px-3 flex flex-col min-h-0">
+          <div className="group/recents flex items-center gap-1 px-4 mb-2 flex-shrink-0" data-tour="recents">
             <button
               onClick={() => setRecentsOpen((v) => !v)}
               className="flex items-center gap-1.5 cursor-pointer"
@@ -517,7 +517,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* ─── Main content ─── */}
-      <main id="app-layout-main" data-tour="main-content" className="flex-1 md:ml-80 pt-[52px] md:pt-0 pb-20 md:pb-0">
+      <main id="app-layout-main" className="flex-1 md:ml-80 pt-[52px] md:pt-0 pb-20 md:pb-0">
         {children}
       </main>
 
