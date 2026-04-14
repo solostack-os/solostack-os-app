@@ -22,6 +22,8 @@ const contextFields = [
   { label: "Tone", value: "Professional, warm" },
 ];
 
+const CARD_HEIGHT = 200; // px — shared across all 3 step animations
+
 export function StepOneAnimation() {
   const [filledCount, setFilledCount] = useState(0);
   const [showCheck, setShowCheck] = useState(false);
@@ -45,12 +47,12 @@ export function StepOneAnimation() {
 
   return (
     <div
-      className="rounded-lg overflow-hidden mt-4"
-      style={{ backgroundColor: surface, border: `1px solid ${border}` }}
+      className="rounded-lg overflow-hidden mt-4 flex flex-col"
+      style={{ backgroundColor: surface, border: `1px solid ${border}`, height: CARD_HEIGHT }}
     >
       {/* Mini top bar */}
       <div
-        className="flex items-center gap-1.5 px-3 py-1.5"
+        className="flex items-center gap-1.5 px-3 py-1.5 flex-shrink-0"
         style={{ borderBottom: `1px solid ${border}` }}
       >
         <span className="w-1.5 h-1.5 rounded-full bg-white/10" />
@@ -61,7 +63,7 @@ export function StepOneAnimation() {
         </span>
       </div>
 
-      <div className="p-3 space-y-2">
+      <div className="p-3 space-y-2 flex-1">
         {contextFields.map((field, i) => (
           <div key={field.label} className="flex items-center gap-2">
             <span
@@ -95,7 +97,7 @@ export function StepOneAnimation() {
 
       {/* Save bar */}
       <div
-        className="px-3 py-2 flex justify-end transition-opacity duration-500"
+        className="px-3 py-2 flex justify-end transition-opacity duration-500 flex-shrink-0 mt-auto"
         style={{
           borderTop: `1px solid ${border}`,
           opacity: showCheck ? 1 : 0.3,
@@ -147,12 +149,12 @@ export function StepTwoAnimation() {
 
   return (
     <div
-      className="rounded-lg overflow-hidden mt-4"
-      style={{ backgroundColor: surface, border: `1px solid ${border}` }}
+      className="rounded-lg overflow-hidden mt-4 flex flex-col"
+      style={{ backgroundColor: surface, border: `1px solid ${border}`, height: CARD_HEIGHT }}
     >
       {/* Mini top bar */}
       <div
-        className="flex items-center gap-1.5 px-3 py-1.5"
+        className="flex items-center gap-1.5 px-3 py-1.5 flex-shrink-0"
         style={{ borderBottom: `1px solid ${border}` }}
       >
         <span className="w-1.5 h-1.5 rounded-full bg-white/10" />
@@ -163,7 +165,7 @@ export function StepTwoAnimation() {
         </span>
       </div>
 
-      <div className="p-3 space-y-1.5">
+      <div className="p-3 space-y-1.5 flex-1">
         {moduleOptions.map((mod, i) => {
           const isActive = i === activeModule;
           return (
@@ -203,7 +205,7 @@ export function StepTwoAnimation() {
 
       {/* Workflow preview */}
       <div
-        className="px-3 py-2 transition-all duration-500"
+        className="px-3 py-2 transition-all duration-500 flex-shrink-0 mt-auto"
         style={{
           borderTop: `1px solid ${border}`,
           opacity: selectedWorkflow ? 1 : 0.3,
@@ -245,12 +247,12 @@ export function StepThreeAnimation() {
 
   return (
     <div
-      className="rounded-lg overflow-hidden mt-4"
-      style={{ backgroundColor: surface, border: `1px solid ${border}` }}
+      className="rounded-lg overflow-hidden mt-4 flex flex-col"
+      style={{ backgroundColor: surface, border: `1px solid ${border}`, height: CARD_HEIGHT }}
     >
       {/* Mini top bar */}
       <div
-        className="flex items-center gap-1.5 px-3 py-1.5"
+        className="flex items-center gap-1.5 px-3 py-1.5 flex-shrink-0"
         style={{ borderBottom: `1px solid ${border}` }}
       >
         <span className="w-1.5 h-1.5 rounded-full bg-white/10" />
@@ -261,7 +263,7 @@ export function StepThreeAnimation() {
         </span>
       </div>
 
-      <div className="p-3">
+      <div className="p-3 flex-1 flex flex-col justify-center">
         {phase === "idle" && (
           <div className="flex items-center justify-center py-6">
             <span className="text-[9px]" style={{ color: textMuted }}>
@@ -321,7 +323,7 @@ export function StepThreeAnimation() {
 
       {/* Export bar */}
       <div
-        className="px-3 py-2 flex justify-between items-center transition-all duration-500"
+        className="px-3 py-2 flex justify-between items-center transition-all duration-500 flex-shrink-0 mt-auto"
         style={{
           borderTop: `1px solid ${border}`,
           opacity: phase === "output" || phase === "exported" ? 1 : 0.3,
