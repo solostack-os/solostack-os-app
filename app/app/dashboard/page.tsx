@@ -150,9 +150,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function bootstrap() {
-      // ── Step 1: Bootstrap (auth is validated server-side, returns workspace_id) ──
-      // We skip a client-side auth.getUser() call here — the POST endpoint reads
-      // the session cookie directly, saving one full network roundtrip.
+      console.time("dashboard-load");
+
       const bootstrapRes = await fetch("/api/workspace/bootstrap", { method: "POST" });
 
       if (!bootstrapRes.ok) {
@@ -214,11 +213,11 @@ export default function DashboardPage() {
       setWorkspaceName(workspace.name ?? "My Workspace");
       if (runs) setRecentRuns(runs as unknown as RecentRun[]);
 
-      // Tour decision — applied after setLoading(false) so the layout DOM exists
+      // Tour: check DB flag + localStorage
       const tourCompleted = (workspace as { tour_completed?: boolean }).tour_completed === true;
-      const localDone = localStorage.getItem("solostack_tour_completed") === "true";
-      const shouldShowTour = !tourCompleted && !localDone;
-      console.log("Tour check:", { tourCompleted, localDone, shouldShowTour });
+      const localFlag = localStorage.getItem("solostack_tour_completed");
+      const shouldShowTour = !tourCompleted && localFlag !== "true";
+      console.log("Tour auto-start check:", { workspaceTourCompleted: tourCompleted, localStorage: localFlag, shouldShowTour });
 
       if (subscription) {
         const isTrial = subscription.plan_key === "trial";
@@ -246,6 +245,7 @@ export default function DashboardPage() {
         setRunsUsed(runsCount ?? 0);
       }
 
+      console.timeEnd("dashboard-load");
       setLoading(false);
       if (shouldShowTour) setShowTour(true);
     }

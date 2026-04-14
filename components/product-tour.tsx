@@ -47,60 +47,53 @@ const STEPS: TourStep[] = [
   },
 ];
 
-interface Rect {
-  top: number;
-  left: number;
-  width: number;
-  height: number;
-}
-
-function getRect(el: Element): Rect {
-  const r = el.getBoundingClientRect();
-  return { top: r.top, left: r.left, width: r.width, height: r.height };
-}
+interface Rect { top: number; left: number; width: number; height: number }
 
 function isMobile() {
-  return window.innerWidth < 768;
+  return typeof window !== "undefined" && window.innerWidth < 768;
 }
 
 export function ProductTour({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState(0);
-  const [targetRect, setTargetRect] = useState<Rect | null>(null);
+  const [spot, setSpot] = useState<Rect | null>(null);
   const [visible, setVisible] = useState(false);
   const pad = 8;
 
   const finish = useCallback(() => {
     setVisible(false);
-    // Mark complete in localStorage immediately
     localStorage.setItem("solostack_tour_completed", "true");
-    // Fire API call
     fetch("/api/workspace/tour-complete", { method: "POST" }).catch(() => {});
-    // Short delay for fade-out, then unmount
-    setTimeout(onComplete, 200);
+    setTimeout(onComplete, 250);
   }, [onComplete]);
 
-  const measure = useCallback(
-    (idx: number) => {
-      const s = STEPS[idx];
-      const mobile = isMobile();
-      const selector = mobile && s.mobileTarget ? s.mobileTarget : s.target;
-      const el = document.querySelector(selector);
-      if (el) {
-        setTargetRect(getRect(el));
-      } else { // Fallback: center of screen
-        setTargetRect({ top: window.innerHeight / 3, left: window.innerWidth / 4, width: window.innerWidth / 2, height: 120 });
-      }
-    },
-    [],
-  );
+  const measure = useCallback((idx: number) => {
+    const s = STEPS[idx];
+    const mobile = isMobile();
+    const selector = mobile && s.mobileTarget ? s.mobileTarget : s.target;
+    const el = document.querySelector(selector);
+    if (el) {
+      const r = el.getBoundingClientRect();
+      console.log(`[tour] step ${idx} selector="${selector}" rect=`, { top: r.top, left: r.left, width: r.width, height: r.height });
+      setSpot({
+        top: r.top - pad,
+        left: r.left - pad,
+        width: r.width + pad * 2,
+        height: r.height + pad * 2,
+      });
+    } else {
+      console.warn(`[tour] step ${idx} selector="${selector}" NOT FOUND, using fallback`);
+      setSpot({
+        top: window.innerHeight / 3,
+        left: window.innerWidth / 4,
+        width: window.innerWidth / 2,
+        height: 120,
+      });
+    }
+  }, []);
 
-  // Initial mount
+  // Mount: delay then show
   useEffect(() => {
-    // Small delay so layout settles
-    const t = setTimeout(() => {
-      measure(0);
-      setVisible(true);
-    }, 300);
+    const t = setTimeout(() => { measure(0); setVisible(true); }, 400);
     return () => clearTimeout(t);
   }, [measure]);
 
@@ -111,121 +104,91 @@ export function ProductTour({ onComplete }: { onComplete: () => void }) {
     return () => window.removeEventListener("resize", handler);
   }, [step, measure]);
 
-  // Escape key
+  // Escape to dismiss
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") finish();
-    };
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") finish(); };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [finish]);
 
-  const advance = () => {
+  const advance = useCallback(() => {
     if (step >= STEPS.length - 1) {
       finish();
     } else {
       const next = step + 1;
       setStep(next);
-      measure(next);
+      // Small delay so DOM can settle if layout shifts
+      requestAnimationFrame(() => measure(next));
     }
-  };
+  }, [step, finish, measure]);
 
-  if (!targetRect) return null;
+  if (!spot) return null;
 
   const mobile = isMobile();
   const current = STEPS[step];
-  const description =
-    mobile && current.mobileDescription
-      ? current.mobileDescription
-      : current.description;
+  const desc = mobile && current.mobileDescription ? current.mobileDescription : current.description;
   const isLast = step === STEPS.length - 1;
 
-  const spot = {
-    top: targetRect.top - pad,
-    left: targetRect.left - pad,
-    width: targetRect.width + pad * 2,
-    height: targetRect.height + pad * 2,
-  };
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
 
   // Tooltip positioning
   let tooltipStyle: React.CSSProperties;
   if (mobile) {
-    // Centered above bottom nav
-    tooltipStyle = {
-      position: "fixed",
-      bottom: 72,
-      left: 16,
-      right: 16,
-    };
+    tooltipStyle = { position: "fixed", bottom: 72, left: 16, right: 16, zIndex: 70 };
   } else {
-    // Position to the right of the target, or below if not enough space
-    const spaceRight = window.innerWidth - (spot.left + spot.width + 16);
-    const tooltipWidth = 340;
-
-    if (spaceRight >= tooltipWidth) {
-      // Right of target
+    const spaceRight = vw - (spot.left + spot.width + 16);
+    const tw = 340;
+    if (spaceRight >= tw) {
       let top = spot.top;
-      // Clamp so tooltip doesn't overflow bottom
-      const maxTop = window.innerHeight - 220;
-      if (top > maxTop) top = maxTop;
+      if (top > vh - 220) top = vh - 220;
       if (top < 16) top = 16;
-      tooltipStyle = {
-        position: "fixed",
-        top,
-        left: spot.left + spot.width + 16,
-        width: tooltipWidth,
-      };
+      tooltipStyle = { position: "fixed", top, left: spot.left + spot.width + 16, width: tw, zIndex: 70 };
     } else {
-      // Below target
       let left = spot.left;
-      if (left + tooltipWidth > window.innerWidth - 16) {
-        left = window.innerWidth - tooltipWidth - 16;
-      }
+      if (left + tw > vw - 16) left = vw - tw - 16;
       if (left < 16) left = 16;
-      tooltipStyle = {
-        position: "fixed",
-        top: spot.top + spot.height + 16,
-        left,
-        width: tooltipWidth,
-      };
+      tooltipStyle = { position: "fixed", top: spot.top + spot.height + 16, left, width: tw, zIndex: 70 };
     }
   }
 
-  const overlayBg = "rgba(0,0,0,0.6)";
-  const vw = typeof window !== "undefined" ? window.innerWidth : 0;
-  const vh = typeof window !== "undefined" ? window.innerHeight : 0;
+  // Overlay style helper — each panel gets explicit z-index
+  const ov = (s: React.CSSProperties): React.CSSProperties => ({
+    position: "fixed" as const,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    zIndex: 60,
+    transition: "all 250ms ease",
+    ...s,
+  });
 
   return (
     <div
-      className="fixed inset-0 z-[60]"
       style={{
         opacity: visible ? 1 : 0,
-        transition: "opacity 200ms ease",
+        transition: "opacity 250ms ease",
         pointerEvents: visible ? "auto" : "none",
       }}
-      onClick={finish}
     >
-      {/* 4-div overlay: top, bottom, left, right around the spotlight cutout */}
-      {/* Top */}
-      <div className="fixed left-0 w-full" style={{ top: 0, height: Math.max(0, spot.top), backgroundColor: overlayBg, transition: "all 200ms ease" }} />
-      {/* Bottom */}
-      <div className="fixed left-0 w-full" style={{ top: spot.top + spot.height, height: Math.max(0, vh - spot.top - spot.height), backgroundColor: overlayBg, transition: "all 200ms ease" }} />
-      {/* Left */}
-      <div className="fixed" style={{ top: spot.top, left: 0, width: Math.max(0, spot.left), height: spot.height, backgroundColor: overlayBg, transition: "all 200ms ease" }} />
-      {/* Right */}
-      <div className="fixed" style={{ top: spot.top, left: spot.left + spot.width, width: Math.max(0, vw - spot.left - spot.width), height: spot.height, backgroundColor: overlayBg, transition: "all 200ms ease" }} />
+      {/* 4-panel overlay around the spotlight cutout */}
+      <div style={ov({ top: 0, left: 0, right: 0, height: Math.max(0, spot.top) })} onClick={finish} />
+      <div style={ov({ top: spot.top + spot.height, left: 0, right: 0, bottom: 0, height: Math.max(0, vh - spot.top - spot.height) })} onClick={finish} />
+      <div style={ov({ top: spot.top, left: 0, width: Math.max(0, spot.left), height: spot.height })} onClick={finish} />
+      <div style={ov({ top: spot.top, left: spot.left + spot.width, width: Math.max(0, vw - spot.left - spot.width), height: spot.height })} onClick={finish} />
 
       {/* Spotlight glow ring */}
       <div
-        className="fixed rounded-xl pointer-events-none"
         style={{
+          position: "fixed",
+          zIndex: 61,
           top: spot.top - 2,
           left: spot.left - 2,
           width: spot.width + 4,
           height: spot.height + 4,
-          border: `2px solid ${accent}50`,
-          boxShadow: `0 0 0 1px ${accent}25, 0 0 24px ${accent}35, inset 0 0 12px ${accent}15`,
-          transition: "all 200ms ease",
+          borderRadius: 12,
+          border: `2px solid rgba(108,140,255,0.35)`,
+          boxShadow: `0 0 0 1px rgba(108,140,255,0.15), 0 0 30px rgba(108,140,255,0.25)`,
+          pointerEvents: "none",
+          transition: "all 250ms ease",
         }}
       />
 
@@ -235,28 +198,17 @@ export function ProductTour({ onComplete }: { onComplete: () => void }) {
         className="rounded-2xl border overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Accent bar */}
-        <div
-          className="h-[2px]"
-          style={{ background: `linear-gradient(90deg, ${accent}, #818cf8)` }}
-        />
+        <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, #818cf8)` }} />
         <div className="p-5" style={{ backgroundColor: surface }}>
-          {/* Step counter */}
           <p className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: textMuted }}>
             {step + 1} of {STEPS.length}
           </p>
-
-          {/* Title */}
           <h3 className="text-base font-semibold mb-2" style={{ color: textPrimary }}>
             {current.title}
           </h3>
-
-          {/* Description */}
           <p className="text-sm leading-relaxed mb-5" style={{ color: textMuted }}>
-            {description}
+            {desc}
           </p>
-
-          {/* Actions */}
           <div className="flex items-center justify-between">
             <button
               onClick={finish}
