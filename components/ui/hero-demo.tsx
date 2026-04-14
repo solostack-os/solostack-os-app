@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { GlowCard } from "@/components/ui/glow-card";
 
 /* ─── Design tokens (exact match with app) ─── */
@@ -38,16 +38,35 @@ function SparkleIcon({ color, size = 16 }: { color: string; size?: number }) {
   );
 }
 
+/* ─── Cursor SVG (macOS-style pointer) ─── */
+function CursorIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M5.65 1.15 21.05 12.9h-8.35l4.5 8.5-3.2 1.6-4.3-8.75L5.65 18.3V1.15Z"
+        fill="#fff"
+        stroke="#000"
+        strokeWidth={1}
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /* ─── Demo scenarios — each mimics the real app form ─── */
 interface DemoScenario {
   moduleKey: "marketing" | "outreach" | "operations";
   workflow: string;
+  /* Marketing demo uses special cursor-driven flow */
+  useCursorFlow?: boolean;
   fields: Array<
     | { type: "pills"; label: string; options: string[]; selected: number }
     | { type: "topic"; label: string; value: string; placeholder: string }
     | { type: "text"; label: string; value: string; placeholder: string }
     | { type: "number"; label: string; options: string[]; selected: number }
   >;
+  /* Suggestions that appear when sparkle is clicked (marketing only) */
+  suggestions?: string[];
   outputs: Array<{ label: string; text: string }>;
 }
 
@@ -55,6 +74,7 @@ const demos: DemoScenario[] = [
   {
     moduleKey: "marketing",
     workflow: "Social Posts",
+    useCursorFlow: true,
     fields: [
       {
         type: "pills",
@@ -74,6 +94,13 @@ const demos: DemoScenario[] = [
         options: ["1", "2", "3"],
         selected: 1,
       },
+    ],
+    suggestions: [
+      "Launch announcement for our new brand strategy service",
+      "How to stand out in a crowded market",
+      "5 signs your brand needs a refresh",
+      "Why consistency beats creativity in branding",
+      "Behind the scenes of a rebrand project",
     ],
     outputs: [
       {
@@ -169,16 +196,65 @@ const GENERATING_DURATION = 1400;
 const OUTPUT_STAGGER = 300;
 const DISPLAY_DURATION = 4500;
 
+/* ─── Cursor flow timing (marketing demo only) ─── */
+const CURSOR_MOVE_SPEED = 600; // ms per cursor move
+const CURSOR_CLICK_PAUSE = 300; // pause after "click"
+const SPARKLE_LOADING = 900; // fake AI suggestion loading
+const SUGGESTION_REVEAL_STAGGER = 80; // stagger each pill appearing
+const CURSOR_TO_SUGGESTION_PAUSE = 500; // wait before moving to a suggestion
+const SUGGESTION_FILL_PAUSE = 300; // pause after selecting suggestion before Generate
+
+/*
+ * Cursor-driven flow phases for Marketing demo:
+ * 1. idle          → cursor not visible, fields show pre-filled (pills + number)
+ * 2. cursorToSparkle → cursor appears, moves to sparkle button
+ * 3. sparkleClick  → cursor clicks, sparkle loading spinner
+ * 4. suggestionsIn → suggestions appear (staggered pills)
+ * 5. cursorToSuggestion → cursor moves to first suggestion
+ * 6. suggestionClick → cursor clicks suggestion, topic fills instantly
+ * 7. cursorToGenerate → cursor moves to Generate button
+ * 8. generateClick → cursor clicks, generating spinner
+ * 9. output        → output cards appear
+ */
+type CursorPhase =
+  | "idle"
+  | "cursorToSparkle"
+  | "sparkleClick"
+  | "sparkleLoading"
+  | "suggestionsIn"
+  | "cursorToSuggestion"
+  | "suggestionClick"
+  | "cursorToGenerate"
+  | "generateClick"
+  | "generating"
+  | "output";
+
+/* ─── Standard (non-cursor) flow phases for Outreach & Operations ─── */
+type StandardPhase = "filling" | "generating" | "output";
+
 export function HeroDemo() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [phase, setPhase] = useState<"filling" | "generating" | "output">("filling");
+
+  /* Standard flow state (outreach, operations) */
+  const [phase, setPhase] = useState<StandardPhase>("filling");
   const [fillProgress, setFillProgress] = useState(0);
   const [visibleOutputs, setVisibleOutputs] = useState(0);
 
+  /* Cursor flow state (marketing) */
+  const [cursorPhase, setCursorPhase] = useState<CursorPhase>("idle");
+  const [cursorPos, setCursorPos] = useState({ x: 85, y: 75 }); // % based
+  const [clicking, setClicking] = useState(false);
+  const [visibleSuggestions, setVisibleSuggestions] = useState(0);
+  const [selectedSuggestion, setSelectedSuggestion] = useState(-1);
+  const [topicFilled, setTopicFilled] = useState(false);
+
+  const formRef = useRef<HTMLDivElement>(null);
+
   const demo = demos[activeIndex];
   const theme = moduleThemes[demo.moduleKey];
+  const isCursorFlow = !!demo.useCursorFlow;
 
-  // Find the typing field (topic or last text field)
+  // Find the typing field for standard flow
   const typingFieldIndex = demo.fields.findIndex((f) => f.type === "topic");
   const actualTypingIndex =
     typingFieldIndex >= 0
@@ -192,13 +268,141 @@ export function HeroDemo() {
 
   const advanceToNext = useCallback(() => {
     setActiveIndex((i) => (i + 1) % demos.length);
+    /* Reset standard */
     setPhase("filling");
     setFillProgress(0);
     setVisibleOutputs(0);
+    /* Reset cursor */
+    setCursorPhase("idle");
+    setCursorPos({ x: 85, y: 75 });
+    setClicking(false);
+    setVisibleSuggestions(0);
+    setSelectedSuggestion(-1);
+    setTopicFilled(false);
   }, []);
 
+  /* ─────────── CURSOR FLOW (Marketing) ─────────── */
+  useEffect(() => {
+    if (!isCursorFlow) return;
+    if (activeIndex !== 0) return;
+
+    let t: ReturnType<typeof setTimeout>;
+
+    switch (cursorPhase) {
+      case "idle":
+        // Start: brief pause then cursor appears moving to sparkle
+        t = setTimeout(() => setCursorPhase("cursorToSparkle"), 800);
+        break;
+
+      case "cursorToSparkle":
+        // Move cursor to sparkle button position (top-right of topic input)
+        setCursorPos({ x: 88, y: 48 });
+        t = setTimeout(() => setCursorPhase("sparkleClick"), CURSOR_MOVE_SPEED);
+        break;
+
+      case "sparkleClick":
+        // Show click effect
+        setClicking(true);
+        t = setTimeout(() => {
+          setClicking(false);
+          setCursorPhase("sparkleLoading");
+        }, CURSOR_CLICK_PAUSE);
+        break;
+
+      case "sparkleLoading":
+        // Show loading spinner on sparkle
+        t = setTimeout(() => setCursorPhase("suggestionsIn"), SPARKLE_LOADING);
+        break;
+
+      case "suggestionsIn": {
+        // Stagger-reveal suggestion pills
+        const totalSuggestions = demo.suggestions?.length ?? 0;
+        if (visibleSuggestions < totalSuggestions) {
+          t = setTimeout(
+            () => setVisibleSuggestions((v) => v + 1),
+            SUGGESTION_REVEAL_STAGGER
+          );
+        } else {
+          t = setTimeout(
+            () => setCursorPhase("cursorToSuggestion"),
+            CURSOR_TO_SUGGESTION_PAUSE
+          );
+        }
+        break;
+      }
+
+      case "cursorToSuggestion":
+        // Move cursor to first suggestion pill
+        setCursorPos({ x: 42, y: 62 });
+        t = setTimeout(
+          () => setCursorPhase("suggestionClick"),
+          CURSOR_MOVE_SPEED
+        );
+        break;
+
+      case "suggestionClick":
+        setClicking(true);
+        setSelectedSuggestion(0);
+        t = setTimeout(() => {
+          setClicking(false);
+          setTopicFilled(true);
+          // Brief pause to show topic filled, then move to Generate
+          setTimeout(
+            () => setCursorPhase("cursorToGenerate"),
+            SUGGESTION_FILL_PAUSE
+          );
+        }, CURSOR_CLICK_PAUSE);
+        break;
+
+      case "cursorToGenerate":
+        // Move cursor to Generate button
+        setCursorPos({ x: 50, y: 92 });
+        t = setTimeout(
+          () => setCursorPhase("generateClick"),
+          CURSOR_MOVE_SPEED
+        );
+        break;
+
+      case "generateClick":
+        setClicking(true);
+        t = setTimeout(() => {
+          setClicking(false);
+          setCursorPhase("generating");
+        }, CURSOR_CLICK_PAUSE);
+        break;
+
+      case "generating":
+        t = setTimeout(() => setCursorPhase("output"), GENERATING_DURATION);
+        break;
+
+      case "output":
+        if (visibleOutputs < demo.outputs.length) {
+          t = setTimeout(
+            () => setVisibleOutputs((v) => v + 1),
+            visibleOutputs === 0 ? 150 : OUTPUT_STAGGER
+          );
+        } else {
+          t = setTimeout(advanceToNext, DISPLAY_DURATION);
+        }
+        break;
+    }
+
+    return () => clearTimeout(t);
+  }, [
+    isCursorFlow,
+    activeIndex,
+    cursorPhase,
+    visibleSuggestions,
+    visibleOutputs,
+    demo.suggestions?.length,
+    demo.outputs.length,
+    advanceToNext,
+  ]);
+
+  /* ─────────── STANDARD FLOW (Outreach, Operations) ─────────── */
   // Filling (typing) phase
   useEffect(() => {
+    if (isCursorFlow) return;
     if (phase !== "filling") return;
     if (fillProgress >= typingValue.length) {
       const t = setTimeout(() => setPhase("generating"), PAUSE_AFTER_TYPING);
@@ -206,17 +410,19 @@ export function HeroDemo() {
     }
     const t = setTimeout(() => setFillProgress((p) => p + 1), TYPING_SPEED);
     return () => clearTimeout(t);
-  }, [phase, fillProgress, typingValue.length]);
+  }, [isCursorFlow, phase, fillProgress, typingValue.length]);
 
   // Generating phase
   useEffect(() => {
+    if (isCursorFlow) return;
     if (phase !== "generating") return;
     const t = setTimeout(() => setPhase("output"), GENERATING_DURATION);
     return () => clearTimeout(t);
-  }, [phase]);
+  }, [isCursorFlow, phase]);
 
   // Output phase
   useEffect(() => {
+    if (isCursorFlow) return;
     if (phase !== "output") return;
     if (visibleOutputs < demo.outputs.length) {
       const t = setTimeout(
@@ -227,14 +433,45 @@ export function HeroDemo() {
     }
     const t = setTimeout(advanceToNext, DISPLAY_DURATION);
     return () => clearTimeout(t);
-  }, [phase, visibleOutputs, demo.outputs.length, advanceToNext]);
+  }, [isCursorFlow, phase, visibleOutputs, demo.outputs.length, advanceToNext]);
 
-  const showForm = phase === "filling" || phase === "generating";
+  /* ─── Derived booleans ─── */
+  const showForm = isCursorFlow
+    ? cursorPhase !== "output"
+    : phase === "filling" || phase === "generating";
+
+  const showOutputs = isCursorFlow
+    ? cursorPhase === "output"
+    : phase === "output";
+
+  const isGenerating = isCursorFlow
+    ? cursorPhase === "generating" || cursorPhase === "generateClick"
+    : phase === "generating";
+
+  const showCursor = isCursorFlow && cursorPhase !== "idle" && cursorPhase !== "output";
+
+  const showSparkleLoading = isCursorFlow && cursorPhase === "sparkleLoading";
+
+  const showSuggestions =
+    isCursorFlow &&
+    (cursorPhase === "suggestionsIn" ||
+      cursorPhase === "cursorToSuggestion" ||
+      cursorPhase === "suggestionClick");
+
+  /* The topic text for marketing cursor flow */
+  const cursorTopicText =
+    isCursorFlow && topicFilled
+      ? demo.suggestions?.[0] ?? ""
+      : "";
 
   return (
     <div className="w-full max-w-md lg:max-w-lg">
       <GlowCard>
-        <div className="rounded-xl overflow-hidden" style={{ backgroundColor: surface }}>
+        <div
+          className="rounded-xl overflow-hidden relative"
+          style={{ backgroundColor: surface, minHeight: 380 }}
+          ref={formRef}
+        >
           {/* ── Top bar (app-style window chrome) ── */}
           <div
             className="flex items-center gap-2 px-4 py-2.5"
@@ -263,7 +500,7 @@ export function HeroDemo() {
           />
 
           {/* ── Form / Output area ── */}
-          <div className="p-4 sm:p-5">
+          <div className="p-4 sm:p-5" style={{ minHeight: 340 }}>
             {showForm ? (
               /* ── FORM FIELDS (mimics real app layout) ── */
               <div className="space-y-4">
@@ -342,9 +579,19 @@ export function HeroDemo() {
                             backgroundColor: bg,
                             border: `1px solid ${border}`,
                             color: textPrimary,
+                            minHeight: 36,
                           }}
                         >
-                          {fi === actualTypingIndex ? (
+                          {/* Topic text content */}
+                          {isCursorFlow ? (
+                            cursorTopicText ? (
+                              <span>{cursorTopicText}</span>
+                            ) : (
+                              <span style={{ color: textMuted }}>
+                                {field.placeholder}
+                              </span>
+                            )
+                          ) : fi === actualTypingIndex ? (
                             <>
                               {typingValue.slice(0, fillProgress)}
                               <span
@@ -353,13 +600,72 @@ export function HeroDemo() {
                               />
                             </>
                           ) : (
-                            <span style={{ color: textMuted }}>{field.placeholder}</span>
+                            <span style={{ color: textMuted }}>
+                              {field.placeholder}
+                            </span>
                           )}
+
                           {/* Sparkle button */}
-                          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 opacity-50">
-                            <SparkleIcon color={theme.accent} />
+                          <span
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-md transition-colors"
+                            style={{
+                              opacity: showSparkleLoading ? 1 : 0.5,
+                              backgroundColor:
+                                (isCursorFlow &&
+                                  (cursorPhase === "sparkleClick" ||
+                                    cursorPhase === "sparkleLoading"))
+                                  ? "rgba(255,255,255,0.1)"
+                                  : "transparent",
+                            }}
+                          >
+                            {showSparkleLoading ? (
+                              <div
+                                className="h-4 w-4 rounded-full border-2 animate-spin"
+                                style={{
+                                  borderColor: `${theme.accent}40`,
+                                  borderTopColor: theme.accent,
+                                }}
+                              />
+                            ) : (
+                              <SparkleIcon color={theme.accent} />
+                            )}
                           </span>
                         </div>
+
+                        {/* Suggestions row (cursor flow only) */}
+                        {showSuggestions && demo.suggestions && (
+                          <div className="flex flex-wrap gap-1.5 mt-2.5">
+                            {demo.suggestions.map((s, si) => (
+                              <span
+                                key={si}
+                                className="px-2.5 py-1 text-[10px] rounded-full border transition-all"
+                                style={{
+                                  borderColor:
+                                    selectedSuggestion === si
+                                      ? theme.accent
+                                      : border,
+                                  backgroundColor:
+                                    selectedSuggestion === si
+                                      ? `${theme.accent}15`
+                                      : "transparent",
+                                  color:
+                                    selectedSuggestion === si
+                                      ? theme.accent
+                                      : textPrimary,
+                                  opacity: si < visibleSuggestions ? 1 : 0,
+                                  transform:
+                                    si < visibleSuggestions
+                                      ? "translateY(0)"
+                                      : "translateY(4px)",
+                                  transition: "all 0.2s ease-out",
+                                }}
+                              >
+                                {s}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
                         <div className="flex justify-between mt-1">
                           <span className="text-[10px]" style={{ color: textMuted }}>
                             Output language follows your input language
@@ -368,7 +674,12 @@ export function HeroDemo() {
                             className="text-[10px] tabular-nums"
                             style={{ color: textMuted }}
                           >
-                            {fi === actualTypingIndex ? fillProgress : 0}/200
+                            {isCursorFlow
+                              ? cursorTopicText.length
+                              : fi === actualTypingIndex
+                                ? fillProgress
+                                : 0}
+                            /200
                           </span>
                         </div>
                       </div>
@@ -384,7 +695,7 @@ export function HeroDemo() {
                           color: textPrimary,
                         }}
                       >
-                        {fi === actualTypingIndex ? (
+                        {!isCursorFlow && fi === actualTypingIndex ? (
                           <>
                             {typingValue.slice(0, fillProgress)}
                             <span
@@ -402,7 +713,7 @@ export function HeroDemo() {
 
                 {/* ── Generate button (exact app style: gradient + glow) ── */}
                 <div className="relative group mt-1">
-                  {phase !== "generating" && (
+                  {!isGenerating && (
                     <div
                       className="absolute -inset-1 rounded-2xl blur-xl opacity-40"
                       style={{
@@ -414,10 +725,10 @@ export function HeroDemo() {
                     className="relative w-full py-3 text-[13px] font-semibold rounded-xl text-center text-white flex items-center justify-center gap-2"
                     style={{
                       background: `linear-gradient(135deg, ${theme.accent}, ${theme.light})`,
-                      opacity: phase === "generating" ? 0.6 : 1,
+                      opacity: isGenerating ? 0.6 : 1,
                     }}
                   >
-                    {phase === "generating" ? (
+                    {isGenerating ? (
                       <>
                         <span
                           className="h-3.5 w-3.5 rounded-full border-2 animate-spin"
@@ -434,7 +745,7 @@ export function HeroDemo() {
                   </div>
                 </div>
               </div>
-            ) : (
+            ) : showOutputs ? (
               /* ── OUTPUT CARDS (mimics real app output) ── */
               <div>
                 {/* Output header */}
@@ -457,7 +768,7 @@ export function HeroDemo() {
                   {demo.outputs.map((output, i) => (
                     <div
                       key={`${activeIndex}-out-${i}`}
-                      className="rounded-xl overflow-hidden transition-all duration-400"
+                      className="rounded-xl overflow-hidden"
                       style={{
                         backgroundColor: surface,
                         border: `1px solid ${border}`,
@@ -466,6 +777,7 @@ export function HeroDemo() {
                           i < visibleOutputs
                             ? "translateY(0)"
                             : "translateY(8px)",
+                        transition: "all 0.4s ease-out",
                       }}
                     >
                       {/* Gradient bar */}
@@ -493,8 +805,35 @@ export function HeroDemo() {
                   ))}
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
+
+          {/* ── Animated cursor overlay ── */}
+          {showCursor && (
+            <div
+              className="absolute pointer-events-none z-50"
+              style={{
+                left: `${cursorPos.x}%`,
+                top: `${cursorPos.y}%`,
+                transition: `left ${CURSOR_MOVE_SPEED}ms cubic-bezier(0.4, 0, 0.2, 1), top ${CURSOR_MOVE_SPEED}ms cubic-bezier(0.4, 0, 0.2, 1)`,
+                transform: clicking ? "scale(0.85)" : "scale(1)",
+                filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
+              }}
+            >
+              <CursorIcon size={20} />
+              {/* Click ripple */}
+              {clicking && (
+                <div
+                  className="absolute -top-1 -left-1 w-6 h-6 rounded-full animate-ping"
+                  style={{
+                    backgroundColor: `${theme.accent}30`,
+                    animationDuration: "0.4s",
+                    animationIterationCount: 1,
+                  }}
+                />
+              )}
+            </div>
+          )}
         </div>
       </GlowCard>
 
