@@ -150,8 +150,8 @@ function Hero() {
           </div>
 
           {/* Reassurance */}
-          <p className="mt-5 text-xs" style={{ color: textMuted }}>
-            No credit card required &middot; 60 credits included &middot; Full
+          <p className="mt-5 text-sm" style={{ color: "#f1f5f9" }}>
+            <span style={{ color: accent }}>No credit card</span> required &middot; 60 credits included &middot; Full
             access to all modules
           </p>
         </div>
@@ -252,12 +252,14 @@ function ProblemSection() {
   return (
     <section className="py-20 px-6">
       <div className="max-w-4xl mx-auto">
-        <p
-          className="text-xs font-medium uppercase tracking-widest mb-3 text-center"
-          style={{ color: accent }}
-        >
-          The blank-chat problem
-        </p>
+        <div className="text-center mb-3">
+          <span
+            className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
+            style={{ color: accent, border: `1px solid ${accent}33` }}
+          >
+            The blank-chat problem
+          </span>
+        </div>
         <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
           Chat tools help once. Running a business means{" "}
           <span style={{ color: accent }}>repeating yourself.</span>
@@ -317,12 +319,14 @@ function HowItWorks() {
   return (
     <section id="how-it-works" className="py-20 px-6">
       <div className="max-w-4xl mx-auto">
-        <p
-          className="text-xs font-medium uppercase tracking-widest mb-3 text-center"
-          style={{ color: accent }}
-        >
-          How it works
-        </p>
+        <div className="text-center mb-3">
+          <span
+            className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
+            style={{ color: accent, border: `1px solid ${accent}33` }}
+          >
+            How it works
+          </span>
+        </div>
         <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
           From setup to first output in minutes.
         </h2>
@@ -441,12 +445,14 @@ function Modules() {
   return (
     <section id="modules" className="py-20 px-6">
       <div className="max-w-5xl mx-auto">
-        <p
-          className="text-xs font-medium uppercase tracking-widest mb-3 text-center"
-          style={{ color: accent }}
-        >
-          What you can create
-        </p>
+        <div className="text-center mb-3">
+          <span
+            className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
+            style={{ color: accent, border: `1px solid ${accent}33` }}
+          >
+            What you can create
+          </span>
+        </div>
         <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
           Start with the deliverable you need.
         </h2>
@@ -613,12 +619,14 @@ function Pricing() {
   return (
     <section id="pricing" className="py-20 px-6">
       <div className="max-w-5xl mx-auto">
-        <p
-          className="text-xs font-medium uppercase tracking-widest mb-3 text-center"
-          style={{ color: accent }}
-        >
-          Pricing
-        </p>
+        <div className="text-center mb-3">
+          <span
+            className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
+            style={{ color: accent, border: `1px solid ${accent}33` }}
+          >
+            Pricing
+          </span>
+        </div>
         <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
           Start free. Upgrade when SoloStack becomes part of your{" "}
           <span style={{ color: accent }}>weekly workflow.</span>
@@ -733,12 +741,14 @@ function Trust() {
   return (
     <section className="py-20 px-6">
       <div className="max-w-4xl mx-auto">
-        <p
-          className="text-xs font-medium uppercase tracking-widest mb-3 text-center"
-          style={{ color: accent }}
-        >
-          What happens after signup
-        </p>
+        <div className="text-center mb-3">
+          <span
+            className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
+            style={{ color: accent, border: `1px solid ${accent}33` }}
+          >
+            What happens after signup
+          </span>
+        </div>
         <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
           You don&rsquo;t need to &ldquo;set up a system&rdquo; to get value.
         </h2>
@@ -752,28 +762,23 @@ function Trust() {
 
         <div className="grid sm:grid-cols-3 gap-6">
           {onboardingSteps.map((s) => (
-            <div
-              key={s.step}
-              className="flex flex-col gap-3 p-5 rounded-xl text-center"
-              style={{
-                backgroundColor: surface,
-                border: `1px solid ${border}`,
-              }}
-            >
-              <span
-                className="text-2xl font-bold mx-auto w-10 h-10 flex items-center justify-center rounded-full"
-                style={{ color: accent, backgroundColor: `${accent}15` }}
-              >
-                {s.step}
-              </span>
-              <h3 className="text-sm font-semibold text-white">{s.title}</h3>
-              <p
-                className="text-sm leading-relaxed"
-                style={{ color: textMuted }}
-              >
-                {s.text}
-              </p>
-            </div>
+            <GlowCard key={s.step} className="p-5 text-center">
+              <div className="flex flex-col gap-3">
+                <span
+                  className="text-2xl font-bold mx-auto w-10 h-10 flex items-center justify-center rounded-full"
+                  style={{ color: accent, backgroundColor: `${accent}15` }}
+                >
+                  {s.step}
+                </span>
+                <h3 className="text-sm font-semibold text-white">{s.title}</h3>
+                <p
+                  className="text-sm leading-relaxed"
+                  style={{ color: textMuted }}
+                >
+                  {s.text}
+                </p>
+              </div>
+            </GlowCard>
           ))}
         </div>
       </div>
@@ -894,7 +899,7 @@ function FinalCTA() {
       />
       <div className="relative z-10 max-w-xl mx-auto">
         <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-          Stop restarting <span style={{ color: accent }}>AI</span> from zero every time you work.
+          <span style={{ color: accent }}>Stop restarting AI from zero</span> every time you work.
         </h2>
         <p
           className="text-sm mb-8 leading-relaxed"
@@ -906,8 +911,8 @@ function FinalCTA() {
         <a href="/auth/signup">
           <ShinyButton>Start Your 7-Day Free Trial</ShinyButton>
         </a>
-        <p className="mt-4 text-xs" style={{ color: textMuted }}>
-          No credit card required &middot; 60 credits included &middot; Cancel
+        <p className="mt-4 text-sm" style={{ color: "#f1f5f9" }}>
+          <span style={{ color: accent }}>No credit card</span> required &middot; 60 credits included &middot; Cancel
           anytime
         </p>
       </div>

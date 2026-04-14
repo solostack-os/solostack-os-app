@@ -122,7 +122,7 @@ const demos: DemoScenario[] = [
       },
       {
         label: "Next steps",
-        text: "1. Schedule kickoff call (before May 1)\n2. Share existing brand assets via shared folder\n3. Complete brand intake questionnaire\n4. Confirm milestone review dates\n5. Set up Slack channel for async updates",
+        text: "1. Schedule kickoff call (before May 1)\n2. Share existing brand assets via shared folder\n3. Complete brand intake questionnaire\n4. Confirm milestone review dates\n5. Set up Slack channel for async updates\n6. Send welcome packet with project overview\n7. Assign internal project lead from client side",
       },
     ],
   },
@@ -502,19 +502,34 @@ export function HeroDemo() {
         )}
       </div>
 
-      {/* Dot indicators */}
-      <div className="flex items-center justify-center gap-2 mt-4">
-        {demos.map((d, i) => (
-          <span key={d.moduleKey} className="w-2 h-2 rounded-full transition-all duration-300" style={{
-            backgroundColor: i === activeIndex ? moduleThemes[d.moduleKey].accent : "rgba(255,255,255,0.15)",
-            transform: i === activeIndex ? "scale(1.3)" : "scale(1)",
-          }} />
-        ))}
+      {/* Dot indicators with pulsing glow */}
+      <div className="flex items-center justify-center gap-3 mt-4">
+        {demos.map((d, i) => {
+          const isActive = i === activeIndex;
+          const dotColor = moduleThemes[d.moduleKey].accent;
+          return (
+            <span key={d.moduleKey} className="relative flex items-center justify-center w-4 h-4">
+              {isActive && (
+                <span className="absolute inset-0 rounded-full animate-dot-pulse" style={{
+                  backgroundColor: dotColor,
+                  opacity: 0.35,
+                }} />
+              )}
+              <span className="relative w-2 h-2 rounded-full transition-all duration-300" style={{
+                backgroundColor: isActive ? dotColor : "rgba(255,255,255,0.15)",
+                transform: isActive ? "scale(1.3)" : "scale(1)",
+                boxShadow: isActive ? `0 0 8px 2px ${dotColor}60` : "none",
+              }} />
+            </span>
+          );
+        })}
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes cursor-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         .animate-cursor-blink { animation: cursor-blink 0.8s step-end infinite; }
+        @keyframes dot-pulse { 0%, 100% { transform: scale(1); opacity: 0.35; } 50% { transform: scale(1.8); opacity: 0; } }
+        .animate-dot-pulse { animation: dot-pulse 2s ease-in-out infinite; }
       `}} />
     </div>
   );
