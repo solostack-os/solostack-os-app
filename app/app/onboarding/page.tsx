@@ -108,6 +108,7 @@ export default function OnboardingPage() {
       return;
     }
 
+    window.dispatchEvent(new Event("onboarding:complete"));
     router.push("/app/dashboard");
   }
 
