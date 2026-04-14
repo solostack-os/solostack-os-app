@@ -45,6 +45,8 @@ function Navbar() {
           <img
             src="/logo.png"
             alt="SoloStack OS"
+            width={40}
+            height={40}
             className="h-10 w-10 object-contain"
           />
           <span className="text-lg font-bold text-white tracking-tight">
@@ -1010,6 +1012,8 @@ function Footer() {
           <img
             src="/logo.png"
             alt="SoloStack OS"
+            width={24}
+            height={24}
             className="h-6 w-6 object-contain"
           />
           <span className="text-sm font-semibold text-white tracking-tight">

@@ -323,7 +323,7 @@ export function HeroDemo() {
             <span className="w-2 h-2 rounded-full bg-white/10" />
             <span className="w-2 h-2 rounded-full bg-white/10" />
           </div>
-          <img src="/logo.png" alt="" className="h-4 w-4 object-contain ml-1.5" />
+          <img src="/logo.png" alt="SoloStack" width={16} height={16} className="h-4 w-4 object-contain ml-1.5" />
           <span className="text-[11px] font-medium" style={{ color: theme.accent }}>{theme.label}</span>
           <span className="text-[11px]" style={{ color: textMuted }}>/ {demo.workflow}</span>
         </div>

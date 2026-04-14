@@ -73,7 +73,7 @@ export function HeroBackground({
         <div
           style={{
             backgroundColor: color,
-            maskImage: `url('https://framerusercontent.com/images/ceBGguIpUU8luwByxuQz79t7To.png')`,
+            maskImage: `url('/hero-mask.png')`,
             maskSize: 'cover',
             maskRepeat: 'no-repeat',
             maskPosition: 'center',
