@@ -5,8 +5,15 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "SoloStack OS",
+  title: {
+    default: "SoloStack OS",
+    template: "%s | SoloStack OS",
+  },
   description: "AI Operating System for Service Businesses",
+  metadataBase: new URL("https://www.solostack.io"),
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
