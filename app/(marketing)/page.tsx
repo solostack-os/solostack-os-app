@@ -12,7 +12,6 @@ const surface = "#111827";
 const accent = "#6c8cff";
 const accentTeal = "#5eead4";
 const accentOrange = "#f59e0b";
-const textPrimary = "#f1f5f9";
 const textMuted = "#94a3b8";
 const border = "rgba(255,255,255,0.06)";
 
