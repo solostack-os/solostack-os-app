@@ -78,7 +78,8 @@ function Navbar() {
           </div>
           <a
             href="/auth/login"
-            className="text-sm text-slate-300 hover:text-white transition"
+            className="text-sm transition-opacity hover:opacity-80"
+            style={{ color: "#22c55e" }}
           >
             Log in
           </a>
