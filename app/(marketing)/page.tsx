@@ -143,7 +143,7 @@ function Hero() {
           </p>
 
           {/* CTA */}
-          <div className="flex flex-col sm:flex-row items-start gap-4">
+          <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4">
             <a href="/auth/signup">
               <ShinyButton>Start Your 7-Day Free Trial</ShinyButton>
             </a>
