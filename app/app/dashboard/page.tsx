@@ -3,19 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { GlowCard } from "@/components/ui/glow-card";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { ProductTour } from "@/components/product-tour";
 import { CREDITS_PER_RUN, MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
-
-// Lazy-load Three.js/WebGL background — loads after page renders so it
-// doesn't block the initial bundle parse or first contentful paint.
-const DottedSurface = dynamic(
-  () => import("@/components/ui/dotted-surface").then((m) => ({ default: m.DottedSurface })),
-  { ssr: false, loading: () => null }
-);
 
 interface RecentRun {
   id: string;
@@ -222,11 +214,11 @@ export default function DashboardPage() {
       setWorkspaceName(workspace.name ?? "My Workspace");
       if (runs) setRecentRuns(runs as unknown as RecentRun[]);
 
-      // Show product tour for first-time users
+      // Tour decision — applied after setLoading(false) so the layout DOM exists
+      const tourCompleted = (workspace as { tour_completed?: boolean }).tour_completed === true;
       const localDone = localStorage.getItem("solostack_tour_completed") === "true";
-      if (!localDone && !(workspace as { tour_completed?: boolean }).tour_completed) {
-        setShowTour(true);
-      }
+      const shouldShowTour = !tourCompleted && !localDone;
+      console.log("Tour check:", { tourCompleted, localDone, shouldShowTour });
 
       if (subscription) {
         const isTrial = subscription.plan_key === "trial";
@@ -255,6 +247,7 @@ export default function DashboardPage() {
       }
 
       setLoading(false);
+      if (shouldShowTour) setShowTour(true);
     }
 
     bootstrap();
@@ -433,9 +426,6 @@ export default function DashboardPage() {
 
   return (
     <div className="relative min-h-screen isolate" style={{ backgroundColor: bg }}>
-      {/* ─── Animated dotted surface background ─── */}
-      <DottedSurface className="opacity-35" />
-
       {/* ─── Ambient background glow (clipped to viewport) ─── */}
       <div className="pointer-events-none absolute inset-x-0 top-[15%] h-[350px] overflow-hidden">
         <div

@@ -2,14 +2,8 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { CREDITS_PER_RUN } from "@/lib/constants";
-
-const DottedSurface = dynamic(
-  () => import("@/components/ui/dotted-surface").then((m) => ({ default: m.DottedSurface })),
-  { ssr: false, loading: () => null }
-);
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -681,7 +675,6 @@ function SettingsPageInner() {
 
   return (
     <div className="min-h-screen relative isolate" style={{ backgroundColor: bg }}>
-      <DottedSurface className="opacity-35" />
       <style>{`
         @keyframes gen-shimmer {
           0% { background-position: 200% center; }
