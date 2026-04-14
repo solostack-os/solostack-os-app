@@ -343,6 +343,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 key={item.label}
                 href={item.href}
                 className={`${baseClasses} cursor-pointer`}
+                data-tour={item.label === "Settings" ? "settings" : item.label === "Marketing OS" ? "marketing" : undefined}
                 style={{
                   color: current ? navAccent.color : textMuted,
                   backgroundColor: current ? navAccent.bg : "transparent",
@@ -365,7 +366,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="mx-5 mt-6 mb-2 h-px" style={{ backgroundColor: border }} />
 
         {/* Recent runs */}
-        <div className="flex-1 px-3 flex flex-col min-h-0">
+        <div className="flex-1 px-3 flex flex-col min-h-0" data-tour="recents">
           <div className="group/recents flex items-center gap-1 px-4 mb-2 flex-shrink-0">
             <button
               onClick={() => setRecentsOpen((v) => !v)}
@@ -493,7 +494,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* ─── Main content ─── */}
-      <main id="app-layout-main" className="flex-1 md:ml-80 pt-[52px] md:pt-0 pb-20 md:pb-0">
+      <main id="app-layout-main" data-tour="main-content" className="flex-1 md:ml-80 pt-[52px] md:pt-0 pb-20 md:pb-0">
         {children}
       </main>
 
@@ -536,6 +537,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 key={item.label}
                 href={item.href}
                 className="flex flex-col items-center gap-1.5 px-2 py-1.5 rounded-xl min-w-[60px] transition-colors relative"
+                data-tour-mobile={item.label === "Settings" ? "settings" : item.label === "Marketing OS" ? "marketing" : item.label === "Dashboard" ? "recents" : undefined}
               >
                 {/* Active dot indicator */}
                 {current && (

@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { GlowCard } from "@/components/ui/glow-card";
 import { ShinyButton } from "@/components/ui/shiny-button";
+import { ProductTour } from "@/components/product-tour";
 import { CREDITS_PER_RUN, MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
 
 // Lazy-load Three.js/WebGL background — loads after page renders so it
@@ -139,6 +140,7 @@ export default function DashboardPage() {
   const [selectedRun, setSelectedRun] = useState<RecentRun | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [exportingRunId, setExportingRunId] = useState<string | null>(null);
+  const [showTour, setShowTour] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -194,7 +196,7 @@ export default function DashboardPage() {
         { data: runs },
         { data: plans },
       ] = await Promise.all([
-        supabase.from("workspaces").select("name").eq("id", workspace_id).single(),
+        supabase.from("workspaces").select("name, tour_completed").eq("id", workspace_id).single(),
         supabase
           .from("subscriptions")
           .select("plan_key, trial_ends_at, current_period_start, extra_credits")
@@ -219,6 +221,12 @@ export default function DashboardPage() {
 
       setWorkspaceName(workspace.name ?? "My Workspace");
       if (runs) setRecentRuns(runs as unknown as RecentRun[]);
+
+      // Show product tour for first-time users
+      const localDone = localStorage.getItem("solostack_tour_completed") === "true";
+      if (!localDone && !(workspace as { tour_completed?: boolean }).tour_completed) {
+        setShowTour(true);
+      }
 
       if (subscription) {
         const isTrial = subscription.plan_key === "trial";
@@ -883,6 +891,9 @@ export default function DashboardPage() {
           </div>
         );
       })()}
+
+      {/* ─── Product Tour (first-time users only) ─── */}
+      {showTour && <ProductTour onComplete={() => setShowTour(false)} />}
     </div>
   );
 }
