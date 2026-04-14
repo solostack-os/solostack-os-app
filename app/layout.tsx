@@ -12,7 +12,11 @@ export const metadata: Metadata = {
   description: "AI Operating System for Service Businesses",
   metadataBase: new URL("https://www.solostack.io"),
   icons: {
-    icon: "/favicon.png",
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+      { url: "/icon.ico", sizes: "any" },
+    ],
+    apple: "/apple-icon.png",
   },
 };
 
