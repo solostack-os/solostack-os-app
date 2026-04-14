@@ -279,7 +279,7 @@ function ProblemSection() {
         <div className="grid sm:grid-cols-3 gap-6">
           {painPoints.map((p, i) => (
             <Reveal key={p.title} delay={i * 120}>
-              <GlowCard className="p-5 transition-transform duration-300 hover:translate-y-[-4px]">
+              <GlowCard className="h-full p-5 transition-transform duration-300 hover:translate-y-[-4px]">
                 <div className="flex flex-col gap-3">
                   <div style={{ color: accent }}>{p.icon}</div>
                   <h3 className="text-sm font-semibold text-white">{p.title}</h3>
@@ -480,7 +480,7 @@ function Modules() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {modules.map((m, i) => (
             <Reveal key={m.title} delay={i * 120}>
-              <GlowCard className="p-6 transition-transform duration-300 hover:translate-y-[-4px]">
+              <GlowCard className="h-full p-6 transition-transform duration-300 hover:translate-y-[-4px]">
               {/* Gradient top border */}
               <div
                 className="absolute top-0 left-0 right-0 h-[2px]"
@@ -537,7 +537,7 @@ function IsIsNot() {
         <div className="grid md:grid-cols-2 gap-6">
           {/* IS card */}
           <Reveal delay={0}>
-            <GlowCard className="p-6 sm:p-8 transition-transform duration-300 hover:translate-y-[-4px]">
+            <GlowCard className="h-full p-6 sm:p-8 transition-transform duration-300 hover:translate-y-[-4px]">
             <h3 className="text-lg font-semibold text-white mb-5">
               SoloStack OS{" "}
               <span style={{ color: accentTeal }}>IS:</span>
@@ -561,7 +561,7 @@ function IsIsNot() {
 
           {/* IS NOT card */}
           <Reveal delay={150}>
-            <GlowCard className="p-6 sm:p-8 transition-transform duration-300 hover:translate-y-[-4px]">
+            <GlowCard className="h-full p-6 sm:p-8 transition-transform duration-300 hover:translate-y-[-4px]">
               <h3 className="text-lg font-semibold text-white mb-5">
                 SoloStack OS is{" "}
                 <span style={{ color: accent }}>NOT:</span>
@@ -831,7 +831,7 @@ function Trust() {
         <div className="grid sm:grid-cols-3 gap-6">
           {onboardingSteps.map((s, i) => (
             <Reveal key={s.step} delay={i * 120}>
-              <GlowCard className="p-5 text-center transition-transform duration-300 hover:translate-y-[-4px]">
+              <GlowCard className="h-full p-5 text-center transition-transform duration-300 hover:translate-y-[-4px]">
               <div className="flex flex-col gap-3">
                 <span
                   className="text-2xl font-bold mx-auto w-10 h-10 flex items-center justify-center rounded-full"

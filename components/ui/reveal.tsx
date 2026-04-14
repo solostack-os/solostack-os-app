@@ -60,6 +60,7 @@ export function Reveal({
       ref={ref}
       className={className}
       style={{
+        height: "100%",
         opacity: visible ? 1 : 0,
         transform: visible ? v.to : v.from,
         transition: `opacity ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
