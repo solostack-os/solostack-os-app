@@ -34,6 +34,14 @@ export function HeroBackground({
 
   useEffect(() => {
     if (!feColorMatrixRef.current) return;
+
+    // Firefox has poor SVG filter animation performance — skip continuous animation
+    const isFirefox = typeof navigator !== 'undefined' && /Firefox/i.test(navigator.userAgent);
+    if (isFirefox) {
+      feColorMatrixRef.current.setAttribute('values', '180');
+      return;
+    }
+
     hueRotateMotionValue.set(0);
     animationRef.current = animate(hueRotateMotionValue, 360, {
       duration,

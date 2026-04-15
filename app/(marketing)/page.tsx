@@ -39,23 +39,23 @@ function Navbar() {
         backdropFilter: scrolled ? "blur(12px)" : "none",
       }}
     >
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 py-5 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-2.5">
+        <a href="/" className="flex items-center gap-2 sm:gap-2.5 min-w-0">
           <img
             src="/logo.png"
             alt="SoloStack OS"
             width={40}
             height={40}
-            className="h-10 w-10 object-contain"
+            className="h-8 w-8 sm:h-10 sm:w-10 object-contain flex-shrink-0"
           />
-          <span className="text-lg font-bold text-white tracking-tight">
-            SoloStack OS
+          <span className="text-base sm:text-lg font-bold text-white tracking-tight truncate">
+            SoloStack<span className="hidden sm:inline"> OS</span>
           </span>
         </a>
 
         {/* Links */}
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-3 sm:gap-5">
           <div className="hidden md:flex items-center gap-5">
             <a
               href="#how-it-works"
@@ -78,14 +78,14 @@ function Navbar() {
           </div>
           <a
             href="/auth/login"
-            className="text-sm transition-opacity hover:opacity-80"
+            className="text-xs sm:text-sm transition-opacity hover:opacity-80"
             style={{ color: "#22c55e" }}
           >
             Log in
           </a>
           <a
             href="/auth/signup"
-            className="text-sm font-medium px-4 py-2 transition-opacity hover:opacity-90"
+            className="text-xs sm:text-sm font-medium px-3 sm:px-4 py-1.5 sm:py-2 transition-opacity hover:opacity-90 whitespace-nowrap"
             style={{ backgroundColor: accent, color: bg, borderRadius: 8 }}
           >
             Start Free Trial
