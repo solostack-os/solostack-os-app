@@ -192,9 +192,9 @@ function ProofStrip() {
       </p>
       <p
         className="text-xs mt-2 tracking-wide"
-        style={{ color: `${textMuted}99` }}
+        style={{ color: "#ffffff" }}
       >
-        Built by a solo operator for solo operators&ensp;&middot;&ensp;
+        Built by a solopreneur for solopreneurs&ensp;&middot;&ensp;
         <a
           href="https://www.linkedin.com/in/stanescudragos/"
           target="_blank"
