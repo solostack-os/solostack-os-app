@@ -162,7 +162,7 @@ function Hero() {
 
           {/* Reassurance */}
           <p className="mt-5 text-sm" style={{ color: "#f1f5f9" }}>
-            <span style={{ color: accent }}>No credit card required</span> &middot; Free credits every month &middot; <span style={{ color: "#22c55e" }}>Works in any language</span>
+            <span style={{ color: accent }}>No credit card required</span> &middot; Free credits at signup &middot; <span style={{ color: "#22c55e" }}>Works in any language</span>
           </p>
         </Reveal>
 
@@ -398,7 +398,7 @@ function HowItWorks() {
               <ShinyButton>Start Your 7-Day Free Trial</ShinyButton>
             </a>
             <p className="mt-3 text-xs" style={{ color: textMuted }}>
-              No credit card required &middot; Free credits every month
+              No credit card required &middot; Free credits at signup
             </p>
           </div>
         </Reveal>
@@ -805,7 +805,7 @@ const plans = [
     description: "Test the full product for 7 days.",
     features: [
       "7-day free trial",
-      "Free credits every month",
+      "Free credits at signup",
       "All 3 modules",
       "Full export access",
     ],
@@ -1077,7 +1077,7 @@ const faqs = [
   },
   {
     q: "What do I get during the trial?",
-    a: "A 7-day free trial with free credits, no credit card required, and full access to all 3 modules — Marketing OS, Outreach OS, and Operations OS. Credits reset every month.",
+    a: "A 7-day free trial with free credits at signup, no credit card required, and full access to all 3 modules — Marketing OS, Outreach OS, and Operations OS.",
   },
   {
     q: "What kinds of outputs can I create?",
@@ -1193,7 +1193,7 @@ function FinalCTA() {
           <ShinyButton>Start Your 7-Day Free Trial</ShinyButton>
         </a>
         <p className="mt-4 text-sm" style={{ color: "#f1f5f9" }}>
-          <span style={{ color: accent }}>No credit card required</span> &middot; Free credits every month &middot; Cancel
+          <span style={{ color: accent }}>No credit card required</span> &middot; Free credits at signup &middot; Cancel
           anytime
         </p>
       </Reveal>
