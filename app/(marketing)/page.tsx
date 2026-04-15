@@ -1209,7 +1209,7 @@ function Footer() {
   return (
     <footer className="py-8 px-6 border-t border-white/[0.08] bg-[#0a0f1e]/80 backdrop-blur-md">
       <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:flex-1">
           <img
             src="/logo.png"
             alt="SoloStack OS"
@@ -1223,7 +1223,7 @@ function Footer() {
         </div>
 
         <div
-          className="flex items-center gap-6 text-xs"
+          className="flex items-center justify-center gap-6 text-xs sm:flex-1"
           style={{ color: textMuted }}
         >
           <a
@@ -1244,7 +1244,7 @@ function Footer() {
         </div>
 
         <span
-          className="text-xs text-center"
+          className="text-xs text-center sm:flex-1 sm:text-right"
           style={{ color: textMuted }}
         >
           &copy; 2026 SoloStack OS&ensp;&middot;&ensp;All rights reserved
