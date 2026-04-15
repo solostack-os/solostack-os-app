@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
+import { stripMarkdown } from "@/components/ui/output-cards";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -231,7 +232,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   const handleCopyModalPost = useCallback(async (text: string, idx: number) => {
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(stripMarkdown(text));
     setCopiedIdx(idx);
     setTimeout(() => setCopiedIdx(null), 2000);
   }, []);

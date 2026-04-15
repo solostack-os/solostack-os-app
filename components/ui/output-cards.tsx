@@ -8,7 +8,7 @@ import { useState } from "react";
  * The original markdown is preserved in state and used for PDF export —
  * only the clipboard receives the cleaned version.
  */
-function stripMarkdown(text: string): string {
+export function stripMarkdown(text: string): string {
   return text
     // Headings: ## Title → Title
     .replace(/^#{1,6}\s+/gm, "")

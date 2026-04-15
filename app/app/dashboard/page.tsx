@@ -9,6 +9,7 @@ import { ShinyButton } from "@/components/ui/shiny-button";
 import { ProductTour } from "@/components/product-tour";
 import { CREDITS_PER_RUN, MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
 import { trackSignupConversion } from "@/lib/gtag";
+import { stripMarkdown } from "@/components/ui/output-cards";
 
 interface RecentRun {
   id: string;
@@ -265,7 +266,7 @@ export default function DashboardPage() {
   }, []);
 
   const handleCopy = useCallback(async (text: string, idx: number) => {
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(stripMarkdown(text));
     setCopiedIdx(idx);
     setTimeout(() => setCopiedIdx(null), 2000);
   }, []);
