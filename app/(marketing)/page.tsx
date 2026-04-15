@@ -338,8 +338,8 @@ const steps = [
   },
   {
     num: "03",
-    title: "Edit, export, and use the result",
-    text: "Get a structured output you can refine, copy, or export as a branded PDF. Your next task starts faster.",
+    title: "Copy, export, and use the result",
+    text: "Get a structured output you can copy or export as a branded PDF. Your next task starts faster.",
   },
 ];
 
@@ -1275,3 +1275,4 @@ export default function MarketingPage() {
     </main>
   );
 }
+                 
