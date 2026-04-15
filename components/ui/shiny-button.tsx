@@ -113,6 +113,22 @@ export function ShinyButton({ children, onClick, className = "" }: ShinyButtonPr
           animation: var(--animation) var(--duration), var(--animation) calc(var(--duration) / 0.4) reverse paused;
           animation-composition: add;
         }
+        /* Firefox: disable continuous animations — @property + animation-composition cause jank */
+        @supports (-moz-appearance: none) {
+          .shiny-cta, .shiny-cta::before, .shiny-cta::after {
+            animation: none;
+          }
+          .shiny-cta span::before {
+            animation: none;
+          }
+          .shiny-cta {
+            border: 1px solid var(--shiny-cta-highlight);
+            box-shadow: inset 0 0 0 1px var(--shiny-cta-bg-subtle), 0 0 20px -4px var(--shiny-cta-highlight);
+          }
+          .shiny-cta::before, .shiny-cta::after {
+            display: none;
+          }
+        }
         .shiny-cta:is(:hover, :focus-visible) {
           --gradient-percent: 20%;
           --gradient-angle-offset: 95deg;

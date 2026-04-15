@@ -1,5 +1,5 @@
 'use client';
-import React, { useRef, useId, useEffect, CSSProperties } from 'react';
+import React, { useRef, useId, useEffect, useState, CSSProperties } from 'react';
 import { animate, useMotionValue } from 'framer-motion';
 import type { AnimationPlaybackControls } from 'framer-motion';
 
@@ -32,15 +32,15 @@ export function HeroBackground({
   const displacementScale = mapRange(scale, 1, 100, 20, 100);
   const duration = mapRange(speed, 1, 100, 1000, 50) / 100;
 
-  useEffect(() => {
-    if (!feColorMatrixRef.current) return;
+  const [isFirefox, setIsFirefox] = useState(false);
 
-    // Firefox has poor SVG filter animation performance — skip continuous animation
-    const isFirefox = typeof navigator !== 'undefined' && /Firefox/i.test(navigator.userAgent);
-    if (isFirefox) {
-      feColorMatrixRef.current.setAttribute('values', '180');
-      return;
-    }
+  useEffect(() => {
+    setIsFirefox(/Firefox/i.test(navigator.userAgent));
+  }, []);
+
+  // Animate SVG hue rotation (Chrome/Safari only — Firefox skips SVG entirely)
+  useEffect(() => {
+    if (isFirefox || !feColorMatrixRef.current) return;
 
     hueRotateMotionValue.set(0);
     animationRef.current = animate(hueRotateMotionValue, 360, {
@@ -53,43 +53,56 @@ export function HeroBackground({
       }
     });
     return () => { animationRef.current?.stop(); };
-  }, [duration, hueRotateMotionValue]);
+  }, [isFirefox, duration, hueRotateMotionValue]);
 
   return (
     <div
       className={className}
       style={{ overflow: 'hidden', position: 'absolute', inset: 0, zIndex: 0, ...style }}
     >
-      <div style={{ position: 'absolute', inset: -displacementScale, filter: `url(#${filterId}) blur(4px)` }}>
-        <svg style={{ position: 'absolute', width: 0, height: 0 }}>
-          <defs>
-            <filter id={filterId}>
-              <feTurbulence
-                result="undulation"
-                numOctaves="2"
-                baseFrequency={`${mapRange(scale, 0, 100, 0.001, 0.0005)},${mapRange(scale, 0, 100, 0.004, 0.002)}`}
-                seed="0"
-                type="turbulence"
-              />
-              <feColorMatrix ref={feColorMatrixRef} in="undulation" type="hueRotate" values="180" />
-              <feColorMatrix in="dist" result="circulation" type="matrix" values="4 0 0 0 1  4 0 0 0 1  4 0 0 0 1  1 0 0 0 0" />
-              <feDisplacementMap in="SourceGraphic" in2="circulation" scale={displacementScale} result="dist" />
-              <feDisplacementMap in="dist" in2="undulation" scale={displacementScale} result="output" />
-            </filter>
-          </defs>
-        </svg>
+      {isFirefox ? (
+        /* Firefox: skip SVG filters entirely — use a simple blurred gradient instead */
         <div
           style={{
-            backgroundColor: color,
-            maskImage: `url('/hero-mask.png')`,
-            maskSize: 'cover',
-            maskRepeat: 'no-repeat',
-            maskPosition: 'center',
-            width: '100%',
-            height: '100%'
+            position: 'absolute',
+            inset: 0,
+            background: `radial-gradient(ellipse at 50% 50%, ${color}, transparent 70%)`,
+            filter: 'blur(40px)',
+            opacity: 0.8,
           }}
         />
-      </div>
+      ) : (
+        <div style={{ position: 'absolute', inset: -displacementScale, filter: `url(#${filterId}) blur(4px)` }}>
+          <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+            <defs>
+              <filter id={filterId}>
+                <feTurbulence
+                  result="undulation"
+                  numOctaves="2"
+                  baseFrequency={`${mapRange(scale, 0, 100, 0.001, 0.0005)},${mapRange(scale, 0, 100, 0.004, 0.002)}`}
+                  seed="0"
+                  type="turbulence"
+                />
+                <feColorMatrix ref={feColorMatrixRef} in="undulation" type="hueRotate" values="180" />
+                <feColorMatrix in="dist" result="circulation" type="matrix" values="4 0 0 0 1  4 0 0 0 1  4 0 0 0 1  1 0 0 0 0" />
+                <feDisplacementMap in="SourceGraphic" in2="circulation" scale={displacementScale} result="dist" />
+                <feDisplacementMap in="dist" in2="undulation" scale={displacementScale} result="output" />
+              </filter>
+            </defs>
+          </svg>
+          <div
+            style={{
+              backgroundColor: color,
+              maskImage: `url('/hero-mask.png')`,
+              maskSize: 'cover',
+              maskRepeat: 'no-repeat',
+              maskPosition: 'center',
+              width: '100%',
+              height: '100%'
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

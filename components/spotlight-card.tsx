@@ -37,19 +37,31 @@ const GlowCard: React.FC<GlowCardProps> = ({
   const innerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const syncPointer = (e: PointerEvent) => {
-      if (!cardRef.current) return;
+    let rafId = 0;
+    let lastEvent: PointerEvent | null = null;
+
+    const applyPointer = () => {
+      rafId = 0;
+      if (!cardRef.current || !lastEvent) return;
       const rect = cardRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const x = lastEvent.clientX - rect.left;
+      const y = lastEvent.clientY - rect.top;
       cardRef.current.style.setProperty('--x', x.toFixed(2));
       cardRef.current.style.setProperty('--xp', (x / rect.width).toFixed(2));
       cardRef.current.style.setProperty('--y', y.toFixed(2));
       cardRef.current.style.setProperty('--yp', (y / rect.height).toFixed(2));
     };
 
-    document.addEventListener('pointermove', syncPointer);
-    return () => document.removeEventListener('pointermove', syncPointer);
+    const syncPointer = (e: PointerEvent) => {
+      lastEvent = e;
+      if (!rafId) rafId = requestAnimationFrame(applyPointer);
+    };
+
+    document.addEventListener('pointermove', syncPointer, { passive: true });
+    return () => {
+      document.removeEventListener('pointermove', syncPointer);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   const { base, spread } = glowColorMap[glowColor];
