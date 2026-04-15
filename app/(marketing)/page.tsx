@@ -162,8 +162,7 @@ function Hero() {
 
           {/* Reassurance */}
           <p className="mt-5 text-sm" style={{ color: "#f1f5f9" }}>
-            <span style={{ color: accent }}>No credit card</span> required &middot; 60 credits included &middot; Full
-            access to all modules
+            <span style={{ color: accent }}>No credit card</span> required &middot; 60 credits included &middot; <span style={{ color: "#22c55e" }}>Works in any language</span>
           </p>
         </Reveal>
 
@@ -189,7 +188,7 @@ function ProofStrip() {
         className="text-xs sm:text-sm tracking-wide"
         style={{ color: textMuted }}
       >
-        One business context&ensp;&middot;&ensp;14 workflows&ensp;&middot;&ensp;3 modules&ensp;&middot;&ensp;Outputs in any language
+        One business context&ensp;&middot;&ensp;14 workflows&ensp;&middot;&ensp;Works in any language
       </p>
       <p
         className="text-xs mt-2 tracking-wide"

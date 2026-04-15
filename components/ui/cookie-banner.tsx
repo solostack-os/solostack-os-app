@@ -2,15 +2,38 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-const STORAGE_KEY = 'solostack-cookie-notice';
+const STORAGE_KEY = 'solostack-cookie-consent';
+
+/** Safely push a gtag consent update */
+function updateConsent(granted: boolean) {
+  try {
+    const w = window as any;
+    w.dataLayer = w.dataLayer || [];
+    function gtag(...args: any[]) { w.dataLayer.push(arguments); }
+    gtag('consent', 'update', {
+      ad_storage: granted ? 'granted' : 'denied',
+      ad_user_data: granted ? 'granted' : 'denied',
+      ad_personalization: granted ? 'granted' : 'denied',
+      analytics_storage: granted ? 'granted' : 'denied',
+    });
+  } catch {
+    // gtag not loaded yet — ignore
+  }
+}
 
 export function CookieBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Show only if user hasn't dismissed yet
     try {
-      if (!window.localStorage.getItem(STORAGE_KEY)) {
+      const stored = window.localStorage.getItem(STORAGE_KEY);
+      if (stored === 'accepted') {
+        // User previously accepted — grant consent silently
+        updateConsent(true);
+      } else if (stored === 'declined') {
+        // User previously declined — keep denied (default)
+      } else {
+        // No choice yet — show banner
         setVisible(true);
       }
     } catch {
@@ -18,13 +41,16 @@ export function CookieBanner() {
     }
   }, []);
 
-  const dismiss = () => {
+  const accept = () => {
     setVisible(false);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, '1');
-    } catch {
-      // ignore
-    }
+    updateConsent(true);
+    try { window.localStorage.setItem(STORAGE_KEY, 'accepted'); } catch {}
+  };
+
+  const decline = () => {
+    setVisible(false);
+    updateConsent(false);
+    try { window.localStorage.setItem(STORAGE_KEY, 'declined'); } catch {}
   };
 
   if (!visible) return null;
@@ -49,8 +75,8 @@ export function CookieBanner() {
         }}
       >
         <div className="flex-1 text-xs leading-relaxed" style={{ color: '#94a3b8' }}>
-          We use only essential cookies for authentication and security.
-          No tracking or advertising cookies.{' '}
+          We use cookies for authentication and to measure ad performance.
+          You can accept or decline non-essential cookies.{' '}
           <Link
             href="/privacy"
             className="underline transition-opacity hover:opacity-80"
@@ -59,13 +85,22 @@ export function CookieBanner() {
             Privacy Policy
           </Link>
         </div>
-        <button
-          onClick={dismiss}
-          className="flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg transition-opacity hover:opacity-90"
-          style={{ backgroundColor: '#6c8cff', color: '#0a0f1e' }}
-        >
-          Got it
-        </button>
+        <div className="flex-shrink-0 flex gap-2">
+          <button
+            onClick={decline}
+            className="text-xs font-medium px-3 py-1.5 rounded-lg transition-opacity hover:opacity-90"
+            style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#94a3b8' }}
+          >
+            Decline
+          </button>
+          <button
+            onClick={accept}
+            className="text-xs font-medium px-3 py-1.5 rounded-lg transition-opacity hover:opacity-90"
+            style={{ backgroundColor: '#6c8cff', color: '#0a0f1e' }}
+          >
+            Accept
+          </button>
+        </div>
       </div>
     </div>
   );
