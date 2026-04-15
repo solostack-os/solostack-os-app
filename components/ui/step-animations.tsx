@@ -138,7 +138,7 @@ export function StepTwoAnimation() {
 
       setTimeout(() => setActiveModule(0), 500);
       setTimeout(() => setActiveModule(1), 1200);
-      setTimeout(() => setActiveModule(0), 1900);
+      setTimeout(() => setActiveModule(2), 1900);
       setTimeout(() => setSelectedWorkflow(true), 2400);
       setTimeout(cycle, 5000);
     };
