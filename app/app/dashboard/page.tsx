@@ -8,6 +8,7 @@ import { GlowCard } from "@/components/ui/glow-card";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { ProductTour } from "@/components/product-tour";
 import { CREDITS_PER_RUN, MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
+import { trackSignupConversion } from "@/lib/gtag";
 
 interface RecentRun {
   id: string;
@@ -164,6 +165,8 @@ export default function DashboardPage() {
       const { is_new, workspace_id } = await bootstrapRes.json();
 
       if (is_new) {
+        // Fire Google Ads conversion for new sign-ups
+        trackSignupConversion();
         router.push("/app/onboarding");
         return;
       }

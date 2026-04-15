@@ -7,9 +7,9 @@ const STORAGE_KEY = 'solostack-cookie-consent';
 /** Safely push a gtag consent update */
 function updateConsent(granted: boolean) {
   try {
-    const w = window as unknown as Window & { dataLayer: unknown[] };
+    const w = window as any;
     w.dataLayer = w.dataLayer || [];
-    const gtag = (...args: unknown[]) => { w.dataLayer.push(args); };
+    function gtag(...args: any[]) { w.dataLayer.push(arguments); }
     gtag('consent', 'update', {
       ad_storage: granted ? 'granted' : 'denied',
       ad_user_data: granted ? 'granted' : 'denied',

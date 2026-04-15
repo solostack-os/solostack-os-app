@@ -19,7 +19,7 @@ export const SIGNUP_CONVERSION_LABEL = 'nGB8CPKBzJwcEKO_8p5D';
 /** Push a Google Ads conversion event */
 export function trackSignupConversion() {
   try {
-    const w = window as Window & { gtag?: (...args: unknown[]) => void };
+    const w = window as any;
     if (typeof w.gtag === 'function') {
       w.gtag('event', 'conversion', {
         send_to: `${GA_ADS_ID}/${SIGNUP_CONVERSION_LABEL}`,
@@ -33,10 +33,10 @@ export function trackSignupConversion() {
 /** Generic gtag event helper */
 export function gtagEvent(
   action: string,
-  params: Record<string, string | number | boolean> = {}
+  params: Record<string, any> = {}
 ) {
   try {
-    const w = window as Window & { gtag?: (...args: unknown[]) => void };
+    const w = window as any;
     if (typeof w.gtag === 'function') {
       w.gtag('event', action, params);
     }
