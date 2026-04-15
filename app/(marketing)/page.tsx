@@ -162,7 +162,7 @@ function Hero() {
 
           {/* Reassurance */}
           <p className="mt-5 text-sm" style={{ color: "#f1f5f9" }}>
-            <span style={{ color: accent }}>No credit card</span> required &middot; 60 credits included &middot; <span style={{ color: "#22c55e" }}>Works in any language</span>
+            <span style={{ color: accent }}>No credit card required</span> &middot; 60 credits included &middot; <span style={{ color: "#22c55e" }}>Works in any language</span>
           </p>
         </Reveal>
 
