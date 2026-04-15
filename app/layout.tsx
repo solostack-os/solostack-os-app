@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { CookieBanner } from "@/components/ui/cookie-banner";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -27,7 +28,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="overflow-x-hidden">
-      <body className={`${inter.variable} font-sans antialiased overflow-x-hidden`}>{children}</body>
+      <body className={`${inter.variable} font-sans antialiased overflow-x-hidden`}>
+        {children}
+        <CookieBanner />
+      </body>
     </html>
   );
 }

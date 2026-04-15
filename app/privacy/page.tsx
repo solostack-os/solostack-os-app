@@ -43,7 +43,7 @@ export default function PrivacyPage() {
         </p>
         <h1 className="text-3xl font-bold text-white mb-2">Privacy Policy</h1>
         <p className="text-sm mb-12" style={{ color: textMuted }}>
-          Last updated: April 2025
+          Last updated: April 2026
         </p>
 
         <div className="space-y-10 text-sm leading-relaxed" style={{ color: textMuted }}>
@@ -102,6 +102,7 @@ export default function PrivacyPage() {
                 { name: "Stripe", purpose: "Payment processing and subscription management", location: "US (SCCs apply)" },
                 { name: "Google (OAuth)", purpose: "Optional sign-in via Google account", location: "US (SCCs apply)" },
                 { name: "OpenAI / AI providers", purpose: "AI-powered content generation", location: "US (SCCs apply)" },
+                { name: "Vercel", purpose: "Hosting and edge delivery", location: "US (SCCs apply)" },
               ].map((row) => (
                 <div
                   key={row.name}
