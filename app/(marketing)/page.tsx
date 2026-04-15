@@ -1275,4 +1275,3 @@ export default function MarketingPage() {
     </main>
   );
 }
-                 

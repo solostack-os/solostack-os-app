@@ -41,6 +41,6 @@ export function gtagEvent(
       w.gtag('event', action, params);
     }
   } catch {
-    // ignore
+    // gtag not loaded — silently skip
   }
 }
