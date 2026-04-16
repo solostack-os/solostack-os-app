@@ -629,7 +629,7 @@ function OutputExamples() {
                 style={{
                   backgroundColor: surface,
                   border: "1px solid rgba(108,140,255,0.12)",
-                  boxShadow: "0 0 24px rgba(108,140,255,0.18), 0 0 48px rgba(108,140,255,0.08), 0 4px 16px rgba(0,0,0,0.25)",
+                  boxShadow: "0 0 18px rgba(108,140,255,0.1), 0 4px 16px rgba(0,0,0,0.22)",
                 }}
               >
                 {/* Color top bar — thicker with subtle glow */}
@@ -1165,7 +1165,7 @@ function FAQ() {
                 border: `1px solid ${
                   open === i ? "rgba(108,140,255,0.25)" : "rgba(108,140,255,0.08)"
                 }`,
-                boxShadow: open === i ? "0 0 24px rgba(108,140,255,0.18), 0 0 48px rgba(108,140,255,0.08)" : "none",
+                boxShadow: open === i ? "0 0 18px rgba(108,140,255,0.1), 0 4px 16px rgba(0,0,0,0.2)" : "none",
               }}
             >
               <button

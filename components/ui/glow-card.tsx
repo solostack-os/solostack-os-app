@@ -119,10 +119,10 @@ const GlowCard: React.FC<GlowCardProps> = ({
           // No background-attachment:fixed — use scroll (default) so the
           // background size is relative to this element, not the viewport.
           // Prevents Android Chrome from computing scrollWidth > viewport.
-          backgroundImage: `radial-gradient(var(--spotlight-size) var(--spotlight-size) at calc(var(--x, 0) * 1px) calc(var(--y, 0) * 1px), hsl(var(--hue, 210) calc(var(--saturation, 100) * 1%) calc(var(--lightness, 70) * 1%) / var(--bg-spot-opacity, 0.08)), transparent)`,
+          backgroundImage: `radial-gradient(var(--spotlight-size) var(--spotlight-size) at calc(var(--x, 0) * 1px) calc(var(--y, 0) * 1px), hsl(var(--hue, 210) calc(var(--saturation, 100) * 1%) calc(var(--lightness, 70) * 1%) / var(--bg-spot-opacity, 0.05)), transparent)`,
           backgroundColor: 'var(--backdrop, transparent)',
           border: 'var(--border-size) solid var(--backup-border)',
-          boxShadow: '0 0 24px rgba(108,140,255,0.18), 0 0 48px rgba(108,140,255,0.08), 0 4px 24px rgba(0,0,0,0.3)',
+          boxShadow: '0 0 18px rgba(108,140,255,0.1), 0 4px 20px rgba(0,0,0,0.22)',
           position: 'relative',
           touchAction: 'manipulation',
         } as React.CSSProperties}
