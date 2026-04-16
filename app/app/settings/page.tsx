@@ -910,14 +910,14 @@ function SettingsPageInner() {
               <div className="flex items-start gap-5">
                 <div
                   className="w-20 h-20 rounded-xl flex items-center justify-center border overflow-hidden flex-shrink-0"
-                  style={{ borderColor: border, backgroundColor: bg }}
+                  style={{ borderColor: (logoPreview || logoUrl) ? "rgba(108,140,255,0.4)" : border, backgroundColor: (logoPreview || logoUrl) ? "#ffffff" : bg }}
                 >
                   {(logoPreview || logoUrl) ? (
                     <img
                       src={logoPreview || logoUrl}
                       alt="Logo"
-                      className="w-full h-full object-contain"
-                      onError={() => { setLogoPreview(null); setLogoUrl(""); }}
+                      className="w-full h-full object-contain p-1"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                     />
                   ) : (
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -932,7 +932,7 @@ function SettingsPageInner() {
                     className="px-4 py-2 text-sm font-medium rounded-lg border cursor-pointer transition-colors hover:bg-white/[0.04] w-fit"
                     style={{ color: textPrimary, borderColor: border }}
                   >
-                    {uploading ? "Uploading..." : logoUrl ? "Change logo" : "Upload logo"}
+                    {uploading ? "Uploading..." : (logoUrl || logoPreview) ? "Change logo" : "Upload logo"}
                     <input
                       type="file"
                       accept="image/png,image/jpeg,image/svg+xml"
@@ -942,6 +942,11 @@ function SettingsPageInner() {
                     />
                   </label>
                   <p className="text-xs" style={{ color: textMuted }}>PNG, JPG, or SVG. Max 2MB.</p>
+                  {(logoUrl || logoPreview) && !uploading && (
+                    <p className="text-xs font-medium flex items-center gap-1" style={{ color: "#5eead4" }}>
+                      <span>✓</span> Logo saved
+                    </p>
+                  )}
                   {logoError && (
                     <p className="text-xs break-words" style={{ color: "#f87171" }}>
                       {logoError}
