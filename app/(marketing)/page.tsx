@@ -629,7 +629,7 @@ function OutputExamples() {
                 style={{
                   backgroundColor: surface,
                   border: "1px solid rgba(108,140,255,0.12)",
-                  boxShadow: "0 0 16px rgba(108,140,255,0.06), 0 4px 16px rgba(0,0,0,0.25)",
+                  boxShadow: "0 0 24px rgba(108,140,255,0.18), 0 0 48px rgba(108,140,255,0.08), 0 4px 16px rgba(0,0,0,0.25)",
                 }}
               >
                 {/* Color top bar — thicker with subtle glow */}
@@ -892,8 +892,8 @@ function Pricing() {
                   ? `radial-gradient(ellipse at 50% 0%, rgba(108,140,255,.08), transparent 60%), linear-gradient(175deg, #14213d 0%, ${surface} 100%)`
                   : surface,
                 boxShadow: p.highlighted
-                  ? "0 0 0 1px rgba(108,140,255,.2), 0 8px 40px rgba(0,0,0,.35), 0 0 48px rgba(108,140,255,.1), 0 0 96px rgba(0,200,255,.06)"
-                  : "0 0 20px rgba(108,140,255,0.08), 0 4px 24px rgba(0,0,0,0.25)",
+                  ? "0 0 0 1px rgba(108,140,255,.2), 0 8px 40px rgba(0,0,0,.35), 0 0 48px rgba(108,140,255,.15), 0 0 96px rgba(0,200,255,.08)"
+                  : "0 0 24px rgba(108,140,255,0.18), 0 0 48px rgba(108,140,255,0.08), 0 4px 24px rgba(0,0,0,0.3)",
               }}
             >
               {/* Gradient border pseudo-element for popular card */}
@@ -1132,7 +1132,7 @@ function FAQ() {
                 border: `1px solid ${
                   open === i ? "rgba(108,140,255,0.25)" : "rgba(108,140,255,0.08)"
                 }`,
-                boxShadow: open === i ? "0 0 16px rgba(108,140,255,0.08)" : "none",
+                boxShadow: open === i ? "0 0 24px rgba(108,140,255,0.18), 0 0 48px rgba(108,140,255,0.08)" : "none",
               }}
             >
               <button

@@ -122,7 +122,7 @@ const GlowCard: React.FC<GlowCardProps> = ({
           backgroundImage: `radial-gradient(var(--spotlight-size) var(--spotlight-size) at calc(var(--x, 0) * 1px) calc(var(--y, 0) * 1px), hsl(var(--hue, 210) calc(var(--saturation, 100) * 1%) calc(var(--lightness, 70) * 1%) / var(--bg-spot-opacity, 0.08)), transparent)`,
           backgroundColor: 'var(--backdrop, transparent)',
           border: 'var(--border-size) solid var(--backup-border)',
-          boxShadow: '0 0 20px rgba(108,140,255,0.08), 0 0 40px rgba(108,140,255,0.04), 0 4px 24px rgba(0,0,0,0.3)',
+          boxShadow: '0 0 24px rgba(108,140,255,0.18), 0 0 48px rgba(108,140,255,0.08), 0 4px 24px rgba(0,0,0,0.3)',
           position: 'relative',
           touchAction: 'manipulation',
         } as React.CSSProperties}
