@@ -877,36 +877,47 @@ function Pricing() {
         </p>
         </Reveal>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 items-center">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch py-8">
           {plans.map((p, i) => (
             <Reveal key={p.name} delay={i * 120} variant={i === 1 ? "scale-in" : "fade-up"}>
             <div
               key={p.name}
               className={[
-                "relative rounded-xl p-6 flex flex-col gap-5 transition-all duration-300",
-                p.highlighted
-                  ? "scale-105 hover:scale-[1.07] z-10"
-                  : "hover:-translate-y-1 z-0",
+                "relative rounded-2xl p-8 flex flex-col gap-0 h-full transition-all duration-300",
+                p.highlighted ? "z-10" : "z-0 hover:-translate-y-1",
               ].join(" ")}
               style={{
                 border: p.highlighted ? "1px solid transparent" : "1px solid rgba(108,140,255,0.15)",
                 background: p.highlighted
-                  ? `radial-gradient(ellipse at 50% 0%, rgba(108,140,255,.08), transparent 60%), linear-gradient(175deg, #14213d 0%, ${surface} 100%)`
+                  ? `radial-gradient(ellipse at 50% 0%, rgba(108,140,255,.1), transparent 60%), linear-gradient(175deg, #14213d 0%, ${surface} 100%)`
                   : surface,
                 boxShadow: p.highlighted
-                  ? "0 0 0 1px rgba(108,140,255,.2), 0 8px 40px rgba(0,0,0,.35), 0 0 48px rgba(108,140,255,.15), 0 0 96px rgba(0,200,255,.08)"
-                  : "0 0 24px rgba(108,140,255,0.18), 0 0 48px rgba(108,140,255,0.08), 0 4px 24px rgba(0,0,0,0.3)",
+                  ? "0 0 0 1px rgba(108,140,255,.25), 0 12px 48px rgba(0,0,0,.4), 0 0 64px rgba(108,140,255,.18), 0 0 120px rgba(0,200,255,.1)"
+                  : "0 0 24px rgba(108,140,255,0.12), 0 4px 24px rgba(0,0,0,0.25)",
+                transform: p.highlighted ? "scale(1.05)" : "scale(1)",
+              }}
+              onMouseEnter={e => {
+                if (p.highlighted) {
+                  (e.currentTarget as HTMLDivElement).style.transform = "scale(1.07)";
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 0 1px rgba(108,140,255,.35), 0 16px 64px rgba(0,0,0,.45), 0 0 80px rgba(108,140,255,.22), 0 0 140px rgba(0,200,255,.12)";
+                }
+              }}
+              onMouseLeave={e => {
+                if (p.highlighted) {
+                  (e.currentTarget as HTMLDivElement).style.transform = "scale(1.05)";
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 0 1px rgba(108,140,255,.25), 0 12px 48px rgba(0,0,0,.4), 0 0 64px rgba(108,140,255,.18), 0 0 120px rgba(0,200,255,.1)";
+                }
               }}
             >
               {/* Gradient border pseudo-element for popular card */}
               {p.highlighted && (
                 <div
-                  className="absolute rounded-xl pointer-events-none"
+                  className="absolute rounded-2xl pointer-events-none"
                   style={{
                     inset: "-1px",
                     background: "linear-gradient(135deg, #5eead4, #6c8cff, #8b5cf6)",
                     zIndex: -1,
-                    opacity: 0.6,
+                    opacity: 0.65,
                     borderRadius: "inherit",
                   }}
                 />
@@ -926,54 +937,59 @@ function Pricing() {
                 </span>
               )}
 
-              <div>
-                <h3 className="text-base font-semibold text-white">
+              {/* Header */}
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-white tracking-tight">
                   {p.name}
                 </h3>
                 {p.audience && (
-                  <p className="text-[11px] font-medium mt-1" style={{ color: accent }}>
+                  <p className="text-xs font-medium mt-1" style={{ color: accent }}>
                     {p.audience}
                   </p>
                 )}
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-white">
+                <div className="mt-5 flex items-baseline gap-1">
+                  <span className="text-5xl font-black text-white tracking-tight leading-none">
                     {p.price}
                   </span>
                   {p.period && (
-                    <span className="text-sm" style={{ color: textMuted }}>
+                    <span className="text-sm ml-1" style={{ color: textMuted }}>
                       {p.period}
                     </span>
                   )}
                 </div>
-                <p
-                  className="text-xs mt-2 leading-relaxed"
-                  style={{ color: textMuted }}
-                >
+                <p className="text-xs mt-2 leading-relaxed" style={{ color: textMuted }}>
                   {p.description}
                 </p>
               </div>
-              <ul className="flex-1 space-y-2.5">
+
+              {/* Divider */}
+              <div className="mb-6" style={{ height: "1px", background: "rgba(108,140,255,0.15)" }} />
+
+              {/* Features */}
+              <ul className="flex-1 space-y-3 mb-8">
                 {p.features.map((f) => (
                   <li
                     key={f}
-                    className="flex items-start gap-2 text-sm"
+                    className="flex items-start gap-2.5 text-sm leading-relaxed"
                     style={{ color: textMuted }}
                   >
-                    <span style={{ color: accentTeal }} className="mt-0.5">
-                      &#10003;
+                    <span style={{ color: accentTeal }} className="mt-0.5 shrink-0 font-bold">
+                      ✓
                     </span>
                     {f}
                   </li>
                 ))}
               </ul>
+
+              {/* CTA */}
               {p.highlighted ? (
-                <a href="/auth/signup" className="block">
+                <a href="/auth/signup" className="block mt-auto">
                   <ShinyButton fullWidth>{p.cta}</ShinyButton>
                 </a>
               ) : (
                 <a
                   href="/auth/signup"
-                  className="flex items-center justify-center text-sm font-bold py-3.5 transition-all duration-300 hover:text-white"
+                  className="mt-auto flex items-center justify-center text-sm font-bold py-4 transition-all duration-300"
                   style={{
                     color: textMuted,
                     border: `1px solid ${border}`,
@@ -982,14 +998,18 @@ function Pricing() {
                     width: "100%",
                   }}
                   onMouseEnter={e => {
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(108,140,255,0.4)";
-                    (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.05)";
-                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 16px rgba(108,140,255,0.12)";
+                    const el = e.currentTarget as HTMLAnchorElement;
+                    el.style.borderColor = "rgba(108,140,255,0.4)";
+                    el.style.background = "rgba(255,255,255,0.05)";
+                    el.style.color = "#fff";
+                    el.style.boxShadow = "0 0 20px rgba(108,140,255,0.14)";
                   }}
                   onMouseLeave={e => {
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor = border;
-                    (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.02)";
-                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = "none";
+                    const el = e.currentTarget as HTMLAnchorElement;
+                    el.style.borderColor = border;
+                    el.style.background = "rgba(255,255,255,0.02)";
+                    el.style.color = textMuted;
+                    el.style.boxShadow = "none";
                   }}
                 >
                   {p.cta}
