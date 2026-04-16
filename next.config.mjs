@@ -51,7 +51,7 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://js.stripe.com https://va.vercel-scripts.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob:",
+              "img-src 'self' data: blob: https://kymektpppuglihfflipq.supabase.co",
               "font-src 'self' data:",
               "connect-src 'self' https://kymektpppuglihfflipq.supabase.co wss://kymektpppuglihfflipq.supabase.co https://challenges.cloudflare.com https://js.stripe.com https://va.vercel-scripts.com",
               "frame-src 'self' https://js.stripe.com https://challenges.cloudflare.com",
