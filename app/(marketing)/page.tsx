@@ -877,17 +877,19 @@ function Pricing() {
         </p>
         </Reveal>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 items-center">
           {plans.map((p, i) => (
             <Reveal key={p.name} delay={i * 120} variant={i === 1 ? "scale-in" : "fade-up"}>
             <div
               key={p.name}
-              className="relative rounded-xl p-6 flex flex-col gap-5 transition-transform duration-300 hover:translate-y-[-2px]"
+              className={[
+                "relative rounded-xl p-6 flex flex-col gap-5 transition-all duration-300",
+                p.highlighted
+                  ? "scale-105 hover:scale-[1.07] z-10"
+                  : "hover:-translate-y-1 z-0",
+              ].join(" ")}
               style={{
-                backgroundColor: surface,
                 border: p.highlighted ? "1px solid transparent" : "1px solid rgba(108,140,255,0.15)",
-                transform: p.highlighted ? "scale(1.05)" : "scale(1)",
-                zIndex: p.highlighted ? 2 : 1,
                 background: p.highlighted
                   ? `radial-gradient(ellipse at 50% 0%, rgba(108,140,255,.08), transparent 60%), linear-gradient(175deg, #14213d 0%, ${surface} 100%)`
                   : surface,
@@ -971,12 +973,23 @@ function Pricing() {
               ) : (
                 <a
                   href="/auth/signup"
-                  className="block text-center text-sm font-bold py-3.5 transition-all duration-300 hover:border-white/30 hover:text-white hover:translate-y-[-1px]"
+                  className="flex items-center justify-center text-sm font-bold py-3.5 transition-all duration-300 hover:text-white"
                   style={{
                     color: textMuted,
                     border: `1px solid ${border}`,
                     borderRadius: 999,
                     background: "rgba(255,255,255,0.02)",
+                    width: "100%",
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(108,140,255,0.4)";
+                    (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.05)";
+                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 16px rgba(108,140,255,0.12)";
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = border;
+                    (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.02)";
+                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = "none";
                   }}
                 >
                   {p.cta}
