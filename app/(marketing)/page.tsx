@@ -160,8 +160,11 @@ function Hero() {
             </a>
           </div>
 
-          {/* Reassurance */}
-          <p className="mt-5 text-sm" style={{ color: "#f1f5f9" }}>
+          {/* Reassurance — mobile: compact under CTA, desktop: full line */}
+          <p className="mt-3 text-xs sm:hidden text-center" style={{ color: accent }}>
+            No credit card required &middot; Free credits at signup
+          </p>
+          <p className="mt-5 text-sm hidden sm:block" style={{ color: "#f1f5f9" }}>
             <span style={{ color: accent }}>No credit card required</span> &middot; Free credits at signup &middot; <span style={{ color: "#22c55e" }}>Works in any language</span>
           </p>
         </Reveal>
