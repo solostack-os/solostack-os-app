@@ -910,7 +910,13 @@ function SettingsPageInner() {
               <div className="flex items-start gap-5">
                 <div
                   className="w-20 h-20 rounded-xl flex items-center justify-center border overflow-hidden flex-shrink-0"
-                  style={{ borderColor: (logoPreview || logoUrl) ? "rgba(108,140,255,0.4)" : border, backgroundColor: (logoPreview || logoUrl) ? "#ffffff" : bg }}
+                  style={(logoPreview || logoUrl) ? {
+                    borderColor: "rgba(108,140,255,0.4)",
+                    backgroundImage: "linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)",
+                    backgroundSize: "10px 10px",
+                    backgroundPosition: "0 0, 0 5px, 5px -5px, -5px 0px",
+                    backgroundColor: "#f5f5f5",
+                  } : { borderColor: border, backgroundColor: bg }}
                 >
                   {(logoPreview || logoUrl) ? (
                     <img
