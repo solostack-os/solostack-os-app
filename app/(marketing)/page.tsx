@@ -628,7 +628,8 @@ function OutputExamples() {
                 className="h-full rounded-xl overflow-hidden flex flex-col transition-transform duration-300 hover:translate-y-[-4px]"
                 style={{
                   backgroundColor: surface,
-                  border: `1px solid ${border}`,
+                  border: "1px solid rgba(108,140,255,0.12)",
+                  boxShadow: "0 0 16px rgba(108,140,255,0.06), 0 4px 16px rgba(0,0,0,0.25)",
                 }}
               >
                 {/* Color top bar — thicker with subtle glow */}
@@ -884,7 +885,7 @@ function Pricing() {
               className="relative rounded-xl p-6 flex flex-col gap-5 transition-transform duration-300 hover:translate-y-[-2px]"
               style={{
                 backgroundColor: surface,
-                border: p.highlighted ? "1px solid transparent" : `1px solid ${border}`,
+                border: p.highlighted ? "1px solid transparent" : "1px solid rgba(108,140,255,0.15)",
                 transform: p.highlighted ? "scale(1.05)" : "scale(1)",
                 zIndex: p.highlighted ? 2 : 1,
                 background: p.highlighted
@@ -892,7 +893,7 @@ function Pricing() {
                   : surface,
                 boxShadow: p.highlighted
                   ? "0 0 0 1px rgba(108,140,255,.2), 0 8px 40px rgba(0,0,0,.35), 0 0 48px rgba(108,140,255,.1), 0 0 96px rgba(0,200,255,.06)"
-                  : "0 4px 24px rgba(0,0,0,0.2)",
+                  : "0 0 20px rgba(108,140,255,0.08), 0 4px 24px rgba(0,0,0,0.25)",
               }}
             >
               {/* Gradient border pseudo-element for popular card */}
@@ -1129,8 +1130,9 @@ function FAQ() {
               style={{
                 backgroundColor: open === i ? surface : "transparent",
                 border: `1px solid ${
-                  open === i ? "rgba(108,140,255,0.2)" : border
+                  open === i ? "rgba(108,140,255,0.25)" : "rgba(108,140,255,0.08)"
                 }`,
+                boxShadow: open === i ? "0 0 16px rgba(108,140,255,0.08)" : "none",
               }}
             >
               <button

@@ -109,8 +109,8 @@ const GlowCard: React.FC<GlowCardProps> = ({
           '--spread': spread,
           '--radius': '14',
           '--border': '2',
-          '--backdrop': 'hsl(0 0% 60% / 0.08)',
-          '--backup-border': 'var(--backdrop)',
+          '--backdrop': 'hsl(220 60% 50% / 0.12)',
+          '--backup-border': 'hsl(220 60% 50% / 0.2)',
           '--size': '200',
           '--outer': '1',
           '--border-size': 'calc(var(--border, 2) * 1px)',
@@ -122,10 +122,11 @@ const GlowCard: React.FC<GlowCardProps> = ({
           backgroundImage: `radial-gradient(var(--spotlight-size) var(--spotlight-size) at calc(var(--x, 0) * 1px) calc(var(--y, 0) * 1px), hsl(var(--hue, 210) calc(var(--saturation, 100) * 1%) calc(var(--lightness, 70) * 1%) / var(--bg-spot-opacity, 0.08)), transparent)`,
           backgroundColor: 'var(--backdrop, transparent)',
           border: 'var(--border-size) solid var(--backup-border)',
+          boxShadow: '0 0 20px rgba(108,140,255,0.08), 0 0 40px rgba(108,140,255,0.04), 0 4px 24px rgba(0,0,0,0.3)',
           position: 'relative',
           touchAction: 'manipulation',
         } as React.CSSProperties}
-        className={`rounded-2xl relative shadow-[0_1rem_2rem_-1rem_black] backdrop-blur-[5px] ${className}`}
+        className={`rounded-2xl relative backdrop-blur-[5px] ${className}`}
       >
         <div ref={innerRef} data-glow></div>
         {children}
