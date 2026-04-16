@@ -4,8 +4,9 @@ interface ShinyButtonProps {
   children: React.ReactNode
   onClick?: () => void
   className?: string
+  fullWidth?: boolean
 }
-export function ShinyButton({ children, onClick, className = "" }: ShinyButtonProps) {
+export function ShinyButton({ children, onClick, className = "", fullWidth = false }: ShinyButtonProps) {
   return (
     <>
       <style jsx>{`
@@ -144,7 +145,7 @@ export function ShinyButton({ children, onClick, className = "" }: ShinyButtonPr
         @keyframes shimmer { to { rotate: 360deg; } }
         @keyframes breathe { from, to { scale: 1; } 50% { scale: 1.2; } }
       `}</style>
-      <button className={`shiny-cta ${className}`} onClick={onClick}>
+      <button className={`shiny-cta ${className}`} onClick={onClick} style={fullWidth ? { width: "100%" } : undefined}>
         <span>{children}</span>
       </button>
     </>

@@ -966,7 +966,7 @@ function Pricing() {
               </ul>
               {p.highlighted ? (
                 <a href="/auth/signup" className="block">
-                  <ShinyButton className="w-full">{p.cta}</ShinyButton>
+                  <ShinyButton fullWidth>{p.cta}</ShinyButton>
                 </a>
               ) : (
                 <a
