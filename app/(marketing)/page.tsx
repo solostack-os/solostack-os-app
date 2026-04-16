@@ -877,7 +877,7 @@ function Pricing() {
         </p>
         </Reveal>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 items-center">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
           {plans.map((p, i) => (
             <Reveal key={p.name} delay={i * 120} variant={i === 1 ? "scale-in" : "fade-up"}>
             <div
@@ -965,8 +965,8 @@ function Pricing() {
                 ))}
               </ul>
               {p.highlighted ? (
-                <a href="/auth/signup">
-                  <ShinyButton>{p.cta}</ShinyButton>
+                <a href="/auth/signup" className="block">
+                  <ShinyButton className="w-full">{p.cta}</ShinyButton>
                 </a>
               ) : (
                 <a
