@@ -739,7 +739,7 @@ function IsIsNot() {
         <Reveal>
           <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10">
             What SoloStack is — and what it{" "}
-            <span style={{ color: accent }}>is not.</span>
+            <span style={{ color: "#f87171" }}>is not.</span>
           </h2>
         </Reveal>
 
@@ -773,7 +773,7 @@ function IsIsNot() {
             <GlowCard className="h-full p-6 sm:p-8 transition-transform duration-300 hover:translate-y-[-4px]">
               <h3 className="text-lg font-semibold text-white mb-5">
                 SoloStack OS is{" "}
-                <span style={{ color: accent }}>NOT:</span>
+                <span style={{ color: "#f87171" }}>NOT:</span>
               </h3>
               <ul className="space-y-3">
                 {isNotItems.map((item) => (
@@ -782,7 +782,7 @@ function IsIsNot() {
                     className="flex items-start gap-2.5 text-sm leading-relaxed"
                     style={{ color: textMuted }}
                   >
-                    <span style={{ color: accent }} className="mt-0.5">
+                    <span style={{ color: "#f87171" }} className="mt-0.5">
                       &#10007;
                     </span>
                     {item}
@@ -823,7 +823,7 @@ const plans = [
     audience: "For solopreneurs & consultants",
     description: "Weekly workflow needs, one person.",
     features: [
-      "450 credits / month",
+      "450 credits / month (~150 outputs)",
       "All 3 modules",
       "PDF exports",
       "Email support",
@@ -838,7 +838,7 @@ const plans = [
     audience: "For small teams & agencies",
     description: "Higher volume, advanced templates.",
     features: [
-      "1,000 credits / month",
+      "1,000 credits / month (~330 outputs)",
       "All 3 modules",
       "Brand voice & tone memory",
       "Advanced PDF templates",

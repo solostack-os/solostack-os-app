@@ -48,7 +48,7 @@ export function StepOneAnimation() {
   return (
     <div
       className="rounded-lg overflow-hidden mt-4 flex flex-col"
-      style={{ backgroundColor: surface, border: `1px solid ${border}`, height: CARD_HEIGHT }}
+      style={{ backgroundColor: surface, border: `1px solid rgba(255,255,255,0.12)`, boxShadow: "0 0 20px rgba(108,140,255,0.06), 0 4px 16px rgba(0,0,0,0.3)", height: CARD_HEIGHT }}
     >
       {/* Mini top bar */}
       <div
@@ -150,7 +150,7 @@ export function StepTwoAnimation() {
   return (
     <div
       className="rounded-lg overflow-hidden mt-4 flex flex-col"
-      style={{ backgroundColor: surface, border: `1px solid ${border}`, height: CARD_HEIGHT }}
+      style={{ backgroundColor: surface, border: `1px solid rgba(255,255,255,0.12)`, boxShadow: "0 0 20px rgba(108,140,255,0.06), 0 4px 16px rgba(0,0,0,0.3)", height: CARD_HEIGHT }}
     >
       {/* Mini top bar */}
       <div
@@ -272,7 +272,7 @@ export function StepThreeAnimation() {
   return (
     <div
       className="rounded-lg overflow-hidden mt-4 flex flex-col relative"
-      style={{ backgroundColor: surface, border: `1px solid ${border}`, height: CARD_HEIGHT }}
+      style={{ backgroundColor: surface, border: `1px solid rgba(255,255,255,0.12)`, boxShadow: "0 0 20px rgba(108,140,255,0.06), 0 4px 16px rgba(0,0,0,0.3)", height: CARD_HEIGHT }}
     >
       {/* Mini top bar */}
       <div
