@@ -67,39 +67,40 @@ export function CookieBanner() {
         }
       `}</style>
       <div
-        className="pointer-events-auto max-w-lg mx-auto rounded-xl px-5 py-4 flex items-start gap-4 shadow-2xl"
+        className="pointer-events-auto max-w-lg mx-auto rounded-xl px-4 py-3 shadow-2xl"
         style={{
           backgroundColor: 'rgba(17, 24, 39, 0.95)',
           border: '1px solid rgba(255,255,255,0.08)',
           backdropFilter: 'blur(12px)',
         }}
       >
-        <div className="flex-1 text-xs leading-relaxed" style={{ color: '#94a3b8' }}>
-          We use cookies for authentication and to measure ad performance.
-          You can accept or decline non-essential cookies.{' '}
-          <Link
-            href="/privacy"
-            className="underline transition-opacity hover:opacity-80"
-            style={{ color: '#6c8cff' }}
-          >
-            Privacy Policy
-          </Link>
-        </div>
-        <div className="flex-shrink-0 flex gap-2">
-          <button
-            onClick={decline}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg transition-opacity hover:opacity-90"
-            style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#94a3b8' }}
-          >
-            Decline
-          </button>
-          <button
-            onClick={accept}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg transition-opacity hover:opacity-90"
-            style={{ backgroundColor: '#6c8cff', color: '#0a0f1e' }}
-          >
-            Accept
-          </button>
+        <div className="flex items-center gap-3">
+          <div className="flex-1 text-[11px] leading-snug" style={{ color: '#94a3b8' }}>
+            Cookies for auth &amp; ads.{' '}
+            <Link
+              href="/privacy"
+              className="underline transition-opacity hover:opacity-80"
+              style={{ color: '#6c8cff' }}
+            >
+              Privacy
+            </Link>
+          </div>
+          <div className="flex-shrink-0 flex gap-2">
+            <button
+              onClick={decline}
+              className="text-[11px] font-medium px-2.5 py-1 rounded-lg transition-opacity hover:opacity-90"
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#94a3b8' }}
+            >
+              Decline
+            </button>
+            <button
+              onClick={accept}
+              className="text-[11px] font-medium px-2.5 py-1 rounded-lg transition-opacity hover:opacity-90"
+              style={{ backgroundColor: '#6c8cff', color: '#0a0f1e' }}
+            >
+              Accept
+            </button>
+          </div>
         </div>
       </div>
     </div>
