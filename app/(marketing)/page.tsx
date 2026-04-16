@@ -943,7 +943,7 @@ function Pricing() {
                   {p.name}
                 </h3>
                 {p.audience && (
-                  <p className="text-xs font-medium mt-1" style={{ color: accent }}>
+                  <p className="text-xs font-medium mt-1" style={{ color: p.highlighted ? "rgba(255,255,255,0.75)" : accent }}>
                     {p.audience}
                   </p>
                 )}
@@ -952,12 +952,12 @@ function Pricing() {
                     {p.price}
                   </span>
                   {p.period && (
-                    <span className="text-sm ml-1" style={{ color: textMuted }}>
+                    <span className="text-sm ml-1" style={{ color: p.highlighted ? "rgba(255,255,255,0.6)" : textMuted }}>
                       {p.period}
                     </span>
                   )}
                 </div>
-                <p className="text-xs mt-2 leading-relaxed" style={{ color: textMuted }}>
+                <p className="text-xs mt-2 leading-relaxed" style={{ color: p.highlighted ? "rgba(255,255,255,0.6)" : textMuted }}>
                   {p.description}
                 </p>
               </div>
@@ -971,9 +971,9 @@ function Pricing() {
                   <li
                     key={f}
                     className="flex items-start gap-2.5 text-sm leading-relaxed"
-                    style={{ color: textMuted }}
+                    style={{ color: p.highlighted ? "rgba(255,255,255,0.8)" : textMuted }}
                   >
-                    <span style={{ color: accentTeal }} className="mt-0.5 shrink-0 font-bold">
+                    <span style={{ color: p.highlighted ? "rgba(255,255,255,0.9)" : accentTeal }} className="mt-0.5 shrink-0 font-bold">
                       ✓
                     </span>
                     {f}
