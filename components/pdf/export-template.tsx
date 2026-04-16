@@ -446,15 +446,19 @@ export function ExportTemplate({
     },
     footer: {
       position: "absolute",
-      bottom: 36,
-      left: PAGE_HORIZONTAL_PADDING,
-      right: PAGE_HORIZONTAL_PADDING,
+      bottom: 0,
+      left: 0,
+      right: 0,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderTopWidth: 1,
+      paddingTop: headerVariant === "dark" ? 14 : 10,
+      paddingBottom: headerVariant === "dark" ? 14 : 10,
+      paddingLeft: PAGE_HORIZONTAL_PADDING,
+      paddingRight: PAGE_HORIZONTAL_PADDING,
+      backgroundColor: headerVariant === "dark" ? palette.background : "transparent",
+      borderTopWidth: headerVariant === "dark" ? 0 : 1,
       borderTopColor: RULE,
-      paddingTop: 10,
     },
     footerLeft: {
       flexDirection: "row",
@@ -468,11 +472,11 @@ export function ExportTemplate({
     },
     footerText: {
       fontSize: 8,
-      color: INK_FAINT,
+      color: headerVariant === "dark" ? palette.softText : INK_FAINT,
     },
     pageNumber: {
       fontSize: 8,
-      color: INK_FAINT,
+      color: headerVariant === "dark" ? palette.softText : INK_FAINT,
     },
   });
 
