@@ -88,6 +88,7 @@ function SettingsPageInner() {
   const [brandPrimary, setBrandPrimary] = useState("#6c8cff");
   const [brandSecondary, setBrandSecondary] = useState("#22c55e");
   const [logoUrl, setLogoUrl] = useState("");
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [legalName, setLegalName] = useState("");
   const [cui, setCui] = useState("");
   const [registrationNumber, setRegistrationNumber] = useState("");
@@ -556,6 +557,10 @@ function SettingsPageInner() {
       return;
     }
 
+    // Show local preview immediately — no waiting for Supabase URL.
+    const localPreview = URL.createObjectURL(file);
+    setLogoPreview(localPreview);
+
     setUploading(true);
     const supabase = createClient();
     const ext = (file.name.split(".").pop() || "png").toLowerCase();
@@ -576,6 +581,9 @@ function SettingsPageInner() {
     // Cache-buster so the <img> refreshes after a re-upload with the same path.
     const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
     setLogoUrl(publicUrl);
+    // Clear local blob preview now that we have the real URL.
+    URL.revokeObjectURL(localPreview);
+    setLogoPreview(null);
 
     // Persist immediately so the logo survives a refresh without the user
     // having to click "Save Profile" first.
@@ -904,11 +912,12 @@ function SettingsPageInner() {
                   className="w-20 h-20 rounded-xl flex items-center justify-center border overflow-hidden flex-shrink-0"
                   style={{ borderColor: border, backgroundColor: bg }}
                 >
-                  {logoUrl ? (
+                  {(logoPreview || logoUrl) ? (
                     <img
-                      src={logoUrl}
+                      src={logoPreview || logoUrl}
                       alt="Logo"
                       className="w-full h-full object-contain"
+                      onError={() => { setLogoPreview(null); setLogoUrl(""); }}
                     />
                   ) : (
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
