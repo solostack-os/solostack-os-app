@@ -145,7 +145,7 @@ function Hero() {
           {/* CTA */}
           <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4">
             <a href="/auth/signup">
-              <ShinyButton>Start Your 7-Day Free Trial</ShinyButton>
+              <ShinyButton>Create Your First Output — Free</ShinyButton>
             </a>
             <a
               href="#how-it-works"
@@ -398,7 +398,7 @@ function HowItWorks() {
         <Reveal delay={200}>
           <div className="text-center mt-12">
             <a href="/auth/signup">
-              <ShinyButton>Start Your 7-Day Free Trial</ShinyButton>
+              <ShinyButton>Create Your First Output — Free</ShinyButton>
             </a>
             <p className="mt-3 text-xs" style={{ color: textMuted }}>
               No credit card required &middot; Free credits at signup
@@ -805,6 +805,7 @@ const plans = [
     name: "Trial",
     price: "Free",
     period: "",
+    audience: "Perfect to test with a real project",
     description: "Test the full product for 7 days.",
     features: [
       "7-day free trial",
@@ -819,7 +820,8 @@ const plans = [
     name: "Starter",
     price: "$19",
     period: "/mo",
-    description: "For solo operators with weekly workflow needs.",
+    audience: "For solopreneurs & consultants",
+    description: "Weekly workflow needs, one person.",
     features: [
       "450 credits / month",
       "All 3 modules",
@@ -833,7 +835,8 @@ const plans = [
     name: "Pro",
     price: "$39",
     period: "/mo",
-    description: "For heavier usage and small agency output.",
+    audience: "For small teams & agencies",
+    description: "Higher volume, advanced templates.",
     features: [
       "1,000 credits / month",
       "All 3 modules",
@@ -924,6 +927,11 @@ function Pricing() {
                 <h3 className="text-base font-semibold text-white">
                   {p.name}
                 </h3>
+                {p.audience && (
+                  <p className="text-[11px] font-medium mt-1" style={{ color: accent }}>
+                    {p.audience}
+                  </p>
+                )}
                 <div className="mt-2 flex items-baseline gap-1">
                   <span className="text-3xl font-bold text-white">
                     {p.price}
@@ -1193,7 +1201,7 @@ function FinalCTA() {
           across marketing, outreach, and operations.
         </p>
         <a href="/auth/signup">
-          <ShinyButton>Start Your 7-Day Free Trial</ShinyButton>
+          <ShinyButton>Create Your First Output — Free</ShinyButton>
         </a>
         <p className="mt-4 text-sm" style={{ color: "#f1f5f9" }}>
           <span style={{ color: accent }}>No credit card required</span> &middot; Free credits at signup &middot; Cancel
