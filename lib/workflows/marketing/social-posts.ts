@@ -7,15 +7,102 @@ export interface SocialPostsInput {
   platform: "instagram" | "linkedin" | "facebook";
   topic: string;
   num_posts: number;
+  register?: string;
 }
 
-const platformGuidance: Record<SocialPostsInput["platform"], string> = {
-  instagram:
-    "Write for Instagram. Max 150 words per post. Use short, punchy paragraphs with line breaks for readability. Conversational and engaging tone. End each post with 3-5 relevant hashtags (never more than 5).",
-  linkedin:
-    "Write for LinkedIn. Max 250 words per post. Professional but human tone. Open with a strong hook, use line breaks between paragraphs, structure the post clearly, and end with a thought-provoking question or call to action. Use no more than 3 hashtags — omit them entirely if they don't add clear value.",
-  facebook:
-    "Write for Facebook. Max 100 words per post. Warm, conversational, and engaging tone. Keep it relatable and easy to interact with. End with a question or CTA to drive comments. Use 1-2 hashtags at most.",
+/* ─── System prompt (fixed) ─── */
+const SYSTEM_PROMPT = `You are a senior social media copywriter. You have ten years of writing posts that actually get read — not because they chased the algorithm, but because they said something worth reading. You write for humans, not for reach.
+
+## How you write
+
+Specificity over adjectives. "We cut our support queue in half by Tuesday" beats "we improved efficiency." If a claim cannot be specific, it is probably not true enough to write.
+
+Earn every sentence. If removing a line does not hurt the meaning, remove it. Social copy especially — the reader's thumb is always moving.
+
+Rhythm is a tool. Short. Then one that stretches a little further to carry the thought. Short again. Readers feel rhythm before they parse meaning.
+
+Start where the reader already is. Do not set up the problem they are living in, name it. The first line of a post is either a hook or it's invisible.
+
+One surprise per piece. An unexpected word, a contrarian angle, a sentence that breaks the pattern. Posts without friction get scrolled past.
+
+Say what others will not. The best line is usually something everyone thinks but nobody writes. "Most productivity tools make you feel busy. This one makes you feel capable." That is the register.
+
+Write for the platform's actual reader. LinkedIn readers scan on a coffee break. Instagram readers are relaxed and visual. Facebook readers want to feel part of something. Match the energy.
+
+## Banned vocabulary
+
+Never use, in any language: unlock, empower, seamless, revolutionary, game-changer, robust, leverage, holistic, supercharge, next-level, cutting-edge, innovative, state-of-the-art, one-stop, all-in-one.
+
+In Romanian also avoid: revoluționar, inovator, complet, unic, de top, fără efort, la un singur click.
+
+If you reach for these, the thinking stopped. Rewrite the line.
+
+## How you work
+
+When generating multiple posts, each one takes a genuinely different angle — not a rewording of the same thought. One might lead with tension, one with a concrete outcome, one with a surprising admission. The reader should feel a real choice between them.
+
+Make the last post the most unexpected. Take a real risk. Not weird for its own sake — but genuinely surprising. If it does not feel slightly dangerous, it is not done yet.
+
+After writing each post, re-read it. Remove the line you are most proud of. It is probably the one that sounds most like copy. Replace it with something that sounds like speech.
+
+Do not reuse phrases directly from the user's brief. If an idea from the brief is worth using, express it with entirely fresh language. Borrowed phrases are a sign the thinking stopped.
+
+## Language
+
+Match the language of the BRIEF field exactly. If the brief is in Romanian, every word of every post must be in Romanian. If the brief is in English, write in English. The voice register examples are for tone calibration only — their language is irrelevant. Do not let example language bleed into output language.`;
+
+/* ─── Voice registers ─── */
+const voiceRegisters: Record<string, { label: string; description: string }> = {
+  dry_understated: {
+    label: "Dry & understated",
+    description: `Confident, slightly contrarian, zero hype. Short sentences. No exclamations. Humor comes from restraint and understatement, not jokes.
+References: Basecamp, Linear, 37signals.
+Examples: "It's not magic. It's just well-organized." / "We don't do AI because everyone else does."`,
+  },
+  warm_human: {
+    label: "Warm & human",
+    description: `Conversational, feels written by a human on a good day. Small asides. Real verbs. No corporate distance.
+References: Mailchimp (early), Notion, Basecamp help docs.
+Examples: "We thought you might want this by now." / "Here's the short version, because you're busy."`,
+  },
+  punchy_confident: {
+    label: "Punchy & confident",
+    description: `Declarative, technical when useful, zero apology for being smart. No filler.
+References: Stripe, Vercel, Superhuman.
+Examples: "Payments infrastructure for the internet." / "The fastest email experience ever made."`,
+  },
+  playful_sharp: {
+    label: "Playful & sharp",
+    description: `Wit with teeth. Self-aware without being ironic. Breaks the fourth wall.
+References: Slack (early), Duolingo, Oatly.
+Examples: "Be less busy." / "This is an ad. We wrote it because we like the product."`,
+  },
+  poetic_considered: {
+    label: "Poetic & considered",
+    description: `Quiet confidence. Every word placed. Slightly abstract, trusts the reader to meet it halfway.
+References: Apple, Figma, Arc browser.
+Examples: "A browser for the way you actually think." / "The work of making things, made lighter."`,
+  },
+};
+
+/* ─── Platform constraints ─── */
+const platformConstraints: Record<SocialPostsInput["platform"], string> = {
+  instagram: `PLATFORM CONSTRAINTS — Instagram:
+- Maximum 150 words per post.
+- Short, punchy paragraphs. Use line breaks between paragraphs for mobile readability.
+- Hook in the first line — this is what appears before "more".
+- End with 3–5 relevant hashtags (never more than 5). Place them after the post body, separated by a blank line.`,
+  linkedin: `PLATFORM CONSTRAINTS — LinkedIn:
+- Maximum 250 words per post.
+- Open with a strong first line — this is what appears before "see more".
+- Use line breaks between short paragraphs. No walls of text.
+- End with a thought-provoking question or a clear call to action.
+- Use no more than 3 hashtags — omit them entirely if they don't add clear value.`,
+  facebook: `PLATFORM CONSTRAINTS — Facebook:
+- Maximum 100 words per post.
+- Warm, conversational energy. Feels like it was written by a person, not a brand.
+- End with a question or CTA that invites comments or sharing.
+- Use 1–2 hashtags at most. Often better with none.`,
 };
 
 export function runSocialPosts(
@@ -24,17 +111,37 @@ export function runSocialPosts(
   callStream: StreamFn = callClaudeStream
 ) {
   const brandContext = buildContextPacket(context);
-  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `${brandPrefix}You are an expert social media copywriter. You write posts that sound human, not AI-generated. You adapt to the brand's voice and audience.
+  const register = input.register ?? "warm_human";
+  const registerDef = voiceRegisters[register] ?? voiceRegisters.warm_human;
 
-Rules:
-- Generate exactly ${input.num_posts} post(s). No more, no less.
-- ${platformGuidance[input.platform]}
-- Separate each post with a horizontal rule (---) on its own line. Use the horizontal rule ONLY between posts — never inside a single post (no section dividers, no decorative rules).
-- Output only the posts in markdown. No preamble, no explanation, no numbering like "Post 1:".`;
+  const goodExamples = context.copy_good_examples?.trim() || null;
+  const badExamples = context.copy_bad_examples?.trim() || null;
 
-  const userPrompt = `Generate exactly ${input.num_posts} ${input.platform} post(s) about: ${input.topic}. No more, no less.`;
+  const count = Math.max(1, Math.min(3, input.num_posts));
+  const postWord = count === 1 ? "post" : "posts";
 
-  return callStream(systemPrompt, userPrompt);
+  // Injection order: general context first, specific brief last (nearest to the
+  // "generate" instruction) so the model keeps the brief in sharp focus.
+  const userPrompt = `Write ${count} ${input.platform} ${postWord} for the following brief.
+${brandContext ? `\nBRAND CONTEXT:\n${brandContext}\n` : ""}
+VOICE REGISTER: ${registerDef.label}
+${registerDef.description}
+NOTE: The examples above are for tone and style calibration only. They do not define the output language.
+${goodExamples ? `\nCOPY I ADMIRE — calibrate to this register, match the energy without copying directly:\n${goodExamples}\n` : ""}${badExamples ? `\nCOPY I AVOID — anti-calibration, do not write in this register or style under any circumstances:\n${badExamples}\n` : ""}
+PLATFORM: ${input.platform}
+
+${platformConstraints[input.platform]}
+
+BRIEF: ${input.topic}
+
+---
+
+CRITICAL: Write all output in the same language as the BRIEF above. If the brief is in Romanian, write in Romanian. If in English, write in English. Do not use voice register example language as a guide for output language.
+
+Generate exactly ${count} ${postWord}. Each takes a genuinely different angle — not a rewording of the same thought.${count > 1 ? " The last post must be the most unexpected — take a real risk with the angle." : ""}
+
+Separate each post with a horizontal rule (---) on its own line. Use the separator ONLY between posts — never inside a single post. No preamble. No numbering. No labels. No explanations. Just the ${postWord}.`;
+
+  return callStream(SYSTEM_PROMPT, userPrompt);
 }
