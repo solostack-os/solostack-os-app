@@ -602,13 +602,30 @@ export default function MarketingPage() {
         </div>
 
         {/* ── Header ── */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: textPrimary }}>
             {tabDescriptions[activeTab].title}
           </h1>
           <p className="text-base mt-1.5" style={{ color: textMuted }}>
             {tabDescriptions[activeTab].subtitle}
           </p>
+        </div>
+
+        {/* ── Brand context notice ── */}
+        <div
+          className="flex items-start gap-2.5 rounded-lg px-3.5 py-2.5 mb-6 text-xs"
+          style={{ backgroundColor: "rgba(108,140,255,0.06)", border: "1px solid rgba(108,140,255,0.12)", color: textMuted }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5" style={{ color: accent, opacity: 0.7 }}>
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <span>
+            Outputs use your brand profile from{" "}
+            <a href="/app/settings" className="underline underline-offset-2 hover:opacity-80 transition-opacity" style={{ color: accent }}>
+              Settings
+            </a>
+            . If you&apos;re generating for a different brand or product, update your profile first or include relevant context directly in the topic field.
+          </span>
         </div>
 
         {/* ════════════════════════════════════════════════
