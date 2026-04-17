@@ -419,15 +419,25 @@ export default function MarketingPage() {
     setTimeout(() => setter(null), 2000);
   }, []);
 
-  /* ─── Suggestion platform mapping ─── */
-  function getSuggestPlatform(): "instagram" | "linkedin" | "facebook" {
-    if (activeTab === "social_posts") return spPlatform;
-    if (activeTab === "ad_copy") {
-      if (acPlatform === "facebook") return "facebook";
-      if (acPlatform === "instagram") return "instagram";
-      return "facebook";
+  /* ─── Build full suggestion context based on active tab ─── */
+  function getSuggestInput(): Record<string, string> {
+    if (activeTab === "social_posts") {
+      return { platform: spPlatform };
     }
-    return "linkedin";
+    if (activeTab === "ad_copy") {
+      const platform = acPlatform === "facebook" ? "facebook" : acPlatform === "instagram" ? "instagram" : "google_ads";
+      return { platform, ad_goal: acGoal };
+    }
+    if (activeTab === "landing_page") {
+      return { platform: "linkedin", lp_section: lpSection, lp_goal: lpGoal };
+    }
+    if (activeTab === "email_campaign") {
+      return { platform: "linkedin", email_type: ecType };
+    }
+    if (activeTab === "content_brief") {
+      return { platform: "linkedin", content_type: cbType };
+    }
+    return { platform: "linkedin" };
   }
 
   async function handleSuggest() {
@@ -445,7 +455,7 @@ export default function MarketingPage() {
       const res = await fetch("/api/runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ module_key: "marketing", workflow_key: "topic_suggestions", input_json: { platform: getSuggestPlatform() } }),
+        body: JSON.stringify({ module_key: "marketing", workflow_key: "topic_suggestions", input_json: getSuggestInput() }),
         signal: controller.signal,
       });
       const data = await res.json();
