@@ -147,7 +147,7 @@ function TextareaInput({
       </label>
       <textarea
         value={value}
-        onChange={(e) => { if (e.target.value.length <= maxLen) onChange(e.target.value); }}
+        onChange={(e) => { onChange(e.target.value.slice(0, maxLen)); }}
         maxLength={maxLen}
         rows={3}
         placeholder={placeholder}

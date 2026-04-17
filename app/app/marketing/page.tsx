@@ -196,8 +196,7 @@ function TopicInput({
         {multiline ? (
           <textarea
             value={value}
-            onChange={(e) => { if (e.target.value.length <= maxLen) onChange(e.target.value); }}
-            maxLength={maxLen}
+            onChange={(e) => { onChange(e.target.value.slice(0, maxLen)); }}
             rows={3}
             placeholder={placeholder}
             className={`${inputBaseClass} resize-none custom-scrollbar`}
@@ -207,8 +206,7 @@ function TopicInput({
           <input
             type="text"
             value={value}
-            onChange={(e) => { if (e.target.value.length <= maxLen) onChange(e.target.value); }}
-            maxLength={maxLen}
+            onChange={(e) => { onChange(e.target.value.slice(0, maxLen)); }}
             placeholder={placeholder}
             className={inputBaseClass}
             style={inputBaseStyle}
