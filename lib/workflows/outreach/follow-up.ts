@@ -1,4 +1,4 @@
-import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
+import { buildContextPacket, currentDate, type WorkspaceContext } from "@/lib/ai/context-packet";
 import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "follow_up";
@@ -35,7 +35,7 @@ Rules:
 - Reference specific details from the original email context to make it feel personal and relevant, not copy-pasted.
 - Output only the email. No preamble, no explanation.`;
 
-  const userPrompt = `Write a follow-up email. The original outreach was about: ${input.context}. It has been ${input.days_since.replace("_", " ")} since the last email.`;
+  const userPrompt = `Current date: ${currentDate()}.\n\nWrite a follow-up email. The original outreach was about: ${input.context}. It has been ${input.days_since.replace("_", " ")} since the last email.`;
 
   return callStream(systemPrompt, userPrompt);
 }

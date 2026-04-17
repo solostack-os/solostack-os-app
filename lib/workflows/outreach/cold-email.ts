@@ -1,4 +1,4 @@
-import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
+import { buildContextPacket, currentDate, type WorkspaceContext } from "@/lib/ai/context-packet";
 import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "cold_email";
@@ -43,7 +43,7 @@ Rules:
 - Output exactly two sections: "Subject:" and "Body:" — separated by a horizontal rule (---).
 - Output only the email. No preamble, no explanation.${extraInstructions}`;
 
-  const userPrompt = `Write a cold email to ${input.prospect_name}, ${input.prospect_role} at ${input.prospect_company}.`;
+  const userPrompt = `Current date: ${currentDate()}.\n\nWrite a cold email to ${input.prospect_name}, ${input.prospect_role} at ${input.prospect_company}.`;
 
   return callStream(systemPrompt, userPrompt);
 }

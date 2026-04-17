@@ -1,4 +1,4 @@
-import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
+import { buildContextPacket, currentDate, type WorkspaceContext } from "@/lib/ai/context-packet";
 import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "onboarding_doc";
@@ -34,7 +34,9 @@ Rules:
 - Tone should be warm but professional.
 - Output only the document. No preamble, no explanation.`;
 
-  const userPrompt = `Create a client onboarding document.\n\nKey deliverables:\n${input.key_deliverables}`;
+  const userPrompt = `Current date: ${currentDate()}.
+
+Create a client onboarding document.\n\nKey deliverables:\n${input.key_deliverables}`;
 
   return callStream(systemPrompt, userPrompt);
 }

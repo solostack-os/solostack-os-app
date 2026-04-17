@@ -1,4 +1,4 @@
-import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
+import { buildContextPacket, currentDate, type WorkspaceContext } from "@/lib/ai/context-packet";
 import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "proposal";
@@ -41,7 +41,7 @@ Rules:
 - Next Steps should make it dead simple to move forward (1-2 action items).
 - Output only the proposal. No preamble, no explanation.${extraInstructions}`;
 
-  const userPrompt = `Write a project proposal for ${input.client_name}. Project type: ${input.project_type}.`;
+  const userPrompt = `Current date: ${currentDate()}.\n\nWrite a project proposal for ${input.client_name}. Project type: ${input.project_type}.`;
 
   return callStream(systemPrompt, userPrompt);
 }

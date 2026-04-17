@@ -1,4 +1,4 @@
-import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
+import { buildContextPacket, currentDate, type WorkspaceContext } from "@/lib/ai/context-packet";
 import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "process_notes";
@@ -35,7 +35,9 @@ Rules:
 - Separate major sections with a horizontal rule (---).
 - Output only the structured documentation. No preamble, no explanation.`;
 
-  const userPrompt = `Structure these process notes for "${input.process_title}":\n\n${input.raw_notes}`;
+  const userPrompt = `Current date: ${currentDate()}.
+
+Structure these process notes for "${input.process_title}":\n\n${input.raw_notes}`;
 
   return callStream(systemPrompt, userPrompt);
 }

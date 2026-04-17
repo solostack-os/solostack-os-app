@@ -1,4 +1,4 @@
-import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
+import { buildContextPacket, currentDate, type WorkspaceContext } from "@/lib/ai/context-packet";
 import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "email_campaign";
@@ -37,7 +37,7 @@ Rules:
 - The email body should use short paragraphs and be ready to paste into an email tool.
 - Output only the email. No preamble, no explanation.`;
 
-  const userPrompt = `Write a ${input.email_type.replace("_", " ")} email about: ${input.topic}`;
+  const userPrompt = `Current date: ${currentDate()}.\n\nWrite a ${input.email_type.replace("_", " ")} email about: ${input.topic}`;
 
   return callStream(systemPrompt, userPrompt);
 }

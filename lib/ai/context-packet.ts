@@ -17,6 +17,15 @@ export interface WorkspaceContext {
 }
 
 /**
+ * Returns today's date as YYYY-MM-DD (server local time).
+ * Inject into every workflow user prompt to prevent the model from using
+ * stale training-data years (e.g. writing "2025" when it's 2026).
+ */
+export function currentDate(): string {
+  return new Date().toISOString().split("T")[0];
+}
+
+/**
  * Build the brand-context prefix that gets prepended to every AI system prompt.
  *
  * - When `use_brand_context` is explicitly false, returns an empty string so the

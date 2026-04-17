@@ -1,4 +1,4 @@
-import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
+import { buildContextPacket, currentDate, type WorkspaceContext } from "@/lib/ai/context-packet";
 import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "ad_copy";
@@ -132,6 +132,8 @@ PLATFORM: ${input.platform.replace(/_/g, " ")}
 GOAL: ${goalContext[input.goal]}
 
 ${platformConstraints[input.platform]}
+
+CURRENT DATE: ${currentDate()} — use this for any time-sensitive references (year, season, "this year", "recently", etc.).
 
 BRIEF: ${input.topic}
 

@@ -1,4 +1,4 @@
-import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
+import { buildContextPacket, currentDate, type WorkspaceContext } from "@/lib/ai/context-packet";
 import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "social_posts";
@@ -132,6 +132,8 @@ ${goodExamples ? `\nCOPY I ADMIRE — calibrate to this register, match the ener
 PLATFORM: ${input.platform}
 
 ${platformConstraints[input.platform]}
+
+CURRENT DATE: ${currentDate()} — use this for any time-sensitive references (year, season, "this year", "recently", etc.).
 
 BRIEF: ${input.topic}
 

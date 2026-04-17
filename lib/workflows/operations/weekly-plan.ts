@@ -1,4 +1,4 @@
-import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
+import { buildContextPacket, currentDate, type WorkspaceContext } from "@/lib/ai/context-packet";
 import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "weekly_plan";
@@ -37,7 +37,9 @@ Rules:
 - Keep time blocks realistic — don't over-schedule.
 - Output only the plan. No preamble, no explanation.`;
 
-  const userPrompt = `Create a weekly plan focused on: ${input.focus_area}\n\nPriorities:\n${input.priorities}`;
+  const userPrompt = `Current date: ${currentDate()}.
+
+Create a weekly plan focused on: ${input.focus_area}\n\nPriorities:\n${input.priorities}`;
 
   return callStream(systemPrompt, userPrompt);
 }

@@ -1,4 +1,4 @@
-import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
+import { buildContextPacket, currentDate, type WorkspaceContext } from "@/lib/ai/context-packet";
 import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "discovery_prep";
@@ -44,7 +44,7 @@ Rules:
 - Your Talking Points: 3-4 points that connect the seller's strengths to the prospect's likely needs.
 - Output only the prep notes. No preamble, no explanation.${extraInstructions}`;
 
-  const userPrompt = `Prepare discovery call notes for a meeting with ${input.prospect_company} (${input.industry} industry). Call goal: ${input.call_goal.replace("_", " ")}.`;
+  const userPrompt = `Current date: ${currentDate()}.\n\nPrepare discovery call notes for a meeting with ${input.prospect_company} (${input.industry} industry). Call goal: ${input.call_goal.replace("_", " ")}.`;
 
   return callStream(systemPrompt, userPrompt);
 }

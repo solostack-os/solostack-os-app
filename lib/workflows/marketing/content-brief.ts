@@ -1,4 +1,4 @@
-import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
+import { buildContextPacket, currentDate, type WorkspaceContext } from "@/lib/ai/context-packet";
 import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "content_brief";
@@ -34,7 +34,7 @@ Rules:
 - Separate each section with a horizontal rule (---).
 - Output only the brief. No preamble, no explanation.`;
 
-  const userPrompt = `Create a ${input.content_type.replace(/_/g, " ")} brief about: ${input.topic}`;
+  const userPrompt = `Current date: ${currentDate()}.\n\nCreate a ${input.content_type.replace(/_/g, " ")} brief about: ${input.topic}`;
 
   return callStream(systemPrompt, userPrompt);
 }

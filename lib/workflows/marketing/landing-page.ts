@@ -1,4 +1,4 @@
-import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
+import { buildContextPacket, currentDate, type WorkspaceContext } from "@/lib/ai/context-packet";
 import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "landing_page";
@@ -46,7 +46,7 @@ Rules:
 - ${goalGuidance[input.goal]}
 - Output only the copy elements. No preamble, no explanation.`;
 
-  const userPrompt = `Write ${input.section.replace("_", " ")} section copy about: ${input.topic}`;
+  const userPrompt = `Current date: ${currentDate()}.\n\nWrite ${input.section.replace("_", " ")} section copy about: ${input.topic}`;
 
   return callStream(systemPrompt, userPrompt);
 }

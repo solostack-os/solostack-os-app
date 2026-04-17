@@ -1,4 +1,4 @@
-import { buildContextPacket, type WorkspaceContext } from "@/lib/ai/context-packet";
+import { buildContextPacket, currentDate, type WorkspaceContext } from "@/lib/ai/context-packet";
 import { callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 
 export const WORKFLOW_KEY = "sop_generator";
@@ -42,7 +42,9 @@ Rules:
 - Use numbered steps in the Step-by-Step Process section.
 - Output only the SOP. No preamble, no explanation.${extraInstructions}`;
 
-  const userPrompt = `Write a standard operating procedure for: ${input.process_name}`;
+  const userPrompt = `Current date: ${currentDate()}.
+
+Write a standard operating procedure for: ${input.process_name}`;
 
   return callStream(systemPrompt, userPrompt);
 }
