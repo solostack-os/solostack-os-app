@@ -122,7 +122,7 @@ export async function runTopicSuggestions(input: TopicSuggestionsInput) {
     : "";
 
   const langInstruction = input.preferred_language?.trim()
-    ? `\n- Generate the topic ideas in ${input.preferred_language.trim()}, unless a different language is more appropriate for the context.`
+    ? `\n- IMPORTANT: You MUST generate all 5 topic ideas in ${input.preferred_language.trim()}. No exceptions.`
     : "";
 
   const personalisationRule = input.brand_context?.trim()
