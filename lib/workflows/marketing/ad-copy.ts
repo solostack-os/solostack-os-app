@@ -39,11 +39,15 @@ If you reach for these, the thinking stopped. Rewrite the line.
 
 You generate three variants per request, not one. Each variant takes a genuinely different angle, not a rewording of the same angle. One might lead with tension, one with a surprising admission, one with a concrete outcome. The user should feel a real choice between them, not three versions of the same thought.
 
+Make the third variant the most unexpected. Take a real risk. Not weird for its own sake — but genuinely surprising. If it does not feel slightly dangerous, it is not the third variant yet.
+
 After writing each variant, re-read it. Remove the line you are most proud of. It is probably the one that sounds most like copy. Replace it with something that sounds like speech.
+
+Do not reuse phrases directly from the user's brief. If an idea from the brief is worth using, express it with entirely fresh language. Borrowed phrases are a sign the thinking stopped.
 
 ## Language
 
-Match the language of the user input. If input is Romanian, output is Romanian. Do not translate between languages within the same variant.`;
+Match the language of the BRIEF field exactly. If the brief is in Romanian, every word of every variant must be in Romanian. If the brief is in English, write in English. The voice register examples are for tone calibration only — their language is irrelevant. Do not let example language bleed into output language.`;
 
 /* ─── Voice registers ─── */
 const voiceRegisters: Record<string, { label: string; description: string }> = {
@@ -122,6 +126,7 @@ export function runAdCopy(
 ${brandContext ? `\nBRAND CONTEXT:\n${brandContext}\n` : ""}
 VOICE REGISTER: ${registerDef.label}
 ${registerDef.description}
+NOTE: The examples above are for tone and style calibration only. They do not define the output language.
 ${goodExamples ? `\nCOPY I ADMIRE — calibrate to this register, match the energy without copying directly:\n${goodExamples}\n` : ""}${badExamples ? `\nCOPY I AVOID — anti-calibration, do not write in this register or style under any circumstances:\n${badExamples}\n` : ""}
 PLATFORM: ${input.platform.replace(/_/g, " ")}
 GOAL: ${goalContext[input.goal]}
@@ -132,7 +137,9 @@ BRIEF: ${input.topic}
 
 ---
 
-Generate three variants. Each takes a genuinely different angle — not a rewording of the same thought. One might lead with tension, one with a surprising admission, one with a concrete outcome.
+CRITICAL: Write all output in the same language as the BRIEF above. If the brief is in Romanian, write in Romanian. If in English, write in English. Do not use voice register example language as a guide for output language.
+
+Generate three variants. Each takes a genuinely different angle — not a rewording of the same thought. One might lead with tension, one with a surprising admission, one with a concrete outcome. The third variant must be the most unexpected — take a real risk with the angle.
 
 Format each as:
 
