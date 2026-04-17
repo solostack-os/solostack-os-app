@@ -755,7 +755,7 @@ export default function MarketingPage() {
                   onChange={(v) => { setAcTopic(v); if (suggestions.length) setSuggestions([]); }}
                   label="Brief"
                   multiline={true}
-                  placeholder={"Ex: Lansăm modulul nou de AI automation pentru solopreneuri SaaS. Target: fondatori care lucrează solo și pierd timp pe task-uri repetitive. Vrem să subliniem că economisesc 10+ ore/săptămână."}
+                  placeholder={"e.g. Launching our new AI automation module for SaaS solopreneurs. Target: solo founders losing time on repetitive tasks. Key message: saves 10+ hours per week."}
                   loadingSuggestions={loadingSuggestions}
                   onSuggest={handleSuggest}
                   suggestions={suggestions}
