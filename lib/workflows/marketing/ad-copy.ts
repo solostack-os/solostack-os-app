@@ -116,16 +116,19 @@ export function runAdCopy(
   const goodExamples = context.copy_good_examples?.trim() || null;
   const badExamples = context.copy_bad_examples?.trim() || null;
 
+  // Injection order: general context first, specific brief last (nearest to the
+  // "generate" instruction) so the model keeps the brief in sharp focus.
   const userPrompt = `Write ad copy for the following brief.
-
-PLATFORM: ${input.platform.replace(/_/g, " ")}
-GOAL: ${goalContext[input.goal]}
-TOPIC: ${input.topic}
-
+${brandContext ? `\nBRAND CONTEXT:\n${brandContext}\n` : ""}
 VOICE REGISTER: ${registerDef.label}
 ${registerDef.description}
-${brandContext ? `\nBRAND CONTEXT:\n${brandContext}\n` : ""}${goodExamples ? `\nCOPY I ADMIRE — calibrate to this register, match the energy without copying directly:\n${goodExamples}\n` : ""}${badExamples ? `\nCOPY I AVOID — anti-calibration, do not write in this register or style under any circumstances:\n${badExamples}\n` : ""}
+${goodExamples ? `\nCOPY I ADMIRE — calibrate to this register, match the energy without copying directly:\n${goodExamples}\n` : ""}${badExamples ? `\nCOPY I AVOID — anti-calibration, do not write in this register or style under any circumstances:\n${badExamples}\n` : ""}
+PLATFORM: ${input.platform.replace(/_/g, " ")}
+GOAL: ${goalContext[input.goal]}
+
 ${platformConstraints[input.platform]}
+
+BRIEF: ${input.topic}
 
 ---
 

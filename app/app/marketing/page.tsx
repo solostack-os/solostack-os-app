@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GlowCard } from "@/components/ui/glow-card";
 import { OutputCards } from "@/components/ui/output-cards";
 import { StreamingCard } from "@/components/ui/streaming-card";
@@ -137,12 +137,14 @@ function LoadingSkeleton({ message }: { message: string }) {
   );
 }
 
-/* ─── Topic input with sparkle suggestions ─── */
+/* ─── Topic / Brief input with sparkle suggestions ─── */
 function TopicInput({
   value,
   onChange,
   placeholder,
-  maxLen = 200,
+  maxLen = 600,
+  multiline = false,
+  label = "Topic",
   loadingSuggestions,
   onSuggest,
   suggestions,
@@ -152,32 +154,81 @@ function TopicInput({
   onChange: (v: string) => void;
   placeholder: string;
   maxLen?: number;
+  multiline?: boolean;
+  label?: string;
   loadingSuggestions: boolean;
   onSuggest: () => void;
   suggestions: string[];
   suggestDisabled?: boolean;
 }) {
-  const warnAt = Math.round(maxLen * 0.9);
+  const len = value.length;
+
+  // 4-state feedback machine — evaluated once per value change, not per render
+  const feedbackState = useMemo((): "short" | "good" | "detailed" | "approaching" => {
+    if (len < 100) return "short";
+    if (len < 400) return "good";
+    if (len < 550) return "detailed";
+    return "approaching";
+  }, [len]);
+
+  // Lightweight language detection from input content (Romanian diacritics heuristic)
+  const isRomanian = useMemo(() =>
+    /[ăâîșțĂÂÎȘȚ]/.test(value) ||
+    /\b(pentru|este|sunt|care|și|sau|din|că|cu|pe|la|de)\b/i.test(value),
+  [value]);
+
+  const counterColor = useMemo(() => {
+    if (feedbackState === "good") return "#4ade80";
+    if (feedbackState === "detailed") return textMuted;
+    if (feedbackState === "approaching") return "#fb923c";
+    return textMuted;
+  }, [feedbackState]);
+
+  const hintMessage = useMemo(() => {
+    if (feedbackState === "short") return isRomanian
+      ? "Adaugă context despre audiență și poziționare pentru rezultate mai bune."
+      : "Add context about your audience and positioning for better results.";
+    if (feedbackState === "approaching") return isRomanian
+      ? "Pentru context persistent (voice, poziționare), folosește Brand Context din Settings."
+      : "For persistent context (voice, positioning), use Brand Context in Settings.";
+    return null;
+  }, [feedbackState, isRomanian]);
+
+  const inputBaseClass = "w-full px-4 py-3 pr-11 text-sm rounded-lg outline-none placeholder:text-slate-500 transition-shadow focus:ring-2 focus:ring-[#6c8cff]/40 focus:shadow-[0_0_0_1px_rgba(108,140,255,0.3)]";
+  const inputBaseStyle = { backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary };
+
   return (
     <div className="mb-5">
       <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>
-        Topic
+        {label}
       </label>
       <div className="relative">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => { if (e.target.value.length <= maxLen) onChange(e.target.value); }}
-          maxLength={maxLen}
-          placeholder={placeholder}
-          className="w-full px-4 py-3 pr-11 text-sm rounded-lg outline-none placeholder:text-slate-500 transition-shadow focus:ring-2 focus:ring-[#6c8cff]/40 focus:shadow-[0_0_0_1px_rgba(108,140,255,0.3)]"
-          style={{ backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary }}
-        />
+        {multiline ? (
+          <textarea
+            value={value}
+            onChange={(e) => { if (e.target.value.length <= maxLen) onChange(e.target.value); }}
+            maxLength={maxLen}
+            rows={3}
+            placeholder={placeholder}
+            className={`${inputBaseClass} resize-none custom-scrollbar`}
+            style={inputBaseStyle}
+          />
+        ) : (
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => { if (e.target.value.length <= maxLen) onChange(e.target.value); }}
+            maxLength={maxLen}
+            placeholder={placeholder}
+            className={inputBaseClass}
+            style={inputBaseStyle}
+          />
+        )}
         <button
           type="button"
           onClick={suggestDisabled ? undefined : onSuggest}
           disabled={loadingSuggestions || suggestDisabled}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+          className={`absolute right-2 p-1.5 rounded-md transition-colors hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer ${multiline ? "top-3" : "top-1/2 -translate-y-1/2"}`}
           aria-label="Suggest topics"
           title={suggestDisabled ? "Upgrade to continue" : "Get AI topic ideas"}
         >
@@ -194,10 +245,12 @@ function TopicInput({
           )}
         </button>
       </div>
-      <div className="flex justify-between items-center mt-1.5 gap-3">
-        <span className="text-xs text-white/35">Output language follows your input language</span>
-        <span className="text-[11px] tabular-nums" style={{ color: value.length >= warnAt ? "#f87171" : textMuted }}>
-          {value.length}/{maxLen}
+      <div className="flex justify-between items-start mt-1.5 gap-3">
+        <span className="text-xs transition-colors duration-300" style={{ color: hintMessage ? textMuted : "rgba(255,255,255,0.2)" }}>
+          {hintMessage ?? "Output language follows your input language"}
+        </span>
+        <span className="text-[11px] tabular-nums flex-shrink-0 transition-colors duration-300" style={{ color: counterColor }}>
+          {len}/{maxLen}
         </span>
       </div>
       {suggestions.length > 0 && (
@@ -707,7 +760,17 @@ export default function MarketingPage() {
                   </select>
                 </div>
 
-                <TopicInput value={acTopic} onChange={(v) => { setAcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. Summer sale on premium headphones" loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
+                <TopicInput
+                  value={acTopic}
+                  onChange={(v) => { setAcTopic(v); if (suggestions.length) setSuggestions([]); }}
+                  label="Brief"
+                  multiline={true}
+                  placeholder={"Ex: Lansăm modulul nou de AI automation pentru solopreneuri SaaS. Target: fondatori care lucrează solo și pierd timp pe task-uri repetitive. Vrem să subliniem că economisesc 10+ ore/săptămână."}
+                  loadingSuggestions={loadingSuggestions}
+                  onSuggest={handleSuggest}
+                  suggestions={suggestions}
+                  suggestDisabled={creditLimitReached === true}
+                />
                 <GenerateButton
                   loading={acLoading}
                   disabled={!acTopic.trim()}
