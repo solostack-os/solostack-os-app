@@ -541,7 +541,6 @@ export default function MarketingPage() {
   }
 
   function handleSpTopicChange(value: string) {
-    if (value.length > 200) return;
     setSpTopic(value);
     if (suggestions.length > 0) setSuggestions([]);
   }
