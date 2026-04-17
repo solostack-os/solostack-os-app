@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
 import { stripMarkdown } from "@/components/ui/output-cards";
+import { GoogleAdsConversion } from "@/components/GoogleAdsConversion";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -257,6 +258,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div id="app-layout-root" className="flex min-h-screen overflow-x-hidden" style={{ backgroundColor: bg }}>
+      {/* Google Ads conversion tracking for new signups */}
+      <Suspense fallback={null}>
+        <GoogleAdsConversion />
+      </Suspense>
       {/* ─── Mobile 100dvh layout fix ─── */}
       {/* Makes the layout fill exactly the VISIBLE viewport on mobile.
           The nav becomes a natural flex item at the bottom — no `position:fixed`

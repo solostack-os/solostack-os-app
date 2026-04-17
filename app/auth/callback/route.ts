@@ -59,8 +59,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Successful login — send to the app
-    return NextResponse.redirect(`${origin}/app/dashboard`);
+    // Detect new Google OAuth signup (created within last 60 seconds)
+    const { data: { user } } = await supabase.auth.getUser();
+    const isNewUser =
+      user?.created_at &&
+      new Date(user.created_at).getTime() > Date.now() - 60_000;
+
+    // Successful login — send to the app (flag new signups for conversion tracking)
+    return NextResponse.redirect(
+      `${origin}/app/dashboard${isNewUser ? "?signup=1" : ""}`
+    );
   }
 
   // No code and no error — redirect to login
