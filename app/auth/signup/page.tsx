@@ -46,8 +46,10 @@ export default function SignupPage() {
     }
 
     // Fire Google Ads conversion for email signup
-    if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
-      (window as any).gtag("event", "conversion", {
+    type GtagWindow = Window & { gtag?: (...args: unknown[]) => void };
+    const gtagWindow = window as GtagWindow;
+    if (typeof window !== "undefined" && typeof gtagWindow.gtag === "function") {
+      gtagWindow.gtag("event", "conversion", {
         send_to: "AW-18049965987/nGB8CPKBzJwcEKO_8p5D",
       });
     }
