@@ -171,12 +171,6 @@ function TopicInput({
     return "approaching";
   }, [len]);
 
-  // Lightweight language detection from input content (Romanian diacritics heuristic)
-  const isRomanian = useMemo(() =>
-    /[ăâîșțĂÂÎȘȚ]/.test(value) ||
-    /\b(pentru|este|sunt|care|și|sau|din|că|cu|pe|la|de)\b/i.test(value),
-  [value]);
-
   const counterColor = useMemo(() => {
     if (feedbackState === "good") return "#4ade80";
     if (feedbackState === "detailed") return textMuted;
@@ -185,14 +179,10 @@ function TopicInput({
   }, [feedbackState]);
 
   const hintMessage = useMemo(() => {
-    if (feedbackState === "short") return isRomanian
-      ? "Adaugă context despre audiență și poziționare pentru rezultate mai bune."
-      : "Add context about your audience and positioning for better results.";
-    if (feedbackState === "approaching") return isRomanian
-      ? "Pentru context persistent (voice, poziționare), folosește Brand Context din Settings."
-      : "For persistent context (voice, positioning), use Brand Context in Settings.";
+    if (feedbackState === "short") return "Add context about your audience and positioning for better results.";
+    if (feedbackState === "approaching") return "For persistent context (voice, positioning), use Brand Context in Settings.";
     return null;
-  }, [feedbackState, isRomanian]);
+  }, [feedbackState]);
 
   const inputBaseClass = "w-full px-4 py-3 pr-11 text-sm rounded-lg outline-none placeholder:text-slate-500 transition-shadow focus:ring-2 focus:ring-[#6c8cff]/40 focus:shadow-[0_0_0_1px_rgba(108,140,255,0.3)]";
   const inputBaseStyle = { backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary };
