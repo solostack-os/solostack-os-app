@@ -46,7 +46,7 @@ const tabs: { key: TabKey; label: string }[] = [
 
 const tabDescriptions: Record<TabKey, { title: string; subtitle: string }> = {
   cold_email: { title: "Write a cold email", subtitle: "Generate personalized outreach that gets replies." },
-  follow_up: { title: "Write follow-up emails", subtitle: "Generate a 3-email follow-up sequence." },
+  follow_up: { title: "Write a follow-up email", subtitle: "Generate a follow-up based on your previous outreach." },
   proposal: { title: "Write a proposal", subtitle: "Generate a structured project proposal outline." },
   discovery_prep: { title: "Prepare for a discovery call", subtitle: "Generate research, questions, and talking points." },
 };
