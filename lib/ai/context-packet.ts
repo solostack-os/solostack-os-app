@@ -12,6 +12,8 @@ export interface WorkspaceContext {
   brand_voice?: string | null;
   use_brand_context?: boolean | null;
   preferred_language?: string | null;
+  copy_good_examples?: string | null;
+  copy_bad_examples?: string | null;
 }
 
 /**

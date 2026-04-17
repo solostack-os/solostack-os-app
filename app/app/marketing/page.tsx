@@ -267,6 +267,7 @@ export default function MarketingPage() {
   /* ── Ad Copy state ── */
   const [acPlatform, setAcPlatform] = useState<"google_ads" | "facebook" | "instagram">("google_ads");
   const [acGoal, setAcGoal] = useState<"awareness" | "clicks" | "conversions">("clicks");
+  const [acRegister, setAcRegister] = useState("warm_human");
   const [acTopic, setAcTopic] = useState("");
   const [acLoading, setAcLoading] = useState(false);
   const [acStreaming, setAcStreaming] = useState(false);
@@ -688,11 +689,29 @@ export default function MarketingPage() {
               <div className="p-7">
                 <PillSelector label="Platform" options={adPlatforms} value={acPlatform} onChange={setAcPlatform} />
                 <PillSelector label="Goal" options={adGoals} value={acGoal} onChange={setAcGoal} />
+
+                {/* Voice Register */}
+                <div className="mb-5">
+                  <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>Voice register</label>
+                  <select
+                    value={acRegister}
+                    onChange={(e) => setAcRegister(e.target.value)}
+                    className="w-full px-4 py-3 text-sm rounded-lg outline-none focus:ring-2 focus:ring-[#6c8cff]/40 cursor-pointer"
+                    style={{ backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary, appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center" }}
+                  >
+                    <option value="warm_human">Warm &amp; human — Mailchimp, Notion</option>
+                    <option value="dry_understated">Dry &amp; understated — Basecamp, Linear</option>
+                    <option value="punchy_confident">Punchy &amp; confident — Stripe, Vercel</option>
+                    <option value="playful_sharp">Playful &amp; sharp — Slack, Oatly</option>
+                    <option value="poetic_considered">Poetic &amp; considered — Apple, Arc</option>
+                  </select>
+                </div>
+
                 <TopicInput value={acTopic} onChange={(v) => { setAcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. Summer sale on premium headphones" loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
                 <GenerateButton
                   loading={acLoading}
                   disabled={!acTopic.trim()}
-                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("ad_copy", { platform: acPlatform, goal: acGoal, topic: acTopic }, setAcLoading, setAcOutput, setAcError, setAcStreaming, acStreamTextRef); }}
+                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("ad_copy", { platform: acPlatform, goal: acGoal, topic: acTopic, register: acRegister }, setAcLoading, setAcOutput, setAcError, setAcStreaming, acStreamTextRef); }}
                   label="Generate"
                 />
                 <ErrorMsg error={acError} />

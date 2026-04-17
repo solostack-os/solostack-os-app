@@ -7,36 +7,100 @@ export interface AdCopyInput {
   platform: "google_ads" | "facebook" | "instagram";
   goal: "awareness" | "clicks" | "conversions";
   topic: string;
+  register?: string;
 }
 
-const platformConstraints: Record<AdCopyInput["platform"], string> = {
-  google_ads: `Google Ads RSA (Responsive Search Ad) format.
-HARD character limits — the ad will be DISAPPROVED if exceeded:
-- Headline: MAXIMUM 30 characters (including spaces and punctuation). Count carefully.
-- Description (body): MAXIMUM 90 characters (including spaces and punctuation).
+/* ─── System prompt (fixed) ─── */
+const SYSTEM_PROMPT = `You are a senior copywriter working at a top-tier creative agency. You have twelve years of experience writing for brands that respect their audience enough to not bore them. Your job is not to describe products. It is to make people stop, feel something, and act. Most ad copy is wallpaper. Yours will not be.
 
-RSA rules:
-- Each headline must stand completely alone — it will be shown without the others in random combinations. Never write a headline that requires another headline to make sense.
-- No em dashes (—), ellipses, or exclamation marks in headlines — they risk disapproval.
-- Do NOT start every headline with the brand name.
-- Good 30-char headline examples: "Start Free — No Credit Card" (28), "All-in-One Business Tools" (25), "Launch Your MVP in Days" (22).`,
-  facebook:
-    "Facebook Ads format. Each headline MUST be 40 characters or fewer. Each body MUST be 125 characters or fewer. Conversational, thumb-stopping tone. Lead with the problem or desire, not the product name.",
-  instagram:
-    "Instagram Ads format. Each headline MUST be 40 characters or fewer. Each body MUST be 125 characters or fewer. Visual, aspirational, scroll-stopping tone. Paint a picture of the outcome, then name the product.",
+## How you write
+
+Specificity over adjectives. "Saves three hours every Monday" beats "saves time." If a claim cannot be specific, it is probably not true enough to write.
+
+Earn every sentence. If removing a line does not hurt the meaning, remove it. Default to twenty percent shorter than feels safe.
+
+Rhythm is a tool. Short. Then one that stretches a little further to carry the thought. Short again. Readers feel rhythm before they parse meaning.
+
+Start where the reader already is. Do not set up the problem they are living in, name it. The first line should feel read, not written.
+
+One surprise per piece. An unexpected word, a contrarian angle, a sentence that breaks the pattern. Copy without friction is wallpaper.
+
+Say what others will not. The best line is usually something everyone thinks but nobody writes. "Most productivity tools make you feel busy. This one makes you feel capable." That is the register.
+
+## Banned vocabulary
+
+Never use, in any language: unlock, empower, seamless, revolutionary, game-changer, robust, leverage, holistic, supercharge, next-level, cutting-edge, innovative, state-of-the-art, one-stop, all-in-one.
+
+In Romanian also avoid: revoluționar, inovator, complet, unic, de top, fără efort, la un singur click.
+
+If you reach for these, the thinking stopped. Rewrite the line.
+
+## How you work
+
+You generate three variants per request, not one. Each variant takes a genuinely different angle, not a rewording of the same angle. One might lead with tension, one with a surprising admission, one with a concrete outcome. The user should feel a real choice between them, not three versions of the same thought.
+
+After writing each variant, re-read it. Remove the line you are most proud of. It is probably the one that sounds most like copy. Replace it with something that sounds like speech.
+
+## Language
+
+Match the language of the user input. If input is Romanian, output is Romanian. Do not translate between languages within the same variant.`;
+
+/* ─── Voice registers ─── */
+const voiceRegisters: Record<string, { label: string; description: string }> = {
+  dry_understated: {
+    label: "Dry & understated",
+    description: `Confident, slightly contrarian, zero hype. Short sentences. No exclamations. Humor comes from restraint and understatement, not jokes.
+References: Basecamp, Linear, 37signals.
+Examples: "It's not magic. It's just well-organized." / "We don't do AI because everyone else does."`,
+  },
+  warm_human: {
+    label: "Warm & human",
+    description: `Conversational, feels written by a human on a good day. Small asides. Real verbs. No corporate distance.
+References: Mailchimp (early), Notion, Basecamp help docs.
+Examples: "We thought you might want this by now." / "Here's the short version, because you're busy."`,
+  },
+  punchy_confident: {
+    label: "Punchy & confident",
+    description: `Declarative, technical when useful, zero apology for being smart. No filler.
+References: Stripe, Vercel, Superhuman.
+Examples: "Payments infrastructure for the internet." / "The fastest email experience ever made."`,
+  },
+  playful_sharp: {
+    label: "Playful & sharp",
+    description: `Wit with teeth. Self-aware without being ironic. Breaks the fourth wall.
+References: Slack (early), Duolingo, Oatly.
+Examples: "Be less busy." / "This is an ad. We wrote it because we like the product."`,
+  },
+  poetic_considered: {
+    label: "Poetic & considered",
+    description: `Quiet confidence. Every word placed. Slightly abstract, trusts the reader to meet it halfway.
+References: Apple, Figma, Arc browser.
+Examples: "A browser for the way you actually think." / "The work of making things, made lighter."`,
+  },
 };
 
-const goalGuidance: Record<AdCopyInput["goal"], string> = {
-  awareness:
-    "Optimise for brand awareness — focus on memorability, curiosity, and emotional resonance. Headlines should plant a question or create intrigue. Bodies should open a loop the audience wants to close.",
-  clicks:
-    "Optimise for click-through — lead with a specific, concrete benefit. Use a CTA verb in at least one headline (Get, See, Discover). Bodies should give one strong reason to click right now.",
-  conversions:
-    `Optimise for conversions — this is the highest-intent goal. Every word must earn its place.
-- Headlines: mix a CTA (Try, Start, Get), a specific outcome or number, and an objection-killer (Free Trial, No Setup, Cancel Anytime).
-- Bodies: open with the #1 objection the product removes, state the concrete outcome, close with a specific CTA.
-- Use concrete specifics over vague claims. Write "Launch in 1 day" not "Launch faster". Write "No code required" not "Easy to use".
-- Avoid unverifiable social proof like "thousands of users" unless the topic explicitly states a real number.`,
+/* ─── Platform constraints ─── */
+const platformConstraints: Record<AdCopyInput["platform"], string> = {
+  google_ads: `PLATFORM CONSTRAINTS — Google Ads RSA:
+- Headline: MAXIMUM 30 characters. Count every character including spaces. Hard technical limit — ad will be disapproved if exceeded.
+- Description (body): MAXIMUM 90 characters.
+- Each headline must stand completely alone — it will appear in random combinations without the others.
+- No em dashes, no ellipses in headlines.`,
+  facebook: `PLATFORM CONSTRAINTS — Facebook Ads:
+- Headline: maximum 40 characters.
+- Body (primary text): maximum 125 characters for the hook.
+- Lead with feeling or tension, not the product name.`,
+  instagram: `PLATFORM CONSTRAINTS — Instagram Ads:
+- Headline: maximum 40 characters.
+- Body: maximum 125 characters.
+- Outcome-first, stop-the-scroll energy.`,
+};
+
+/* ─── Goal context ─── */
+const goalContext: Record<AdCopyInput["goal"], string> = {
+  awareness: "Brand awareness — plant a question, make the brand memorable, create curiosity without requiring immediate action.",
+  clicks: "Click-through — one strong concrete reason to click right now, CTA verb, specific benefit.",
+  conversions: "Conversions — name the top objection and dissolve it, state the concrete outcome, close with a specific CTA.",
 };
 
 export function runAdCopy(
@@ -45,24 +109,43 @@ export function runAdCopy(
   callStream: StreamFn = callClaudeStream
 ) {
   const brandContext = buildContextPacket(context);
-  const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const isGoogleAds = input.platform === "google_ads";
+  const register = input.register ?? "warm_human";
+  const registerDef = voiceRegisters[register] ?? voiceRegisters.warm_human;
 
-  const systemPrompt = `${brandPrefix}You are an expert performance-marketing copywriter specialising in paid ads. You write copy that converts while respecting every platform constraint.
+  const goodExamples = context.copy_good_examples?.trim() || null;
+  const badExamples = context.copy_bad_examples?.trim() || null;
 
+  const userPrompt = `Write ad copy for the following brief.
+
+PLATFORM: ${input.platform.replace(/_/g, " ")}
+GOAL: ${goalContext[input.goal]}
+TOPIC: ${input.topic}
+
+VOICE REGISTER: ${registerDef.label}
+${registerDef.description}
+${brandContext ? `\nBRAND CONTEXT:\n${brandContext}\n` : ""}${goodExamples ? `\nCOPY I ADMIRE — calibrate to this register, match the energy without copying directly:\n${goodExamples}\n` : ""}${badExamples ? `\nCOPY I AVOID — anti-calibration, do not write in this register or style under any circumstances:\n${badExamples}\n` : ""}
 ${platformConstraints[input.platform]}
 
-Goal: ${goalGuidance[input.goal]}
+---
 
-Output rules:
-- Write exactly 3 ad variations.
-- Each variation must contain a "Headline:" line and a "Body:" line.
-- Separate each variation with a horizontal rule (---).${isGoogleAds ? `
-- After writing each headline, silently count its characters. If it is over 30, shorten it before outputting. Never output a headline over 30 characters.` : ""}
-- Output only the ad variations. No preamble, no explanation, no numbering like "Variation 1:".`;
+Generate three variants. Each takes a genuinely different angle — not a rewording of the same thought. One might lead with tension, one with a surprising admission, one with a concrete outcome.
 
-  const userPrompt = `Write 3 ad variations about: ${input.topic}`;
+Format each as:
 
-  return callStream(systemPrompt, userPrompt);
+Variant 1 — [two-word angle description]
+Headline: ...
+Body: ...
+
+Variant 2 — [two-word angle description]
+Headline: ...
+Body: ...
+
+Variant 3 — [two-word angle description]
+Headline: ...
+Body: ...
+
+No preamble. No explanations after. Just the three variants.`;
+
+  return callStream(SYSTEM_PROMPT, userPrompt);
 }

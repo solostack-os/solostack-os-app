@@ -86,6 +86,8 @@ function SettingsPageInner() {
   const [brandVoice, setBrandVoice] = useState("");
   const [useBrandContext, setUseBrandContext] = useState(true);
   const [preferredLanguage, setPreferredLanguage] = useState("");
+  const [copyGoodExamples, setCopyGoodExamples] = useState("");
+  const [copyBadExamples, setCopyBadExamples] = useState("");
   const [brandPrimary, setBrandPrimary] = useState("#6c8cff");
   const [brandSecondary, setBrandSecondary] = useState("#22c55e");
   const [logoUrl, setLogoUrl] = useState("");
@@ -192,6 +194,8 @@ function SettingsPageInner() {
           brand_voice?: string | null;
           use_brand_context?: boolean | null;
           preferred_language?: string | null;
+          copy_good_examples?: string | null;
+          copy_bad_examples?: string | null;
           legal_name?: string | null;
           cui?: string | null;
           registration_number?: string | null;
@@ -205,7 +209,7 @@ function SettingsPageInner() {
 
         const { data: wsWithExport } = await supabase
           .from("workspaces")
-          .select("id, company_name, website, industry, description, brand_color_primary, brand_color_secondary, logo_url, brand_voice, use_brand_context, preferred_language, legal_name, cui, registration_number, company_address, company_phone, company_email, include_company_details")
+          .select("id, company_name, website, industry, description, brand_color_primary, brand_color_secondary, logo_url, brand_voice, use_brand_context, preferred_language, copy_good_examples, copy_bad_examples, legal_name, cui, registration_number, company_address, company_phone, company_email, include_company_details")
           .eq("owner_user_id", user.id)
           .single();
 
@@ -287,6 +291,8 @@ function SettingsPageInner() {
         setBrandVoice(workspace.brand_voice ?? "");
         setUseBrandContext(workspace.use_brand_context ?? true);
         setPreferredLanguage(workspace.preferred_language ?? "");
+        setCopyGoodExamples(workspace.copy_good_examples ?? "");
+        setCopyBadExamples(workspace.copy_bad_examples ?? "");
         setBrandPrimary(workspace.brand_color_primary ?? "#6c8cff");
         setBrandSecondary(workspace.brand_color_secondary ?? "#22c55e");
         setLogoUrl(workspace.logo_url ?? "");
@@ -508,6 +514,8 @@ function SettingsPageInner() {
       brand_voice: brandVoice || null,
       use_brand_context: useBrandContext,
       preferred_language: preferredLanguage.trim() || null,
+      copy_good_examples: copyGoodExamples.trim() || null,
+      copy_bad_examples: copyBadExamples.trim() || null,
     };
     const exportDetailsFields = {
       legal_name: legalName || null,
@@ -826,6 +834,54 @@ function SettingsPageInner() {
                 className={`${inputClass} resize-none custom-scrollbar`}
                 style={inputStyle}
               />
+            </div>
+
+            {/* Copy calibration — Ad Copy */}
+            <div
+              className="mb-5 pt-5 border-t"
+              style={{ borderColor: border }}
+            >
+              <h3 className="text-sm font-semibold uppercase tracking-wider mb-1" style={{ color: textMuted }}>
+                Ad Copy Calibration
+              </h3>
+              <p className="text-xs mb-4" style={{ color: textMuted }}>
+                Used by the Ad Copy generator to match your preferred style. Anti-examples have the highest impact — paste copy that feels wrong for your brand.
+              </p>
+
+              {/* Copy I admire */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>
+                  Copy I admire
+                  <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>
+                </label>
+                <textarea
+                  value={copyGoodExamples}
+                  onChange={(e) => setCopyGoodExamples(e.target.value)}
+                  rows={4}
+                  placeholder={"Paste 2–3 examples of ad copy you love. Any brand, any format.\ne.g. \"Be less busy.\" — Basecamp\n\"Payments infrastructure for the internet.\" — Stripe"}
+                  className={`${inputClass} resize-none custom-scrollbar`}
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* Copy I avoid */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>
+                  Copy I avoid
+                  <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional, high impact)</span>
+                </label>
+                <textarea
+                  value={copyBadExamples}
+                  onChange={(e) => setCopyBadExamples(e.target.value)}
+                  rows={3}
+                  placeholder={"Paste 1–2 examples of copy that feels wrong for your brand — too salesy, too generic, wrong tone.\ne.g. \"Unlock your full potential with our revolutionary all-in-one solution!\""}
+                  className={`${inputClass} resize-none custom-scrollbar`}
+                  style={inputStyle}
+                />
+                <p className="text-xs mt-1.5" style={{ color: textMuted }}>
+                  Anti-examples steer the AI away from entire zones of writing. More effective than describing what you want.
+                </p>
+              </div>
             </div>
 
             {/* Preferred Language */}

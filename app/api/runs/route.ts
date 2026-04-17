@@ -104,13 +104,15 @@ export async function POST(request: Request) {
     brand_voice?: string | null;
     use_brand_context?: boolean | null;
     preferred_language?: string | null;
+    copy_good_examples?: string | null;
+    copy_bad_examples?: string | null;
   } | null = null;
 
   // Tiered fallback: newest columns (brand context) → profile columns → id only.
   // This lets the route keep working across migrations that haven't been applied yet.
   const { data: wsWithBrand } = await supabase
     .from("workspaces")
-    .select("id, company_name, website, industry, description, brand_voice, use_brand_context, preferred_language")
+    .select("id, company_name, website, industry, description, brand_voice, use_brand_context, preferred_language, copy_good_examples, copy_bad_examples")
     .eq("owner_user_id", user.id)
     .single();
 
@@ -168,6 +170,8 @@ export async function POST(request: Request) {
     // or when the value is null — opt-in-by-default matches the DB default.
     use_brand_context: workspace.use_brand_context ?? true,
     preferred_language: workspace.preferred_language ?? null,
+    copy_good_examples: workspace.copy_good_examples ?? null,
+    copy_bad_examples: workspace.copy_bad_examples ?? null,
   };
 
   // 6. Usage gate — each run costs CREDITS_PER_RUN credits. Compare credits
