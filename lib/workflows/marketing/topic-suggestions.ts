@@ -13,6 +13,10 @@ export interface TopicSuggestionsInput {
   email_type?: "welcome" | "promotional" | "nurture" | "re_engagement";
   // Content Brief
   content_type?: "blog_post" | "video_script" | "podcast_episode";
+  // Brand context (injected server-side when use_brand_context is true)
+  brand_context?: string | null;
+  // Preferred language
+  preferred_language?: string | null;
 }
 
 /* ─── Platform context ─── */
@@ -65,10 +69,10 @@ const contentTypeTips: Record<NonNullable<TopicSuggestionsInput["content_type"]>
 };
 
 /**
- * Topic suggestions are intentionally brand-agnostic: they help users get
- * unstuck when picking what to write about, so they must NOT reference the
- * current workspace's company/industry/brand voice. This is the one workflow
- * that deliberately skips buildContextPacket — see the system prompt rules.
+ * Topic suggestions help users get unstuck when picking what to write about.
+ * When brand context is provided (use_brand_context = true), suggestions are
+ * tailored to the business type and industry. Otherwise they remain generic.
+ * Preferred language is respected when set.
  */
 export async function runTopicSuggestions(input: TopicSuggestionsInput) {
   const isAdPlatform = input.platform === "google_ads";
@@ -113,7 +117,19 @@ export async function runTopicSuggestions(input: TopicSuggestionsInput) {
     userPrompt = `Generate 5 generic ${input.platform} post topic ideas.`;
   }
 
-  const systemPrompt = `${expertRole}
+  const brandPrefix = input.brand_context?.trim()
+    ? `${input.brand_context.trim()}\n\n`
+    : "";
+
+  const langInstruction = input.preferred_language?.trim()
+    ? `\n- Generate the topic ideas in ${input.preferred_language.trim()}, unless a different language is more appropriate for the context.`
+    : "";
+
+  const personalisationRule = input.brand_context?.trim()
+    ? "- Tailor topics to the business described above — make them relevant to their industry, audience, and offer."
+    : "- Keep ideas brand-agnostic — do NOT reference any specific company name, industry, product, or target audience. Never personalise.";
+
+  const systemPrompt = `${brandPrefix}${expertRole}
 
 ${contextLines.join("\n")}
 
@@ -121,8 +137,8 @@ Rules:
 - Generate exactly 5 topic ideas.
 - Each topic should be a single short sentence or phrase (under 80 characters).
 - Topics should be concrete and actionable, not vague filler.
-- Keep ideas brand-agnostic — do NOT reference any specific company name, industry, product, or target audience. Never personalise.
-- Output ONLY a raw JSON array of strings. No markdown, no code blocks, no backticks, no explanation. Just the array. Example: ["Topic one","Topic two","Topic three","Topic four","Topic five"]`;
+- ${personalisationRule}
+- Output ONLY a raw JSON array of strings. No markdown, no code blocks, no backticks, no explanation. Just the array. Example: ["Topic one","Topic two","Topic three","Topic four","Topic five"]${langInstruction}`;
 
   return callClaude(systemPrompt, userPrompt);
 }

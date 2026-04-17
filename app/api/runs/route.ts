@@ -46,14 +46,46 @@ export async function POST(request: Request) {
     input_json: Record<string, unknown>;
   };
 
-  // 3. Helper workflows bypass the workspace fetch and usage gate entirely.
-  // Topic suggestions are intentionally brand-agnostic — they don't receive
-  // the workspace context so they can't accidentally personalise the ideas.
+  // 3. Topic suggestions — bypass usage gate (no credits charged) but DO fetch
+  //    workspace context so we can personalise suggestions when use_brand_context
+  //    is enabled, and respect the user's preferred language setting.
   if (module_key === "marketing" && workflow_key === "topic_suggestions") {
     try {
-      const result = await runTopicSuggestions(
-        input_json as unknown as TopicSuggestionsInput
-      );
+      let brandContext: string | null = null;
+      let preferredLanguage: string | null = null;
+
+      // Best-effort workspace fetch — if it fails, suggestions remain generic.
+      const { data: wsForSuggest } = await supabase
+        .from("workspaces")
+        .select("company_name, industry, description, brand_voice, use_brand_context, preferred_language")
+        .eq("owner_user_id", user.id)
+        .single();
+
+      if (wsForSuggest) {
+        preferredLanguage = (wsForSuggest as { preferred_language?: string | null }).preferred_language ?? null;
+
+        const useBrand = (wsForSuggest as { use_brand_context?: boolean | null }).use_brand_context ?? true;
+        if (useBrand) {
+          const { buildContextPacket } = await import("@/lib/ai/context-packet");
+          brandContext = buildContextPacket({
+            company_name: wsForSuggest.company_name,
+            industry: wsForSuggest.industry,
+            description: wsForSuggest.description,
+            brand_voice: wsForSuggest.brand_voice,
+            use_brand_context: true,
+            preferred_language: preferredLanguage,
+          }) || null;
+        } else if (preferredLanguage) {
+          // Language-only — no brand context but still respect language preference.
+          brandContext = null;
+        }
+      }
+
+      const result = await runTopicSuggestions({
+        ...(input_json as unknown as TopicSuggestionsInput),
+        brand_context: brandContext,
+        preferred_language: preferredLanguage,
+      });
       return NextResponse.json({ output_markdown: result.text });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
@@ -71,13 +103,14 @@ export async function POST(request: Request) {
     description?: string;
     brand_voice?: string | null;
     use_brand_context?: boolean | null;
+    preferred_language?: string | null;
   } | null = null;
 
   // Tiered fallback: newest columns (brand context) → profile columns → id only.
   // This lets the route keep working across migrations that haven't been applied yet.
   const { data: wsWithBrand } = await supabase
     .from("workspaces")
-    .select("id, company_name, website, industry, description, brand_voice, use_brand_context")
+    .select("id, company_name, website, industry, description, brand_voice, use_brand_context, preferred_language")
     .eq("owner_user_id", user.id)
     .single();
 
@@ -134,6 +167,7 @@ export async function POST(request: Request) {
     // Default to true when the column doesn't exist yet (pre-migration workspaces)
     // or when the value is null — opt-in-by-default matches the DB default.
     use_brand_context: workspace.use_brand_context ?? true,
+    preferred_language: workspace.preferred_language ?? null,
   };
 
   // 6. Usage gate — each run costs CREDITS_PER_RUN credits. Compare credits

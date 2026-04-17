@@ -85,6 +85,7 @@ function SettingsPageInner() {
   const [description, setDescription] = useState("");
   const [brandVoice, setBrandVoice] = useState("");
   const [useBrandContext, setUseBrandContext] = useState(true);
+  const [preferredLanguage, setPreferredLanguage] = useState("");
   const [brandPrimary, setBrandPrimary] = useState("#6c8cff");
   const [brandSecondary, setBrandSecondary] = useState("#22c55e");
   const [logoUrl, setLogoUrl] = useState("");
@@ -190,6 +191,7 @@ function SettingsPageInner() {
           logo_url?: string | null;
           brand_voice?: string | null;
           use_brand_context?: boolean | null;
+          preferred_language?: string | null;
           legal_name?: string | null;
           cui?: string | null;
           registration_number?: string | null;
@@ -203,7 +205,7 @@ function SettingsPageInner() {
 
         const { data: wsWithExport } = await supabase
           .from("workspaces")
-          .select("id, company_name, website, industry, description, brand_color_primary, brand_color_secondary, logo_url, brand_voice, use_brand_context, legal_name, cui, registration_number, company_address, company_phone, company_email, include_company_details")
+          .select("id, company_name, website, industry, description, brand_color_primary, brand_color_secondary, logo_url, brand_voice, use_brand_context, preferred_language, legal_name, cui, registration_number, company_address, company_phone, company_email, include_company_details")
           .eq("owner_user_id", user.id)
           .single();
 
@@ -284,6 +286,7 @@ function SettingsPageInner() {
         setDescription(workspace.description ?? "");
         setBrandVoice(workspace.brand_voice ?? "");
         setUseBrandContext(workspace.use_brand_context ?? true);
+        setPreferredLanguage(workspace.preferred_language ?? "");
         setBrandPrimary(workspace.brand_color_primary ?? "#6c8cff");
         setBrandSecondary(workspace.brand_color_secondary ?? "#22c55e");
         setLogoUrl(workspace.logo_url ?? "");
@@ -504,6 +507,7 @@ function SettingsPageInner() {
     const brandContextFields = {
       brand_voice: brandVoice || null,
       use_brand_context: useBrandContext,
+      preferred_language: preferredLanguage.trim() || null,
     };
     const exportDetailsFields = {
       legal_name: legalName || null,
@@ -822,6 +826,25 @@ function SettingsPageInner() {
                 className={`${inputClass} resize-none custom-scrollbar`}
                 style={inputStyle}
               />
+            </div>
+
+            {/* Preferred Language */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>
+                Preferred Language
+                <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={preferredLanguage}
+                onChange={(e) => setPreferredLanguage(e.target.value)}
+                placeholder="e.g. French, Romanian, Spanish"
+                className={inputClass}
+                style={inputStyle}
+              />
+              <p className="text-xs mt-1.5" style={{ color: textMuted }}>
+                AI outputs and suggestions will be generated in this language. If you write your input in a different language, that takes priority.
+              </p>
             </div>
 
             {/* Brand context toggle */}
