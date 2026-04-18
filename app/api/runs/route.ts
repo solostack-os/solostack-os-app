@@ -384,6 +384,16 @@ export async function POST(request: Request) {
               })
               .eq("id", run.id),
           ]);
+
+          // Emit provider metadata as the final stream token so the client
+          // can decide whether CD Pass is eligible (anthropic-only, Pro plan).
+          // The client strips this token before rendering or saving output.
+          const metaToken = `\n__META:${JSON.stringify({ provider: activeProvider })}__`;
+          try {
+            controller.enqueue(encoder.encode(metaToken));
+          } catch {
+            // Client already disconnected — safe to ignore.
+          }
         } catch (err) {
           const errType = (err as { type?: string })?.type;
           const isOverloaded = !gotTokens && errType === "overloaded_error";

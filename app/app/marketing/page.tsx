@@ -268,6 +268,7 @@ export default function MarketingPage() {
   /* ── Social Posts state ── */
   const [spPlatform, setSpPlatform] = useState<"instagram" | "linkedin" | "facebook">("linkedin");
   const [spRegister, setSpRegister] = useState("warm_human");
+  const [spCdPassStatus, setSpCdPassStatus] = useState<"idle" | "running" | "done" | "skipped">("idle");
   const [spTopic, setSpTopic] = useState("");
   const [spNumPosts, setSpNumPosts] = useState<number>(1);
   const [spLoading, setSpLoading] = useState(false);
@@ -310,6 +311,7 @@ export default function MarketingPage() {
   const [acPlatform, setAcPlatform] = useState<"google_ads" | "facebook" | "instagram">("google_ads");
   const [acGoal, setAcGoal] = useState<"awareness" | "clicks" | "conversions">("clicks");
   const [acRegister, setAcRegister] = useState("warm_human");
+  const [acCdPassStatus, setAcCdPassStatus] = useState<"idle" | "running" | "done" | "skipped">("idle");
   const [acTopic, setAcTopic] = useState("");
   const [acLoading, setAcLoading] = useState(false);
   const [acStreaming, setAcStreaming] = useState(false);
@@ -349,6 +351,60 @@ export default function MarketingPage() {
   const [cbCopied, setCbCopied] = useState<number | null>(null);
   const cbStreamTextRef = useRef<HTMLDivElement | null>(null);
 
+  /* ─── META token helpers ─── */
+  // The server appends \n__META:{"provider":"anthropic|openai"}__ as the last
+  // stream token so the client can decide CD Pass eligibility without a
+  // separate round-trip. Strip it before committing to state.
+  const META_RE = /\n__META:(\{[^}]+\})__\s*$/;
+  function stripMeta(text: string): { clean: string; provider: string | null } {
+    const m = text.match(META_RE);
+    if (!m) return { clean: text, provider: null };
+    let provider: string | null = null;
+    try {
+      const parsed = JSON.parse(m[1]);
+      provider = parsed.provider ?? null;
+    } catch { /* malformed — ignore */ }
+    return { clean: text.slice(0, text.length - m[0].length), provider };
+  }
+
+  /* ─── CD Pass client helper ─── */
+  async function runCDPassClient(
+    pass1Output: string,
+    platform: string,
+    register: string,
+    setOutput: (s: string | null) => void,
+    setCdPassStatus: (s: "idle" | "running" | "done" | "skipped") => void,
+  ) {
+    try {
+      const res = await fetch("/api/cd-pass", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pass1_output: pass1Output, platform, register }),
+      });
+      if (!res.ok) {
+        setCdPassStatus("skipped");
+        return;
+      }
+      const reader = res.body?.getReader();
+      if (!reader) {
+        setCdPassStatus("skipped");
+        return;
+      }
+      const decoder = new TextDecoder();
+      let full = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) full += decoder.decode(value, { stream: true });
+      }
+      full += decoder.decode();
+      if (full.trim()) setOutput(full);
+      setCdPassStatus("done");
+    } catch {
+      setCdPassStatus("skipped");
+    }
+  }
+
   /* ─── Generic helpers ─── */
   async function callWorkflow(
     workflow_key: string,
@@ -358,7 +414,7 @@ export default function MarketingPage() {
     setError: (s: string | null) => void,
     setStreaming: (b: boolean) => void,
     streamTextRef: React.RefObject<HTMLDivElement | null>,
-  ) {
+  ): Promise<{ provider: string | null; text: string | null }> {
     setLoading(true);
     setOutput(null);
     setError(null);
@@ -384,7 +440,7 @@ export default function MarketingPage() {
           setCreditLimitReached(true);
           setShowUpgradeModal(true);
         }
-        return;
+        return { provider: null, text: null };
       }
 
       // Streaming path — write tokens directly to the StreamingCard's
@@ -396,7 +452,7 @@ export default function MarketingPage() {
       const reader = res.body?.getReader();
       if (!reader) {
         setError("Streaming not supported in this browser");
-        return;
+        return { provider: null, text: null };
       }
       const decoder = new TextDecoder();
       let full = "";
@@ -406,8 +462,10 @@ export default function MarketingPage() {
         if (done) break;
         if (value) {
           full += decoder.decode(value, { stream: true });
+          // Don't write META token bytes into the visible streaming card.
+          const { clean } = stripMeta(full);
           if (streamTextRef.current) {
-            streamTextRef.current.textContent = full;
+            streamTextRef.current.textContent = clean;
           }
           if (firstChunk) {
             firstChunk = false;
@@ -419,29 +477,32 @@ export default function MarketingPage() {
           }
         }
       }
-      // Flush any remaining bytes from the TextDecoder and commit the
-      // final text to React state — that renders OutputCards with the
-      // fully split markdown and hides the StreamingCard.
+      // Flush any remaining bytes from the TextDecoder.
       full += decoder.decode();
+      // Strip the META token before committing to state.
+      const { clean: cleanOutput, provider } = stripMeta(full);
       if (streamTextRef.current) {
-        streamTextRef.current.textContent = full;
+        streamTextRef.current.textContent = cleanOutput;
       }
       setStreaming(false);
-      if (!full.trim()) {
+      if (!cleanOutput.trim()) {
         // Stream closed with zero content — the Claude API was overloaded
         // or returned an error silently. Surface it so the user knows to
         // retry rather than staring at a frozen screen.
         setError("Claude is currently overloaded — please wait a moment and try again.");
+        return { provider: null, text: null };
       } else {
-        setOutput(full);
+        setOutput(cleanOutput);
         window.dispatchEvent(new Event("recents:refresh"));
         fetch("/api/usage").then(r => r.json()).then(d => {
           setCreditLimitReached(d.limitReached ?? false);
           if (d.planKey) setCurrentPlanKey(d.planKey);
         }).catch(() => {});
+        return { provider, text: cleanOutput };
       }
     } catch {
       setError("Network error");
+      return { provider: null, text: null };
     } finally {
       setLoading(false);
       setStreaming(false);
@@ -529,16 +590,29 @@ export default function MarketingPage() {
   }
 
   /* ─── Social Posts handlers ─── */
-  function handleSpGenerate() {
+  async function handleSpGenerate() {
     if (!spTopic.trim()) return;
     // Capture the platform at click time so if the user switches
     // platforms mid-stream the completed output still lands on the
     // platform they actually generated for.
     const platform = spPlatform;
+    const register = spRegister;
     const setOutputForPlatform = (value: string | null) => {
       setSpOutputs((prev) => ({ ...prev, [platform]: value }));
     };
-    callWorkflow("social_posts", { platform, topic: spTopic, num_posts: spNumPosts, register: spRegister }, setSpLoading, setOutputForPlatform, setSpError, setSpStreaming, spStreamTextRef);
+    setSpCdPassStatus("idle");
+    const { provider, text } = await callWorkflow(
+      "social_posts",
+      { platform, topic: spTopic, num_posts: spNumPosts, register },
+      setSpLoading, setOutputForPlatform, setSpError, setSpStreaming, spStreamTextRef
+    );
+    // CD Pass — Pro + Anthropic only (never on OpenAI fallback).
+    if (provider === "anthropic" && currentPlanKey === "pro" && text) {
+      setSpCdPassStatus("running");
+      await runCDPassClient(text, platform, register, setOutputForPlatform, setSpCdPassStatus);
+    } else if (provider === "openai" && currentPlanKey === "pro") {
+      setSpCdPassStatus("skipped");
+    }
   }
 
   function handleSpTopicChange(value: string) {
@@ -554,6 +628,44 @@ export default function MarketingPage() {
     email_campaign: { title: "Create marketing emails", subtitle: "Generate complete, ready-to-send marketing emails." },
     content_brief: { title: "Create a content brief", subtitle: "Generate structured briefs for any content format." },
   };
+
+  /* ─── CD Pass status indicator ─── */
+  function CdPassIndicator({ status }: { status: "idle" | "running" | "done" | "skipped" }) {
+    if (status === "idle") return null;
+    if (status === "running") {
+      return (
+        <div className="flex items-center gap-2 mb-4 px-0.5">
+          <div
+            className="h-3 w-3 rounded-full border-2 border-t-transparent animate-spin flex-shrink-0"
+            style={{ borderColor: "#5eead4", borderTopColor: "transparent" }}
+          />
+          <span className="text-xs" style={{ color: "#5eead4", opacity: 0.75 }}>
+            Senior review in progress…
+          </span>
+        </div>
+      );
+    }
+    if (status === "done") {
+      return (
+        <div className="flex items-center gap-1.5 mb-4 px-0.5">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5eead4" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <span className="text-xs" style={{ color: "#5eead4", opacity: 0.75 }}>Reviewed</span>
+        </div>
+      );
+    }
+    if (status === "skipped") {
+      return (
+        <div className="flex items-center gap-1.5 mb-4 px-0.5">
+          <span className="text-xs" style={{ color: textMuted, opacity: 0.5 }}>
+            CD Pass skipped — OpenAI fallback active
+          </span>
+        </div>
+      );
+    }
+    return null;
+  }
 
   /* ─── Generate button with outer glow ─── */
   function GenerateButton({ loading, disabled, onClick, label }: { loading: boolean; disabled: boolean; onClick: () => void; label: string }) {
@@ -734,7 +846,10 @@ export default function MarketingPage() {
             </GlowCard>
             {spLoading && !spStreaming && <LoadingSkeleton message="Generating your posts..." />}
             <StreamingCard ref={spStreamTextRef} visible={spStreaming} accent={accent} accentLight={accentLight} />
-            {!spLoading && !spStreaming && <OutputCards cards={splitCards(spOutput, 'social_posts')} copiedIdx={spCopied} onCopy={(t, i) => handleCopy(t, i, setSpCopied)} accent={accent} accentLight={accentLight} contentType="social_posts" onClear={() => { setSpOutputs({ instagram: null, linkedin: null, facebook: null }); setSpError(null); }} />}
+            {!spLoading && !spStreaming && spOutput && (
+              <CdPassIndicator status={spCdPassStatus} />
+            )}
+            {!spLoading && !spStreaming && <OutputCards cards={splitCards(spOutput, 'social_posts')} copiedIdx={spCopied} onCopy={(t, i) => handleCopy(t, i, setSpCopied)} accent={accent} accentLight={accentLight} contentType="social_posts" onClear={() => { setSpOutputs({ instagram: null, linkedin: null, facebook: null }); setSpError(null); setSpCdPassStatus("idle"); }} />}
           </>
         )}
 
@@ -781,7 +896,21 @@ export default function MarketingPage() {
                 <GenerateButton
                   loading={acLoading}
                   disabled={!acTopic.trim()}
-                  onClick={() => { if (creditLimitReached) { setShowUpgradeModal(true); return; } callWorkflow("ad_copy", { platform: acPlatform, goal: acGoal, topic: acTopic, register: acRegister }, setAcLoading, setAcOutput, setAcError, setAcStreaming, acStreamTextRef); }}
+                  onClick={async () => {
+                    if (creditLimitReached) { setShowUpgradeModal(true); return; }
+                    setAcCdPassStatus("idle");
+                    const { provider, text } = await callWorkflow(
+                      "ad_copy",
+                      { platform: acPlatform, goal: acGoal, topic: acTopic, register: acRegister },
+                      setAcLoading, setAcOutput, setAcError, setAcStreaming, acStreamTextRef
+                    );
+                    if (provider === "anthropic" && currentPlanKey === "pro" && text) {
+                      setAcCdPassStatus("running");
+                      await runCDPassClient(text, acPlatform, acRegister, setAcOutput, setAcCdPassStatus);
+                    } else if (provider === "openai" && currentPlanKey === "pro") {
+                      setAcCdPassStatus("skipped");
+                    }
+                  }}
                   label="Generate"
                 />
                 <ErrorMsg error={acError} />
@@ -790,7 +919,10 @@ export default function MarketingPage() {
             </GlowCard>
             {acLoading && !acStreaming && <LoadingSkeleton message="Generating ad variations..." />}
             <StreamingCard ref={acStreamTextRef} visible={acStreaming} accent={accent} accentLight={accentLight} />
-            {!acLoading && !acStreaming && <OutputCards cards={splitCards(acOutput, 'ad_copy')} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} accent={accent} accentLight={accentLight} contentType="ad_copy" onClear={() => { setAcOutput(null); setAcError(null); }} />}
+            {!acLoading && !acStreaming && acOutput && (
+              <CdPassIndicator status={acCdPassStatus} />
+            )}
+            {!acLoading && !acStreaming && <OutputCards cards={splitCards(acOutput, 'ad_copy')} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} accent={accent} accentLight={accentLight} contentType="ad_copy" onClear={() => { setAcOutput(null); setAcError(null); setAcCdPassStatus("idle"); }} />}
           </>
         )}
 

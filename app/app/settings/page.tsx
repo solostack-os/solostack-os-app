@@ -1311,6 +1311,62 @@ function SettingsPageInner() {
           </div>
         </div>
 
+        {/* ─── Pro: Feature highlights ─── */}
+        {planKey === "pro" && (
+          <div
+            className="rounded-xl border overflow-hidden mb-6"
+            style={{ backgroundColor: surface, borderColor: "rgba(94,234,212,0.15)" }}
+          >
+            <div className="h-[2px]" style={{ background: "linear-gradient(90deg, #5eead4, #34d399)" }} />
+            <div className="p-7">
+              <h2 className="text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: textMuted }}>
+                Pro Features
+              </h2>
+              <div className="space-y-3">
+                {[
+                  {
+                    icon: (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5eead4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                      </svg>
+                    ),
+                    label: "CD Pass",
+                    description: "A second AI pass reviews every output with a senior editor lens — fixing rhythm, weak endings, and hashtag drift. Runs automatically on Social Posts and Ad Copy.",
+                  },
+                  {
+                    icon: (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5eead4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                    ),
+                    label: "1,000 credits / month",
+                    description: "3× more than Starter. Each run costs 1 credit.",
+                  },
+                  {
+                    icon: (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5eead4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                      </svg>
+                    ),
+                    label: "All 14 workflows",
+                    description: "Marketing, Outreach, and Operations — full access.",
+                  },
+                ].map(({ icon, label, description }) => (
+                  <div key={label} className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-0.5 w-5 h-5 flex items-center justify-center rounded-md" style={{ backgroundColor: "rgba(94,234,212,0.08)" }}>
+                      {icon}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium" style={{ color: "#f1f5f9" }}>{label}</p>
+                      <p className="text-xs mt-0.5 leading-relaxed" style={{ color: textMuted }}>{description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ─── Pro: Add Credits (top-up only) ─── */}
         {planKey === "pro" && (
           <div
