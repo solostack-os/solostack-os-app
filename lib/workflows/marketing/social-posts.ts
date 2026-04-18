@@ -105,18 +105,18 @@ const platformConstraints: Record<SocialPostsInput["platform"], string> = {
 - Maximum 150 words per post.
 - Short, punchy paragraphs. Use line breaks between paragraphs for mobile readability.
 - Hook in the first line — this is what appears before "more".
-- Hashtags: Instagram is the platform where hashtags have the most reach value. If you use them, place them after the post body separated by a blank line, maximum 2, and only if they are genuinely searched terms — not generic tags like #Marketing or #Business.`,
+- Hashtags: maximum 2. Prefer niche and specific over generic — #slowbranding beats #branding. Place after the post body, separated by a blank line. Omit entirely if no specific tag earns its place.`,
   linkedin: `PLATFORM CONSTRAINTS — LinkedIn:
 - Maximum 250 words per post.
 - Open with a strong first line — this is what appears before "see more".
 - Use line breaks between short paragraphs. No walls of text.
 - End with a thought-provoking question or a clear call to action.
-- Hashtags: optional on LinkedIn. The algorithm prioritizes engagement over tags. Only add hashtags if the post is explicitly about a topic people actively follow. When in doubt, omit.`,
+- Hashtags: optional. Include 1–2 only if they tie to a specific industry conversation (e.g. #B2BMarketing for a genuinely B2B-specific insight). Otherwise omit.`,
   facebook: `PLATFORM CONSTRAINTS — Facebook:
 - Maximum 100 words per post.
 - Warm, conversational energy. Feels like it was written by a person, not a brand.
 - End with a question or CTA that invites comments or sharing.
-- Hashtags: mostly irrelevant on Facebook. Default to no hashtags unless there is a specific campaign reason.`,
+- Hashtags: none. Facebook is not a discovery platform via tags.`,
 };
 
 export function runSocialPosts(
