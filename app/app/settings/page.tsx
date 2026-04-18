@@ -120,6 +120,27 @@ function SettingsPageInner() {
   const [copyBadOverLimit, setCopyBadOverLimit] = useState(false);
   const copyGoodDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const copyBadDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /* ── Sparkle Assistant state ── */
+  const [sparkleOpen, setSparkleOpen] = useState(false);
+  const [sparkleField, setSparkleField] = useState<"admire" | "avoid">("admire");
+  const [sparkleStep, setSparkleStep] = useState<"form" | "result">("form");
+  const [sparkleBrandType, setSparkleBrandType] = useState("");
+  const [sparkleTones, setSparkleTones] = useState<Set<string>>(new Set());
+  const [sparkleAvoidText, setSparkleAvoidText] = useState("");
+  const [sparkleLoading, setSparkleLoading] = useState(false);
+  const [sparkleError, setSparkleError] = useState<string | null>(null);
+  const [sparkleResult, setSparkleResult] = useState<{
+    admire: { example: string; note: string }[];
+    avoid: { example: string; note: string }[];
+    _meta?: { used: number; limit: number; remaining: number };
+  } | null>(null);
+  const [sparkleEditableAdmire, setSparkleEditableAdmire] = useState<string[]>([]);
+  const [sparkleEditableAvoid, setSparkleEditableAvoid] = useState<string[]>([]);
+  const [sparkleEditMode, setSparkleEditMode] = useState(false);
+  const [sparkleCooldown, setSparkleCooldown] = useState(false);
+  const sparkleCooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [brandPrimary, setBrandPrimary] = useState("#6c8cff");
   const [brandSecondary, setBrandSecondary] = useState("#22c55e");
   const [logoUrl, setLogoUrl] = useState("");
@@ -556,6 +577,128 @@ function SettingsPageInner() {
     setCopyGoodWarning(null);
   }
 
+  /* ── Sparkle helpers ── */
+  const SPARKLE_TONES = [
+    "Dry & understated",
+    "Warm & human",
+    "Punchy & confident",
+    "Playful & sharp",
+    "Poetic & considered",
+    "Bold & contrarian",
+    "Conversational",
+    "Technical precision",
+  ];
+
+  function openSparkle(field: "admire" | "avoid") {
+    setSparkleField(field);
+    setSparkleStep("form");
+    setSparkleResult(null);
+    setSparkleError(null);
+    setSparkleEditMode(false);
+    setSparkleOpen(true);
+  }
+
+  function closeSparkle() {
+    setSparkleOpen(false);
+  }
+
+  function toggleSparkleTone(tone: string) {
+    setSparkleTones((prev) => {
+      const next = new Set(prev);
+      if (next.has(tone)) next.delete(tone);
+      else next.add(tone);
+      return next;
+    });
+  }
+
+  async function runSparkle(regenerate = false) {
+    if (!sparkleBrandType.trim()) {
+      setSparkleError("Please describe your brand type.");
+      return;
+    }
+    if (sparkleTones.size === 0) {
+      setSparkleError("Please select at least one tone.");
+      return;
+    }
+
+    setSparkleLoading(true);
+    setSparkleError(null);
+
+    // 10s cooldown on sparkle button
+    setSparkleCooldown(true);
+    if (sparkleCooldownRef.current) clearTimeout(sparkleCooldownRef.current);
+    sparkleCooldownRef.current = setTimeout(() => setSparkleCooldown(false), 10_000);
+
+    try {
+      const res = await fetch("/api/sparkle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brand_type: sparkleBrandType.trim(),
+          tones: Array.from(sparkleTones),
+          avoid_text: sparkleAvoidText.trim() || undefined,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Rate limit
+        if (res.status === 429) {
+          const resetsIn = data.resets_at
+            ? Math.ceil((new Date(data.resets_at).getTime() - Date.now()) / 3600_000)
+            : null;
+          setSparkleError(
+            resetsIn
+              ? `${data.error} Resets in ~${resetsIn}h.`
+              : data.error ?? "Rate limit reached."
+          );
+        } else if (res.status === 403) {
+          setSparkleError("Sparkle Assistant is available on Pro. Upgrade to access it.");
+        } else {
+          setSparkleError(data.error ?? "Generation failed. Please try again.");
+        }
+        return;
+      }
+
+      setSparkleResult(data);
+      setSparkleEditableAdmire(data.admire.map((e: { example: string }) => e.example));
+      setSparkleEditableAvoid(data.avoid.map((e: { example: string }) => e.example));
+      setSparkleEditMode(false);
+      if (!regenerate) setSparkleStep("result");
+    } catch {
+      setSparkleError("Network error. Please try again.");
+    } finally {
+      setSparkleLoading(false);
+    }
+  }
+
+  function applySparkleExamples() {
+    const admireLines = sparkleEditMode ? sparkleEditableAdmire : sparkleResult!.admire.map((e) => e.example);
+    const avoidLines = sparkleEditMode ? sparkleEditableAvoid : sparkleResult!.avoid.map((e) => e.example);
+
+    if (sparkleField === "admire") {
+      setCopyGoodExamples(admireLines.join("\n\n"));
+      setCopyBadExamples((prev) => {
+        const existing = prev.trim();
+        const toAdd = avoidLines.join("\n\n");
+        return existing ? `${existing}\n\n${toAdd}` : toAdd;
+      });
+    } else {
+      // "avoid" mode: populate avoid + offer admire examples
+      setCopyBadExamples(avoidLines.join("\n\n"));
+      if (sparkleResult!.admire.length > 0) {
+        setCopyGoodExamples((prev) => {
+          const existing = prev.trim();
+          const toAdd = admireLines.join("\n\n");
+          return existing ? `${existing}\n\n${toAdd}` : toAdd;
+        });
+      }
+    }
+
+    closeSparkle();
+  }
+
   async function handleSaveProfile() {
     if (!workspaceId) return;
     setSaving(true);
@@ -937,10 +1080,25 @@ function SettingsPageInner() {
 
               {/* Copy I admire */}
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>
-                  Copy I admire
-                  <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-medium" style={{ color: textPrimary }}>
+                    Copy I admire
+                    <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>
+                  </label>
+                  {planKey === "pro" && (
+                    <button
+                      type="button"
+                      onClick={() => openSparkle("admire")}
+                      disabled={sparkleCooldown}
+                      title="Generate examples with AI"
+                      className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-80"
+                      style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.08)", border: "1px solid rgba(94,234,212,0.2)" }}
+                    >
+                      <span>✦</span>
+                      <span>Suggest</span>
+                    </button>
+                  )}
+                </div>
                 <textarea
                   value={copyGoodExamples}
                   onChange={(e) => {
@@ -954,9 +1112,10 @@ function SettingsPageInner() {
                   style={inputStyle}
                 />
                 {copyGoodOverLimit && (
-                  <p className="mt-2 text-xs" style={{ color: textMuted }}>
-                    Only the first 3 examples will be used.
-                  </p>
+                  <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
+                    <span className="flex-shrink-0 mt-px">⚠</span>
+                    <span>Only the first 3 examples will be used.</span>
+                  </div>
                 )}
                 {copyGoodWarning && (
                   <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
@@ -981,10 +1140,25 @@ function SettingsPageInner() {
 
               {/* Copy I avoid */}
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>
-                  Copy I avoid
-                  <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional, high impact)</span>
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-medium" style={{ color: textPrimary }}>
+                    Copy I avoid
+                    <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional, high impact)</span>
+                  </label>
+                  {planKey === "pro" && (
+                    <button
+                      type="button"
+                      onClick={() => openSparkle("avoid")}
+                      disabled={sparkleCooldown}
+                      title="Generate examples with AI"
+                      className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-80"
+                      style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.08)", border: "1px solid rgba(94,234,212,0.2)" }}
+                    >
+                      <span>✦</span>
+                      <span>Suggest</span>
+                    </button>
+                  )}
+                </div>
                 <textarea
                   value={copyBadExamples}
                   onChange={(e) => {
@@ -998,9 +1172,10 @@ function SettingsPageInner() {
                   style={inputStyle}
                 />
                 {copyBadOverLimit && (
-                  <p className="mt-2 text-xs" style={{ color: textMuted }}>
-                    Only the first 3 examples will be used.
-                  </p>
+                  <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
+                    <span className="flex-shrink-0 mt-px">⚠</span>
+                    <span>Only the first 3 examples will be used.</span>
+                  </div>
                 )}
                 {copyBadWarning === "is_instruction" && (
                   <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
@@ -1708,6 +1883,247 @@ function SettingsPageInner() {
           </a>
         </div>
       </div>
+
+      {/* ─── Sparkle Assistant Modal ─── */}
+      {sparkleOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.75)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) closeSparkle(); }}
+        >
+          <div
+            className="w-full max-w-md rounded-xl shadow-2xl overflow-hidden"
+            style={{ backgroundColor: surface, border: `1px solid ${border}` }}
+          >
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: border }}>
+              <div className="flex items-center gap-2">
+                <span style={{ color: "#5eead4" }}>✦</span>
+                <h2 className="text-sm font-semibold" style={{ color: textPrimary }}>
+                  {sparkleStep === "form" ? "Calibrate with AI" : "Generated Examples"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={closeSparkle}
+                className="text-slate-500 hover:text-slate-300 transition-colors text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Step 1 — Form */}
+            {sparkleStep === "form" && (
+              <div className="px-5 py-5 space-y-4">
+                {/* Q1 */}
+                <div>
+                  <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: textMuted }}>
+                    What type of brand is this? <span style={{ color: "#f87171" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={sparkleBrandType}
+                    onChange={(e) => setSparkleBrandType(e.target.value.slice(0, 100))}
+                    placeholder="e.g. B2B SaaS for HR, food photography agency, career coaching"
+                    className={inputClass}
+                    style={inputStyle}
+                    autoFocus
+                  />
+                  <p className="text-xs mt-1" style={{ color: textMuted }}>
+                    Category, industry, and audience — the more specific, the better.
+                  </p>
+                </div>
+
+                {/* Q2 */}
+                <div>
+                  <label className="block text-xs font-medium mb-2 uppercase tracking-wider" style={{ color: textMuted }}>
+                    Desired tone(s) <span style={{ color: "#f87171" }}>*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {SPARKLE_TONES.map((tone) => {
+                      const selected = sparkleTones.has(tone);
+                      return (
+                        <button
+                          key={tone}
+                          type="button"
+                          onClick={() => toggleSparkleTone(tone)}
+                          className="text-xs px-3 py-1.5 rounded-full border transition-all"
+                          style={{
+                            backgroundColor: selected ? "rgba(94,234,212,0.12)" : "transparent",
+                            borderColor: selected ? "#5eead4" : "rgba(255,255,255,0.12)",
+                            color: selected ? "#5eead4" : textMuted,
+                          }}
+                        >
+                          {tone}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Q3 */}
+                <div>
+                  <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: textMuted }}>
+                    Anything to avoid? <span className="font-normal normal-case" style={{ color: textMuted }}>(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={sparkleAvoidText}
+                    onChange={(e) => setSparkleAvoidText(e.target.value.slice(0, 150))}
+                    placeholder="e.g. corporate speak, salesy CTAs, buzzwords"
+                    className={inputClass}
+                    style={inputStyle}
+                  />
+                </div>
+
+                {sparkleError && (
+                  <p className="text-xs" style={{ color: "#f87171" }}>{sparkleError}</p>
+                )}
+
+                <div className="flex items-center justify-end gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={closeSparkle}
+                    className="text-sm px-4 py-2 rounded-lg transition-colors"
+                    style={{ color: textMuted }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => runSparkle(false)}
+                    disabled={sparkleLoading || sparkleCooldown}
+                    className="text-sm font-medium px-4 py-2 rounded-lg transition-all disabled:opacity-50"
+                    style={{ backgroundColor: "#5eead4", color: "#0a0f1e" }}
+                  >
+                    {sparkleLoading ? "Generating…" : "Generate examples"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2 — Result */}
+            {sparkleStep === "result" && sparkleResult && (
+              <div className="px-5 py-5 space-y-4">
+                {/* Admire examples */}
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider mb-2" style={{ color: "#5eead4" }}>
+                    Copy I admire — {sparkleResult.admire.length} examples
+                  </p>
+                  <div className="space-y-2">
+                    {sparkleResult.admire.map((item, i) => (
+                      <div
+                        key={i}
+                        className="rounded-lg px-3 py-2.5"
+                        style={{ backgroundColor: bg, border: `1px solid ${border}` }}
+                      >
+                        {sparkleEditMode ? (
+                          <textarea
+                            value={sparkleEditableAdmire[i] ?? item.example}
+                            onChange={(e) => {
+                              const updated = [...sparkleEditableAdmire];
+                              updated[i] = e.target.value;
+                              setSparkleEditableAdmire(updated);
+                            }}
+                            rows={3}
+                            className="w-full text-sm bg-transparent outline-none resize-none"
+                            style={{ color: textPrimary }}
+                          />
+                        ) : (
+                          <p className="text-sm" style={{ color: textPrimary }}>{item.example}</p>
+                        )}
+                        {!sparkleEditMode && (
+                          <p className="text-xs mt-1" style={{ color: textMuted }}>{item.note}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Avoid examples */}
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider mb-2" style={{ color: "#f87171" }}>
+                    Copy I avoid — {sparkleResult.avoid.length} examples
+                  </p>
+                  <div className="space-y-2">
+                    {sparkleResult.avoid.map((item, i) => (
+                      <div
+                        key={i}
+                        className="rounded-lg px-3 py-2.5"
+                        style={{ backgroundColor: bg, border: `1px solid ${border}` }}
+                      >
+                        {sparkleEditMode ? (
+                          <textarea
+                            value={sparkleEditableAvoid[i] ?? item.example}
+                            onChange={(e) => {
+                              const updated = [...sparkleEditableAvoid];
+                              updated[i] = e.target.value;
+                              setSparkleEditableAvoid(updated);
+                            }}
+                            rows={2}
+                            className="w-full text-sm bg-transparent outline-none resize-none"
+                            style={{ color: textPrimary }}
+                          />
+                        ) : (
+                          <p className="text-sm" style={{ color: textPrimary }}>{item.example}</p>
+                        )}
+                        {!sparkleEditMode && (
+                          <p className="text-xs mt-1" style={{ color: textMuted }}>{item.note}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Disclaimer */}
+                <p className="text-xs" style={{ color: textMuted }}>
+                  These are AI-generated originals inspired by the tone you described. Edit freely before saving.
+                </p>
+
+                {/* Usage indicator */}
+                {sparkleResult._meta && (
+                  <p className="text-xs" style={{ color: textMuted }}>
+                    {sparkleResult._meta.remaining} sparkle{sparkleResult._meta.remaining !== 1 ? "s" : ""} remaining today.
+                  </p>
+                )}
+
+                {sparkleError && (
+                  <p className="text-xs" style={{ color: "#f87171" }}>{sparkleError}</p>
+                )}
+
+                {/* Actions */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={applySparkleExamples}
+                    className="text-sm font-medium px-4 py-2 rounded-lg transition-all"
+                    style={{ backgroundColor: "#5eead4", color: "#0a0f1e" }}
+                  >
+                    Use these
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => runSparkle(true)}
+                    disabled={sparkleLoading || sparkleCooldown}
+                    className="text-sm px-4 py-2 rounded-lg border transition-all disabled:opacity-50"
+                    style={{ color: textPrimary, borderColor: border }}
+                  >
+                    {sparkleLoading ? "Generating…" : "Regenerate"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSparkleEditMode((v) => !v)}
+                    className="text-sm px-4 py-2 rounded-lg border transition-all"
+                    style={{ color: sparkleEditMode ? "#5eead4" : textMuted, borderColor: sparkleEditMode ? "rgba(94,234,212,0.3)" : border }}
+                  >
+                    {sparkleEditMode ? "Done editing" : "Edit before saving"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
