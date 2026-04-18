@@ -841,11 +841,34 @@ function SettingsPageInner() {
               className="mb-5 pt-5 border-t"
               style={{ borderColor: border }}
             >
-              <h3 className="text-sm font-semibold uppercase tracking-wider mb-1" style={{ color: textMuted }}>
-                Ad Copy Calibration
-              </h3>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-sm font-semibold uppercase tracking-wider" style={{ color: textMuted }}>
+                  Ad Copy Calibration
+                </h3>
+                <span
+                  className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                  style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.1)", border: "1px solid rgba(94,234,212,0.2)" }}
+                >
+                  Pro
+                </span>
+              </div>
+
+              {/* Tier disclaimer — only shown to non-Pro users */}
+              {planKey !== "pro" && (
+                <p className="text-xs mb-3" style={{ color: textMuted }}>
+                  Saved on all plans. Applied to generations on Pro only.{" "}
+                  <a
+                    href="#upgrade"
+                    className="underline underline-offset-2 hover:opacity-80 transition-opacity"
+                    style={{ color: accent }}
+                  >
+                    Upgrade
+                  </a>
+                </p>
+              )}
+
               <p className="text-xs mb-4" style={{ color: textMuted }}>
-                Used by the Ad Copy generator to match your preferred style. Anti-examples have the highest impact — paste copy that feels wrong for your brand.
+                Used by the Ad Copy and Social Posts generators to match your preferred style. Anti-examples have the highest impact — paste copy that feels wrong for your brand.
               </p>
 
               {/* Copy I admire */}
@@ -1411,6 +1434,7 @@ function SettingsPageInner() {
         {/* ─── Upgrade / Top-up Card ─── */}
         {upgrade && targetPlan && (
           <div
+            id="upgrade"
             className="rounded-xl border overflow-hidden mb-6"
             style={{ backgroundColor: surface, borderColor: `${accent}33` }}
           >

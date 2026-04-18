@@ -171,8 +171,11 @@ export async function POST(request: Request) {
     // or when the value is null — opt-in-by-default matches the DB default.
     use_brand_context: workspace.use_brand_context ?? true,
     preferred_language: workspace.preferred_language ?? null,
-    copy_good_examples: workspace.copy_good_examples ?? null,
-    copy_bad_examples: workspace.copy_bad_examples ?? null,
+    // Copy calibration examples are a Pro feature. They are saved for all plans
+    // (so users can prepare content before upgrading) but only injected into
+    // generation prompts on Pro. Non-Pro plans pass null to the workflow.
+    copy_good_examples: subscription?.plan_key === "pro" ? (workspace.copy_good_examples ?? null) : null,
+    copy_bad_examples: subscription?.plan_key === "pro" ? (workspace.copy_bad_examples ?? null) : null,
   };
 
   // 6. Usage gate — each run costs CREDITS_PER_RUN credits. Compare credits
