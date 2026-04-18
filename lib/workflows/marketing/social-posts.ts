@@ -47,6 +47,20 @@ After writing each post, re-read it. Remove the line you are most proud of. It i
 
 Do not reuse phrases directly from the user's brief. If an idea from the brief is worth using, express it with entirely fresh language. Borrowed phrases are a sign the thinking stopped.
 
+## Hashtags
+
+Hashtags are a tool, not a reflex. Use them only when they add reach or context — not as decoration.
+
+Omit hashtags entirely when the post is strong enough to stand alone. A great post with no hashtags beats a great post diluted by generic tags.
+
+Never use the brand name as a hashtag. People who find the post already know the brand.
+
+Maximum 2 hashtags when used. More than 2 signals desperation.
+
+Only use hashtags that are either (a) genuinely searched by the target audience, or (b) tied to a specific campaign or movement. Generic industry tags (#Marketing, #Branding, #Creative) add noise, not reach.
+
+For LinkedIn, hashtags are often optional — the algorithm prioritizes engagement over tags. For Instagram, they matter more. For Facebook, they are mostly irrelevant. Calibrate per platform.
+
 ## Language
 
 Match the language of the BRIEF field exactly. If the brief is in Romanian, every word of every post must be in Romanian. If the brief is in English, write in English. The voice register examples are for tone calibration only — their language is irrelevant. Do not let example language bleed into output language.`;
@@ -91,18 +105,18 @@ const platformConstraints: Record<SocialPostsInput["platform"], string> = {
 - Maximum 150 words per post.
 - Short, punchy paragraphs. Use line breaks between paragraphs for mobile readability.
 - Hook in the first line — this is what appears before "more".
-- End with 3–5 relevant hashtags (never more than 5). Place them after the post body, separated by a blank line.`,
+- Hashtags: Instagram is the platform where hashtags have the most reach value. If you use them, place them after the post body separated by a blank line, maximum 2, and only if they are genuinely searched terms — not generic tags like #Marketing or #Business.`,
   linkedin: `PLATFORM CONSTRAINTS — LinkedIn:
 - Maximum 250 words per post.
 - Open with a strong first line — this is what appears before "see more".
 - Use line breaks between short paragraphs. No walls of text.
 - End with a thought-provoking question or a clear call to action.
-- Use no more than 3 hashtags — omit them entirely if they don't add clear value.`,
+- Hashtags: optional on LinkedIn. The algorithm prioritizes engagement over tags. Only add hashtags if the post is explicitly about a topic people actively follow. When in doubt, omit.`,
   facebook: `PLATFORM CONSTRAINTS — Facebook:
 - Maximum 100 words per post.
 - Warm, conversational energy. Feels like it was written by a person, not a brand.
 - End with a question or CTA that invites comments or sharing.
-- Use 1–2 hashtags at most. Often better with none.`,
+- Hashtags: mostly irrelevant on Facebook. Default to no hashtags unless there is a specific campaign reason.`,
 };
 
 export function runSocialPosts(
