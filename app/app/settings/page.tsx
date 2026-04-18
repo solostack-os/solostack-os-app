@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CREDITS_PER_RUN } from "@/lib/constants";
+import { countExamples } from "@/lib/utils/copy-safety";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -115,6 +116,8 @@ function SettingsPageInner() {
   const [copyBadExamples, setCopyBadExamples] = useState("");
   const [copyGoodWarning, setCopyGoodWarning] = useState<"banned_vocab" | "is_instruction" | null>(null);
   const [copyBadWarning, setCopyBadWarning] = useState<"is_instruction" | null>(null);
+  const [copyGoodOverLimit, setCopyGoodOverLimit] = useState(false);
+  const [copyBadOverLimit, setCopyBadOverLimit] = useState(false);
   const copyGoodDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const copyBadDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [brandPrimary, setBrandPrimary] = useState("#6c8cff");
@@ -940,12 +943,21 @@ function SettingsPageInner() {
                 </label>
                 <textarea
                   value={copyGoodExamples}
-                  onChange={(e) => setCopyGoodExamples(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCopyGoodExamples(val);
+                    setCopyGoodOverLimit(countExamples(val) > 3);
+                  }}
                   rows={4}
                   placeholder={"Paste 2–3 examples of copy you love. Any industry, any format.\ne.g. \"Be less busy.\" — Basecamp\n\"We don't do dairy. Not even on Fridays.\" — Oatly\n\"For the ones who do it themselves.\" — any indie brand"}
                   className={`${inputClass} resize-none custom-scrollbar`}
                   style={inputStyle}
                 />
+                {copyGoodOverLimit && (
+                  <p className="mt-2 text-xs" style={{ color: textMuted }}>
+                    Only the first 3 examples will be used.
+                  </p>
+                )}
                 {copyGoodWarning && (
                   <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
                     <span className="flex-shrink-0 mt-px">⚠</span>
@@ -975,12 +987,21 @@ function SettingsPageInner() {
                 </label>
                 <textarea
                   value={copyBadExamples}
-                  onChange={(e) => setCopyBadExamples(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCopyBadExamples(val);
+                    setCopyBadOverLimit(countExamples(val) > 3);
+                  }}
                   rows={3}
                   placeholder={"Paste 1–2 examples of copy that feels wrong for your brand — wrong tone, too salesy, too generic.\ne.g. \"Unlock your full potential with our revolutionary all-in-one solution!\"\n\"Leverage cutting-edge synergies to supercharge your ROI.\""}
                   className={`${inputClass} resize-none custom-scrollbar`}
                   style={inputStyle}
                 />
+                {copyBadOverLimit && (
+                  <p className="mt-2 text-xs" style={{ color: textMuted }}>
+                    Only the first 3 examples will be used.
+                  </p>
+                )}
                 {copyBadWarning === "is_instruction" && (
                   <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
                     <span className="flex-shrink-0 mt-px">⚠</span>
