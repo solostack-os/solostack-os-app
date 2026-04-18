@@ -123,7 +123,6 @@ function SettingsPageInner() {
 
   /* ── Sparkle Assistant state ── */
   const [sparkleOpen, setSparkleOpen] = useState(false);
-  const [sparkleField, setSparkleField] = useState<"admire" | "avoid">("admire");
   const [sparkleStep, setSparkleStep] = useState<"form" | "result">("form");
   const [sparkleBrandType, setSparkleBrandType] = useState("");
   const [sparkleTones, setSparkleTones] = useState<Set<string>>(new Set());
@@ -589,8 +588,7 @@ function SettingsPageInner() {
     "Technical precision",
   ];
 
-  function openSparkle(field: "admire" | "avoid") {
-    setSparkleField(field);
+  function openSparkle() {
     setSparkleStep("form");
     setSparkleResult(null);
     setSparkleError(null);
@@ -677,24 +675,17 @@ function SettingsPageInner() {
     const admireLines = sparkleEditMode ? sparkleEditableAdmire : sparkleResult!.admire.map((e) => e.example);
     const avoidLines = sparkleEditMode ? sparkleEditableAvoid : sparkleResult!.avoid.map((e) => e.example);
 
-    if (sparkleField === "admire") {
-      setCopyGoodExamples(admireLines.join("\n\n"));
-      setCopyBadExamples((prev) => {
-        const existing = prev.trim();
-        const toAdd = avoidLines.join("\n\n");
-        return existing ? `${existing}\n\n${toAdd}` : toAdd;
-      });
-    } else {
-      // "avoid" mode: populate avoid + offer admire examples
-      setCopyBadExamples(avoidLines.join("\n\n"));
-      if (sparkleResult!.admire.length > 0) {
-        setCopyGoodExamples((prev) => {
-          const existing = prev.trim();
-          const toAdd = admireLines.join("\n\n");
-          return existing ? `${existing}\n\n${toAdd}` : toAdd;
-        });
-      }
-    }
+    // Always populate both fields — append to any existing content with a blank line separator
+    setCopyGoodExamples((prev) => {
+      const existing = prev.trim();
+      const toAdd = admireLines.join("\n\n");
+      return existing ? `${existing}\n\n${toAdd}` : toAdd;
+    });
+    setCopyBadExamples((prev) => {
+      const existing = prev.trim();
+      const toAdd = avoidLines.join("\n\n");
+      return existing ? `${existing}\n\n${toAdd}` : toAdd;
+    });
 
     closeSparkle();
   }
@@ -1049,19 +1040,34 @@ function SettingsPageInner() {
               style={{ borderColor: border }}
             >
               {/* Section header */}
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-sm font-semibold uppercase tracking-wider" style={{ color: textMuted }}>
-                  Ad Copy Calibration
-                </h3>
-                {planKey === "pro" ? (
-                  <span
-                    className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
-                    style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.1)", border: "1px solid rgba(94,234,212,0.2)" }}
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider" style={{ color: textMuted }}>
+                    Ad Copy Calibration
+                  </h3>
+                  {planKey === "pro" ? (
+                    <span
+                      className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                      style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.1)", border: "1px solid rgba(94,234,212,0.2)" }}
+                    >
+                      Pro
+                    </span>
+                  ) : (
+                    <span className="text-sm leading-none" title="Pro feature">🔒</span>
+                  )}
+                </div>
+                {planKey === "pro" && (
+                  <button
+                    type="button"
+                    onClick={openSparkle}
+                    disabled={sparkleCooldown}
+                    title="Generate calibration examples with AI"
+                    className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-80"
+                    style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.08)", border: "1px solid rgba(94,234,212,0.2)" }}
                   >
-                    Pro
-                  </span>
-                ) : (
-                  <span className="text-sm leading-none" title="Pro feature">🔒</span>
+                    <span>✦</span>
+                    <span>Suggest examples</span>
+                  </button>
                 )}
               </div>
 
@@ -1074,23 +1080,10 @@ function SettingsPageInner() {
 
                   {/* Copy I admire */}
                   <div className="mb-4">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-sm font-medium" style={{ color: textPrimary }}>
-                        Copy I admire
-                        <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => openSparkle("admire")}
-                        disabled={sparkleCooldown}
-                        title="Generate examples with AI"
-                        className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-80"
-                        style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.08)", border: "1px solid rgba(94,234,212,0.2)" }}
-                      >
-                        <span>✦</span>
-                        <span>Suggest</span>
-                      </button>
-                    </div>
+                    <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>
+                      Copy I admire
+                      <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>
+                    </label>
                     <textarea
                       value={copyGoodExamples}
                       onChange={(e) => {
@@ -1132,23 +1125,10 @@ function SettingsPageInner() {
 
                   {/* Copy I avoid */}
                   <div className="mb-4">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-sm font-medium" style={{ color: textPrimary }}>
-                        Copy I avoid
-                        <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional, high impact)</span>
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => openSparkle("avoid")}
-                        disabled={sparkleCooldown}
-                        title="Generate examples with AI"
-                        className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-80"
-                        style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.08)", border: "1px solid rgba(94,234,212,0.2)" }}
-                      >
-                        <span>✦</span>
-                        <span>Suggest</span>
-                      </button>
-                    </div>
+                    <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>
+                      Copy I avoid
+                      <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional, high impact)</span>
+                    </label>
                     <textarea
                       value={copyBadExamples}
                       onChange={(e) => {
@@ -1978,7 +1958,8 @@ function SettingsPageInner() {
                 {/* Q1 */}
                 <div>
                   <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: textMuted }}>
-                    What type of brand is this? <span style={{ color: "#f87171" }}>*</span>
+                    What type of brand is this?{" "}
+                  <span className="normal-case font-normal tracking-normal" style={{ color: textMuted }}>required</span>
                   </label>
                   <input
                     type="text"
@@ -1997,7 +1978,8 @@ function SettingsPageInner() {
                 {/* Q2 */}
                 <div>
                   <label className="block text-xs font-medium mb-2 uppercase tracking-wider" style={{ color: textMuted }}>
-                    Desired tone(s) <span style={{ color: "#f87171" }}>*</span>
+                    Desired tone(s){" "}
+                  <span className="normal-case font-normal tracking-normal" style={{ color: textMuted }}>required</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {SPARKLE_TONES.map((tone) => {
