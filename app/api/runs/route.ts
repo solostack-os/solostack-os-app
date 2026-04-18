@@ -3,6 +3,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { CLAUDE_MODEL, callClaudeStream, type StreamFn } from "@/lib/ai/providers/anthropic";
 import { OPENAI_MODEL, callOpenAIStream } from "@/lib/ai/providers/openai";
+import { callOpenAIStreamWithCopyAdapter } from "@/lib/ai/gpt4o-adapter";
 import { CREDITS_PER_RUN } from "@/lib/constants";
 import { runSocialPosts, type SocialPostsInput } from "@/lib/workflows/marketing/social-posts";
 import { runTopicSuggestions, type TopicSuggestionsInput } from "@/lib/workflows/marketing/topic-suggestions";
@@ -248,47 +249,61 @@ export async function POST(request: Request) {
   //    Accepts an optional streamFn to swap the underlying AI provider
   //    (e.g. callOpenAIStream when Anthropic is overloaded).
   //    Throws synchronously for unknown workflows (caught below → 400).
+  // Workflows that use the full creative copywriting system (craft principles,
+  // voice registers, multi-variant format). These get the GPT-4o adapter on
+  // fallback so output quality stays above the acceptable floor.
+  const COPY_WORKFLOWS = new Set(["social_posts", "ad_copy"]);
+
   let outputTitle: string;
   function createStream(streamFn: StreamFn = callClaudeStream) {
+    // When routing through OpenAI, copy workflows need the adapter addendum
+    // to counter GPT-4o's biases (banned vocab drift, structural sameness,
+    // code-switching, brand-account endings). Non-copy workflows use the
+    // plain callOpenAIStream — the adapter rules don't apply to them.
+    const resolvedStreamFn =
+      streamFn === callOpenAIStream && COPY_WORKFLOWS.has(workflow_key)
+        ? callOpenAIStreamWithCopyAdapter
+        : streamFn;
+
     if (module_key === "marketing" && workflow_key === "social_posts") {
       outputTitle = `Social posts — ${input_json.platform}`;
-      return runSocialPosts(context, input_json as unknown as SocialPostsInput, streamFn);
+      return runSocialPosts(context, input_json as unknown as SocialPostsInput, resolvedStreamFn);
     } else if (module_key === "marketing" && workflow_key === "ad_copy") {
       outputTitle = `Ad copy — ${input_json.platform}`;
-      return runAdCopy(context, input_json as unknown as AdCopyInput, streamFn);
+      return runAdCopy(context, input_json as unknown as AdCopyInput, resolvedStreamFn);
     } else if (module_key === "marketing" && workflow_key === "landing_page") {
       outputTitle = `Landing page — ${input_json.section}`;
-      return runLandingPage(context, input_json as unknown as LandingPageInput, streamFn);
+      return runLandingPage(context, input_json as unknown as LandingPageInput, resolvedStreamFn);
     } else if (module_key === "marketing" && workflow_key === "email_campaign") {
       outputTitle = `Email — ${input_json.email_type}`;
-      return runEmailCampaign(context, input_json as unknown as EmailCampaignInput, streamFn);
+      return runEmailCampaign(context, input_json as unknown as EmailCampaignInput, resolvedStreamFn);
     } else if (module_key === "marketing" && workflow_key === "content_brief") {
       outputTitle = `Content brief — ${input_json.content_type}`;
-      return runContentBrief(context, input_json as unknown as ContentBriefInput, streamFn);
+      return runContentBrief(context, input_json as unknown as ContentBriefInput, resolvedStreamFn);
     } else if (module_key === "outreach" && workflow_key === "cold_email") {
       outputTitle = `Cold email — ${input_json.prospect_company}`;
-      return runColdEmail(context, input_json as unknown as ColdEmailInput, streamFn);
+      return runColdEmail(context, input_json as unknown as ColdEmailInput, resolvedStreamFn);
     } else if (module_key === "outreach" && workflow_key === "follow_up") {
       outputTitle = `Follow-up — ${input_json.days_since}`;
-      return runFollowUp(context, input_json as unknown as FollowUpInput, streamFn);
+      return runFollowUp(context, input_json as unknown as FollowUpInput, resolvedStreamFn);
     } else if (module_key === "outreach" && workflow_key === "proposal") {
       outputTitle = `Proposal — ${input_json.client_name}`;
-      return runProposal(context, input_json as unknown as ProposalInput, streamFn);
+      return runProposal(context, input_json as unknown as ProposalInput, resolvedStreamFn);
     } else if (module_key === "outreach" && workflow_key === "discovery_prep") {
       outputTitle = `Discovery prep — ${input_json.prospect_company}`;
-      return runDiscoveryPrep(context, input_json as unknown as DiscoveryPrepInput, streamFn);
+      return runDiscoveryPrep(context, input_json as unknown as DiscoveryPrepInput, resolvedStreamFn);
     } else if (module_key === "operations" && workflow_key === "sop_generator") {
       outputTitle = `SOP — ${input_json.process_name}`;
-      return runSopGenerator(context, input_json as unknown as SopGeneratorInput, streamFn);
+      return runSopGenerator(context, input_json as unknown as SopGeneratorInput, resolvedStreamFn);
     } else if (module_key === "operations" && workflow_key === "weekly_plan") {
       outputTitle = `Weekly plan — ${input_json.focus_area}`;
-      return runWeeklyPlan(context, input_json as unknown as WeeklyPlanInput, streamFn);
+      return runWeeklyPlan(context, input_json as unknown as WeeklyPlanInput, resolvedStreamFn);
     } else if (module_key === "operations" && workflow_key === "onboarding_doc") {
       outputTitle = `Onboarding — ${input_json.client_name}`;
-      return runOnboardingDoc(context, input_json as unknown as OnboardingDocInput, streamFn);
+      return runOnboardingDoc(context, input_json as unknown as OnboardingDocInput, resolvedStreamFn);
     } else if (module_key === "operations" && workflow_key === "process_notes") {
       outputTitle = `Process notes — ${input_json.process_title}`;
-      return runProcessNotes(context, input_json as unknown as ProcessNotesInput, streamFn);
+      return runProcessNotes(context, input_json as unknown as ProcessNotesInput, resolvedStreamFn);
     } else {
       throw new Error(`Unknown workflow: ${module_key}/${workflow_key}`);
     }
