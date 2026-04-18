@@ -5,6 +5,7 @@ import { CLAUDE_MODEL, callClaudeStream, type StreamFn } from "@/lib/ai/provider
 import { OPENAI_MODEL, callOpenAIStream } from "@/lib/ai/providers/openai";
 import { callOpenAIStreamWithCopyAdapter } from "@/lib/ai/gpt4o-adapter";
 import { CREDITS_PER_RUN } from "@/lib/constants";
+import { sanitizeCopyExamples } from "@/lib/utils/copy-safety";
 import { runSocialPosts, type SocialPostsInput } from "@/lib/workflows/marketing/social-posts";
 import { runTopicSuggestions, type TopicSuggestionsInput } from "@/lib/workflows/marketing/topic-suggestions";
 import { runAdCopy, type AdCopyInput } from "@/lib/workflows/marketing/ad-copy";
@@ -174,8 +175,13 @@ export async function POST(request: Request) {
     // Copy calibration examples are a Pro feature. They are saved for all plans
     // (so users can prepare content before upgrading) but only injected into
     // generation prompts on Pro. Non-Pro plans pass null to the workflow.
-    copy_good_examples: subscription?.plan_key === "pro" ? (workspace.copy_good_examples ?? null) : null,
-    copy_bad_examples: subscription?.plan_key === "pro" ? (workspace.copy_bad_examples ?? null) : null,
+    // sanitizeCopyExamples strips prompt injection patterns and enforces length.
+    copy_good_examples: subscription?.plan_key === "pro"
+      ? sanitizeCopyExamples(workspace.copy_good_examples)
+      : null,
+    copy_bad_examples: subscription?.plan_key === "pro"
+      ? sanitizeCopyExamples(workspace.copy_bad_examples)
+      : null,
   };
 
   // 6. Usage gate — each run costs CREDITS_PER_RUN credits. Compare credits

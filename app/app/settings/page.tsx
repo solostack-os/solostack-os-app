@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CREDITS_PER_RUN } from "@/lib/constants";
@@ -28,6 +28,31 @@ const upgradePaths: Record<string, { target: string; priceEnvKey: string; price:
 /* ─── Shared input style ─── */
 const inputClass = "w-full px-4 py-3 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#6c8cff]/50 transition-shadow";
 const inputStyle = { backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary };
+
+// ─── Copy calibration validation helpers ────────────────────────────────────
+// Client-side only — mirrors the banned vocabulary from the copywriting system.
+const BANNED_VOCAB_COPY = [
+  "unlock", "empower", "seamless", "revolutionary", "game-changer", "game changer",
+  "robust", "leverage", "holistic", "supercharge", "next-level", "next level",
+  "cutting-edge", "cutting edge", "innovative", "state-of-the-art", "one-stop",
+  "all-in-one", "transformative", "disruptive", "synergy", "paradigm shift",
+];
+
+// Words that typically open instructions, not copy samples.
+const INSTRUCTION_STARTERS = [
+  "write", "create", "make", "generate", "produce", "give",
+  "provide", "list", "suggest", "show", "describe", "explain",
+];
+
+function hasBannedVocabCopy(text: string): boolean {
+  const lower = text.toLowerCase();
+  return BANNED_VOCAB_COPY.some((w) => lower.includes(w));
+}
+
+function looksLikeInstruction(text: string): boolean {
+  const firstWord = text.trim().toLowerCase().split(/[\s\n]+/)[0].replace(/[^a-z]/g, "");
+  return INSTRUCTION_STARTERS.includes(firstWord);
+}
 
 // Wrapped in <Suspense> below because the inner component reads
 // `useSearchParams()`, which Next.js 14 requires to sit inside a suspense
@@ -88,6 +113,10 @@ function SettingsPageInner() {
   const [preferredLanguage, setPreferredLanguage] = useState("");
   const [copyGoodExamples, setCopyGoodExamples] = useState("");
   const [copyBadExamples, setCopyBadExamples] = useState("");
+  const [copyGoodWarning, setCopyGoodWarning] = useState<"banned_vocab" | "is_instruction" | null>(null);
+  const [copyBadWarning, setCopyBadWarning] = useState<"is_instruction" | null>(null);
+  const copyGoodDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const copyBadDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [brandPrimary, setBrandPrimary] = useState("#6c8cff");
   const [brandSecondary, setBrandSecondary] = useState("#22c55e");
   const [logoUrl, setLogoUrl] = useState("");
@@ -492,6 +521,38 @@ function SettingsPageInner() {
     }
   }
 
+  // ─── Copy calibration inline validation (debounced 500 ms) ──────────────
+  useEffect(() => {
+    if (copyGoodDebounceRef.current) clearTimeout(copyGoodDebounceRef.current);
+    copyGoodDebounceRef.current = setTimeout(() => {
+      if (!copyGoodExamples.trim()) { setCopyGoodWarning(null); return; }
+      if (looksLikeInstruction(copyGoodExamples)) {
+        setCopyGoodWarning("is_instruction");
+      } else if (hasBannedVocabCopy(copyGoodExamples)) {
+        setCopyGoodWarning("banned_vocab");
+      } else {
+        setCopyGoodWarning(null);
+      }
+    }, 500);
+    return () => { if (copyGoodDebounceRef.current) clearTimeout(copyGoodDebounceRef.current); };
+  }, [copyGoodExamples]);
+
+  useEffect(() => {
+    if (copyBadDebounceRef.current) clearTimeout(copyBadDebounceRef.current);
+    copyBadDebounceRef.current = setTimeout(() => {
+      if (!copyBadExamples.trim()) { setCopyBadWarning(null); return; }
+      setCopyBadWarning(looksLikeInstruction(copyBadExamples) ? "is_instruction" : null);
+    }, 500);
+    return () => { if (copyBadDebounceRef.current) clearTimeout(copyBadDebounceRef.current); };
+  }, [copyBadExamples]);
+
+  function moveToCopyAvoid() {
+    const toMove = copyGoodExamples.trim();
+    setCopyBadExamples((prev) => prev.trim() ? `${prev.trim()}\n${toMove}` : toMove);
+    setCopyGoodExamples("");
+    setCopyGoodWarning(null);
+  }
+
   async function handleSaveProfile() {
     if (!workspaceId) return;
     setSaving(true);
@@ -881,10 +942,29 @@ function SettingsPageInner() {
                   value={copyGoodExamples}
                   onChange={(e) => setCopyGoodExamples(e.target.value)}
                   rows={4}
-                  placeholder={"Paste 2–3 examples of ad copy you love. Any brand, any format.\ne.g. \"Be less busy.\" — Basecamp\n\"Payments infrastructure for the internet.\" — Stripe"}
+                  placeholder={"Paste 2–3 examples of copy you love. Any industry, any format.\ne.g. \"Be less busy.\" — Basecamp\n\"We don't do dairy. Not even on Fridays.\" — Oatly\n\"For the ones who do it themselves.\" — any indie brand"}
                   className={`${inputClass} resize-none custom-scrollbar`}
                   style={inputStyle}
                 />
+                {copyGoodWarning && (
+                  <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
+                    <span className="flex-shrink-0 mt-px">⚠</span>
+                    {copyGoodWarning === "banned_vocab" ? (
+                      <span>
+                        This contains words we usually avoid. Is this really copy you admire?{" "}
+                        <button
+                          type="button"
+                          onClick={moveToCopyAvoid}
+                          className="underline underline-offset-2 hover:opacity-80 cursor-pointer"
+                        >
+                          Move to Copy I avoid
+                        </button>
+                      </span>
+                    ) : (
+                      <span>Paste actual copy examples, not instructions.</span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Copy I avoid */}
@@ -897,10 +977,16 @@ function SettingsPageInner() {
                   value={copyBadExamples}
                   onChange={(e) => setCopyBadExamples(e.target.value)}
                   rows={3}
-                  placeholder={"Paste 1–2 examples of copy that feels wrong for your brand — too salesy, too generic, wrong tone.\ne.g. \"Unlock your full potential with our revolutionary all-in-one solution!\""}
+                  placeholder={"Paste 1–2 examples of copy that feels wrong for your brand — wrong tone, too salesy, too generic.\ne.g. \"Unlock your full potential with our revolutionary all-in-one solution!\"\n\"Leverage cutting-edge synergies to supercharge your ROI.\""}
                   className={`${inputClass} resize-none custom-scrollbar`}
                   style={inputStyle}
                 />
+                {copyBadWarning === "is_instruction" && (
+                  <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
+                    <span className="flex-shrink-0 mt-px">⚠</span>
+                    <span>Paste actual copy examples, not instructions.</span>
+                  </div>
+                )}
                 <p className="text-xs mt-1.5" style={{ color: textMuted }}>
                   Anti-examples steer the AI away from entire zones of writing. More effective than describing what you want.
                 </p>
