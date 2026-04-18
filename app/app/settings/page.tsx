@@ -1048,145 +1048,205 @@ function SettingsPageInner() {
               className="mb-5 pt-5 border-t"
               style={{ borderColor: border }}
             >
+              {/* Section header */}
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="text-sm font-semibold uppercase tracking-wider" style={{ color: textMuted }}>
                   Ad Copy Calibration
                 </h3>
-                <span
-                  className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
-                  style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.1)", border: "1px solid rgba(94,234,212,0.2)" }}
-                >
-                  Pro
-                </span>
+                {planKey === "pro" ? (
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                    style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.1)", border: "1px solid rgba(94,234,212,0.2)" }}
+                  >
+                    Pro
+                  </span>
+                ) : (
+                  <span className="text-sm leading-none" title="Pro feature">🔒</span>
+                )}
               </div>
 
-              {/* Tier disclaimer — only shown to non-Pro users */}
-              {planKey !== "pro" && (
-                <p className="text-xs mb-3" style={{ color: textMuted }}>
-                  Saved on all plans. Applied to generations on Pro only.{" "}
-                  <a
-                    href="#upgrade"
-                    className="underline underline-offset-2 hover:opacity-80 transition-opacity"
-                    style={{ color: accent }}
-                  >
-                    Upgrade
-                  </a>
-                </p>
-              )}
+              {planKey === "pro" ? (
+                /* ── Pro: fully active ── */
+                <>
+                  <p className="text-xs mb-4" style={{ color: textMuted }}>
+                    Used by the Ad Copy and Social Posts generators to match your preferred style. Anti-examples have the highest impact — paste copy that feels wrong for your brand.
+                  </p>
 
-              <p className="text-xs mb-4" style={{ color: textMuted }}>
-                Used by the Ad Copy and Social Posts generators to match your preferred style. Anti-examples have the highest impact — paste copy that feels wrong for your brand.
-              </p>
-
-              {/* Copy I admire */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm font-medium" style={{ color: textPrimary }}>
-                    Copy I admire
-                    <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>
-                  </label>
-                  {planKey === "pro" && (
-                    <button
-                      type="button"
-                      onClick={() => openSparkle("admire")}
-                      disabled={sparkleCooldown}
-                      title="Generate examples with AI"
-                      className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-80"
-                      style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.08)", border: "1px solid rgba(94,234,212,0.2)" }}
-                    >
-                      <span>✦</span>
-                      <span>Suggest</span>
-                    </button>
-                  )}
-                </div>
-                <textarea
-                  value={copyGoodExamples}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setCopyGoodExamples(val);
-                    setCopyGoodOverLimit(countExamples(val) > 3);
-                  }}
-                  rows={4}
-                  placeholder={"Paste 2–3 examples of copy you love. Any industry, any format.\ne.g. \"Be less busy.\" — Basecamp\n\"We don't do dairy. Not even on Fridays.\" — Oatly\n\"For the ones who do it themselves.\" — any indie brand"}
-                  className={`${inputClass} resize-none custom-scrollbar`}
-                  style={inputStyle}
-                />
-                {copyGoodOverLimit && (
-                  <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
-                    <span className="flex-shrink-0 mt-px">⚠</span>
-                    <span>Only the first 3 examples will be used.</span>
-                  </div>
-                )}
-                {copyGoodWarning && (
-                  <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
-                    <span className="flex-shrink-0 mt-px">⚠</span>
-                    {copyGoodWarning === "banned_vocab" ? (
-                      <span>
-                        This contains words we usually avoid. Is this really copy you admire?{" "}
-                        <button
-                          type="button"
-                          onClick={moveToCopyAvoid}
-                          className="underline underline-offset-2 hover:opacity-80 cursor-pointer"
-                        >
-                          Move to Copy I avoid
-                        </button>
-                      </span>
-                    ) : (
-                      <span>Paste actual copy examples, not instructions.</span>
+                  {/* Copy I admire */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-sm font-medium" style={{ color: textPrimary }}>
+                        Copy I admire
+                        <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => openSparkle("admire")}
+                        disabled={sparkleCooldown}
+                        title="Generate examples with AI"
+                        className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-80"
+                        style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.08)", border: "1px solid rgba(94,234,212,0.2)" }}
+                      >
+                        <span>✦</span>
+                        <span>Suggest</span>
+                      </button>
+                    </div>
+                    <textarea
+                      value={copyGoodExamples}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setCopyGoodExamples(val);
+                        setCopyGoodOverLimit(countExamples(val) > 3);
+                      }}
+                      rows={4}
+                      placeholder={"Paste 2–3 examples of copy you love. Any industry, any format.\ne.g. \"Be less busy.\" — Basecamp\n\"We don't do dairy. Not even on Fridays.\" — Oatly\n\"For the ones who do it themselves.\" — any indie brand"}
+                      className={`${inputClass} resize-none custom-scrollbar`}
+                      style={inputStyle}
+                    />
+                    {copyGoodOverLimit && (
+                      <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
+                        <span className="flex-shrink-0 mt-px">⚠</span>
+                        <span>Only the first 3 examples will be used.</span>
+                      </div>
+                    )}
+                    {copyGoodWarning && (
+                      <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
+                        <span className="flex-shrink-0 mt-px">⚠</span>
+                        {copyGoodWarning === "banned_vocab" ? (
+                          <span>
+                            This contains words we usually avoid. Is this really copy you admire?{" "}
+                            <button
+                              type="button"
+                              onClick={moveToCopyAvoid}
+                              className="underline underline-offset-2 hover:opacity-80 cursor-pointer"
+                            >
+                              Move to Copy I avoid
+                            </button>
+                          </span>
+                        ) : (
+                          <span>Paste actual copy examples, not instructions.</span>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
 
-              {/* Copy I avoid */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm font-medium" style={{ color: textPrimary }}>
-                    Copy I avoid
-                    <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional, high impact)</span>
-                  </label>
-                  {planKey === "pro" && (
-                    <button
-                      type="button"
-                      onClick={() => openSparkle("avoid")}
-                      disabled={sparkleCooldown}
-                      title="Generate examples with AI"
-                      className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-80"
-                      style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.08)", border: "1px solid rgba(94,234,212,0.2)" }}
+                  {/* Copy I avoid */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-sm font-medium" style={{ color: textPrimary }}>
+                        Copy I avoid
+                        <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional, high impact)</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => openSparkle("avoid")}
+                        disabled={sparkleCooldown}
+                        title="Generate examples with AI"
+                        className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-80"
+                        style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.08)", border: "1px solid rgba(94,234,212,0.2)" }}
+                      >
+                        <span>✦</span>
+                        <span>Suggest</span>
+                      </button>
+                    </div>
+                    <textarea
+                      value={copyBadExamples}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setCopyBadExamples(val);
+                        setCopyBadOverLimit(countExamples(val) > 3);
+                      }}
+                      rows={3}
+                      placeholder={"Paste 1–2 examples of copy that feels wrong for your brand — wrong tone, too salesy, too generic.\ne.g. \"Unlock your full potential with our revolutionary all-in-one solution!\"\n\"Leverage cutting-edge synergies to supercharge your ROI.\""}
+                      className={`${inputClass} resize-none custom-scrollbar`}
+                      style={inputStyle}
+                    />
+                    {copyBadOverLimit && (
+                      <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
+                        <span className="flex-shrink-0 mt-px">⚠</span>
+                        <span>Only the first 3 examples will be used.</span>
+                      </div>
+                    )}
+                    {copyBadWarning === "is_instruction" && (
+                      <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
+                        <span className="flex-shrink-0 mt-px">⚠</span>
+                        <span>Paste actual copy examples, not instructions.</span>
+                      </div>
+                    )}
+                    <p className="text-xs mt-1.5" style={{ color: textMuted }}>
+                      Anti-examples steer the AI away from entire zones of writing. More effective than describing what you want.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                /* ── Non-Pro: gated ── */
+                <div className="relative mt-3">
+                  {/* Dimmed fields — pointer-events disabled so nothing is interactive */}
+                  <div style={{ opacity: 0.45, pointerEvents: "none", userSelect: "none" }}>
+                    {/* Copy I admire */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>
+                        Copy I admire
+                        <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional)</span>
+                      </label>
+                      <textarea
+                        disabled
+                        rows={4}
+                        placeholder={"Paste 2–3 examples of copy you love. Any industry, any format.\ne.g. \"Be less busy.\" — Basecamp\n\"We don't do dairy. Not even on Fridays.\" — Oatly\n\"For the ones who do it themselves.\" — any indie brand"}
+                        className={`${inputClass} resize-none custom-scrollbar cursor-not-allowed`}
+                        style={{ ...inputStyle, cursor: "not-allowed" }}
+                      />
+                    </div>
+                    {/* Copy I avoid */}
+                    <div>
+                      <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>
+                        Copy I avoid
+                        <span className="ml-1 text-xs font-normal" style={{ color: textMuted }}>(optional, high impact)</span>
+                      </label>
+                      <textarea
+                        disabled
+                        rows={3}
+                        placeholder={"Paste 1–2 examples of copy that feels wrong for your brand — wrong tone, too salesy, too generic.\ne.g. \"Unlock your full potential with our revolutionary all-in-one solution!\"\n\"Leverage cutting-edge synergies to supercharge your ROI.\""}
+                        className={`${inputClass} resize-none custom-scrollbar cursor-not-allowed`}
+                        style={{ ...inputStyle, cursor: "not-allowed" }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Upgrade overlay — centered over the dimmed fields */}
+                  <div
+                    className="absolute inset-0 flex items-center justify-center"
+                    style={{ pointerEvents: "auto" }}
+                  >
+                    <div
+                      className="flex flex-col items-center gap-3 rounded-xl px-6 py-5 text-center shadow-xl"
+                      style={{
+                        backgroundColor: surface,
+                        border: `1px solid rgba(94,234,212,0.2)`,
+                        backdropFilter: "blur(8px)",
+                        maxWidth: 280,
+                      }}
                     >
-                      <span>✦</span>
-                      <span>Suggest</span>
-                    </button>
-                  )}
+                      <span className="text-xl">✦</span>
+                      <div>
+                        <p className="text-sm font-semibold mb-1" style={{ color: textPrimary }}>
+                          Ad Copy Calibration is a Pro feature
+                        </p>
+                        <p className="text-xs leading-relaxed" style={{ color: textMuted }}>
+                          Calibrate AI generations with copy you love and copy you avoid.
+                        </p>
+                      </div>
+                      <a
+                        href="#upgrade"
+                        className="text-sm font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-80"
+                        style={{ backgroundColor: "#5eead4", color: "#0a0f1e" }}
+                      >
+                        Upgrade to Pro
+                      </a>
+                    </div>
+                  </div>
                 </div>
-                <textarea
-                  value={copyBadExamples}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setCopyBadExamples(val);
-                    setCopyBadOverLimit(countExamples(val) > 3);
-                  }}
-                  rows={3}
-                  placeholder={"Paste 1–2 examples of copy that feels wrong for your brand — wrong tone, too salesy, too generic.\ne.g. \"Unlock your full potential with our revolutionary all-in-one solution!\"\n\"Leverage cutting-edge synergies to supercharge your ROI.\""}
-                  className={`${inputClass} resize-none custom-scrollbar`}
-                  style={inputStyle}
-                />
-                {copyBadOverLimit && (
-                  <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
-                    <span className="flex-shrink-0 mt-px">⚠</span>
-                    <span>Only the first 3 examples will be used.</span>
-                  </div>
-                )}
-                {copyBadWarning === "is_instruction" && (
-                  <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
-                    <span className="flex-shrink-0 mt-px">⚠</span>
-                    <span>Paste actual copy examples, not instructions.</span>
-                  </div>
-                )}
-                <p className="text-xs mt-1.5" style={{ color: textMuted }}>
-                  Anti-examples steer the AI away from entire zones of writing. More effective than describing what you want.
-                </p>
-              </div>
+              )}
             </div>
 
             {/* Preferred Language */}
