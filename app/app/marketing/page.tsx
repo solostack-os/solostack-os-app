@@ -850,6 +850,16 @@ export default function MarketingPage() {
               <CdPassIndicator status={spCdPassStatus} />
             )}
             {!spLoading && !spStreaming && <OutputCards cards={splitCards(spOutput, 'social_posts')} copiedIdx={spCopied} onCopy={(t, i) => handleCopy(t, i, setSpCopied)} accent={accent} accentLight={accentLight} contentType="social_posts" onClear={() => { setSpOutputs({ instagram: null, linkedin: null, facebook: null }); setSpError(null); setSpCdPassStatus("idle"); }} />}
+            {!spLoading && !spStreaming && spOutput && currentPlanKey !== "pro" && (
+              <a
+                href="/app/settings#upgrade"
+                className="flex items-center gap-1.5 mt-2 px-0.5 text-xs transition-opacity hover:opacity-80"
+                style={{ color: textMuted }}
+              >
+                <span style={{ color: accent }}>✦</span>
+                See how these variants look with an extra editing pass (Pro) →
+              </a>
+            )}
           </>
         )}
 
@@ -923,6 +933,16 @@ export default function MarketingPage() {
               <CdPassIndicator status={acCdPassStatus} />
             )}
             {!acLoading && !acStreaming && <OutputCards cards={splitCards(acOutput, 'ad_copy')} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} accent={accent} accentLight={accentLight} contentType="ad_copy" onClear={() => { setAcOutput(null); setAcError(null); setAcCdPassStatus("idle"); }} />}
+            {!acLoading && !acStreaming && acOutput && currentPlanKey !== "pro" && (
+              <a
+                href="/app/settings#upgrade"
+                className="flex items-center gap-1.5 mt-2 px-0.5 text-xs transition-opacity hover:opacity-80"
+                style={{ color: textMuted }}
+              >
+                <span style={{ color: accent }}>✦</span>
+                See how these variants look with an extra editing pass (Pro) →
+              </a>
+            )}
           </>
         )}
 
