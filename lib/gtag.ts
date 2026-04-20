@@ -38,7 +38,7 @@ export function trackSignupConversion() {
 export function trackPurchaseConversion(value?: number) {
   try {
     const w = window as unknown as { gtag?: (...args: unknown[]) => void };
-    if (typeof w.gtag === 'function' && PURCHASE_CONVERSION_LABEL !== 'REPLACE_WITH_PURCHASE_LABEL') {
+    if (typeof w.gtag === 'function') {
       w.gtag('event', 'conversion', {
         send_to: `${GA_ADS_ID}/${PURCHASE_CONVERSION_LABEL}`,
         ...(value !== undefined ? { value, currency: 'RON' } : {}),
