@@ -3,18 +3,25 @@
  *
  * Tag ID: AW-18049965987
  *
- * Usage — fire after a successful sign-up:
- *   import { trackSignupConversion } from '@/lib/gtag';
- *   trackSignupConversion();
+ * Conversions:
+ *   - Sign-up:  fires after successful account creation (email or Google OAuth)
+ *   - Purchase: fires after Stripe checkout success (?upgraded=true on /app/settings)
  *
- * The CONVERSION_LABEL below must match the label from Google Ads
- * (Goals → Conversions → "Sign-up Completed" action).
- * Update it once the conversion action is created.
+ * To get the PURCHASE_CONVERSION_LABEL:
+ *   Google Ads → Goals → Conversions → click "Purchase" → Tag setup →
+ *   "Install the tag yourself" → copy the label from the gtag snippet
+ *   (format: AW-18049965987/<LABEL>)
  */
 
 export const GA_ADS_ID = 'AW-18049965987';
 
 export const SIGNUP_CONVERSION_LABEL = 'nGB8CPKBzJwcEKO_8p5D';
+
+/**
+ * Purchase conversion label — from Google Ads Goals → Conversions → Purchase → Tag setup.
+ * TODO: replace placeholder with the real label once retrieved from Google Ads.
+ */
+export const PURCHASE_CONVERSION_LABEL = 'REPLACE_WITH_PURCHASE_LABEL';
 
 /** Push a Google Ads conversion event */
 export function trackSignupConversion() {
@@ -23,6 +30,21 @@ export function trackSignupConversion() {
     if (typeof w.gtag === 'function') {
       w.gtag('event', 'conversion', {
         send_to: `${GA_ADS_ID}/${SIGNUP_CONVERSION_LABEL}`,
+      });
+    }
+  } catch {
+    // gtag not loaded — silently skip
+  }
+}
+
+/** Fire Google Ads Purchase conversion — call after Stripe checkout succeeds */
+export function trackPurchaseConversion(value?: number) {
+  try {
+    const w = window as unknown as { gtag?: (...args: unknown[]) => void };
+    if (typeof w.gtag === 'function' && PURCHASE_CONVERSION_LABEL !== 'REPLACE_WITH_PURCHASE_LABEL') {
+      w.gtag('event', 'conversion', {
+        send_to: `${GA_ADS_ID}/${PURCHASE_CONVERSION_LABEL}`,
+        ...(value !== undefined ? { value, currency: 'RON' } : {}),
       });
     }
   } catch {

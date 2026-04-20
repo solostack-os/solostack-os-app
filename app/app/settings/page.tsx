@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CREDITS_PER_RUN } from "@/lib/constants";
 import { countExamples } from "@/lib/utils/copy-safety";
+import { trackPurchaseConversion } from "@/lib/gtag";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -213,6 +214,13 @@ function SettingsPageInner() {
     }
     window.addEventListener("pageshow", handlePageShow);
     return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
+
+  // Fire Google Ads Purchase conversion once when user returns from Stripe checkout
+  useEffect(() => {
+    if (!upgraded) return;
+    trackPurchaseConversion();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
