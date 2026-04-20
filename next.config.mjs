@@ -53,10 +53,10 @@ const nextConfig = {
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://js.stripe.com https://va.vercel-scripts.com https://www.googletagmanager.com",
               "style-src 'self' 'unsafe-inline'",
               // Google domains added to img-src for conversion pixel beacons
-              "img-src 'self' data: blob: https://kymektpppuglihfflipq.supabase.co https://www.google.com https://www.google-analytics.com https://googleads.g.doubleclick.net",
+              "img-src 'self' data: blob: https://kymektpppuglihfflipq.supabase.co https://www.google.com https://www.google-analytics.com https://googleads.g.doubleclick.net https://www.googletagmanager.com",
               "font-src 'self' data:",
               // Google domains added to connect-src for tag data collection and conversion reporting
-              "connect-src 'self' https://kymektpppuglihfflipq.supabase.co wss://kymektpppuglihfflipq.supabase.co https://challenges.cloudflare.com https://js.stripe.com https://va.vercel-scripts.com https://www.googletagmanager.com https://www.google-analytics.com https://googleads.g.doubleclick.net https://www.google.com",
+              "connect-src 'self' https://kymektpppuglihfflipq.supabase.co wss://kymektpppuglihfflipq.supabase.co https://challenges.cloudflare.com https://js.stripe.com https://va.vercel-scripts.com https://www.googletagmanager.com https://www.google-analytics.com https://googleads.g.doubleclick.net https://www.google.com https://pagead2.googlesyndication.com",
               "frame-src 'self' https://js.stripe.com https://challenges.cloudflare.com",
               "object-src 'none'",
               "base-uri 'self'",
