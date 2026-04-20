@@ -17,11 +17,8 @@ export const GA_ADS_ID = 'AW-18049965987';
 
 export const SIGNUP_CONVERSION_LABEL = 'nGB8CPKBzJwcEKO_8p5D';
 
-/**
- * Purchase conversion label — from Google Ads Goals → Conversions → Purchase → Tag setup.
- * TODO: replace placeholder with the real label once retrieved from Google Ads.
- */
-export const PURCHASE_CONVERSION_LABEL = 'REPLACE_WITH_PURCHASE_LABEL';
+/** Purchase conversion label — from Google Ads Goals → Conversions → Purchase → Tag setup. */
+export const PURCHASE_CONVERSION_LABEL = 'B6mcCJrM8ZEcEKO_8p5D';
 
 /** Push a Google Ads conversion event */
 export function trackSignupConversion() {
