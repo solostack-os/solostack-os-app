@@ -5,6 +5,7 @@ import { GlowCard } from "@/components/ui/glow-card";
 import { OutputCards } from "@/components/ui/output-cards";
 import { StreamingCard } from "@/components/ui/streaming-card";
 import { UpgradeModal, CREDIT_LIMIT_ERROR } from "@/components/upgrade-modal";
+import { stripMeta } from "@/lib/strip-meta";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -369,8 +370,10 @@ export default function OperationsPage() {
         if (done) break;
         if (value) {
           full += decoder.decode(value, { stream: true });
+          // Don't write META token bytes into the visible streaming card.
+          const { clean } = stripMeta(full);
           if (streamTextRef.current) {
-            streamTextRef.current.textContent = full;
+            streamTextRef.current.textContent = clean;
           }
           if (firstChunk) {
             firstChunk = false;
@@ -386,11 +389,13 @@ export default function OperationsPage() {
       // final text to React state — that renders OutputCards with the
       // fully split markdown and hides the StreamingCard.
       full += decoder.decode();
+      // Strip the META token before committing to state.
+      const { clean: cleanOutput } = stripMeta(full);
       if (streamTextRef.current) {
-        streamTextRef.current.textContent = full;
+        streamTextRef.current.textContent = cleanOutput;
       }
       setStreaming(false);
-      setOutput(full);
+      setOutput(cleanOutput);
       window.dispatchEvent(new Event("recents:refresh"));
       fetch("/api/usage").then(r => r.json()).then(d => {
         setCreditLimitReached(d.limitReached ?? false);
