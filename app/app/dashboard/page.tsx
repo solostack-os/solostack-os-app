@@ -10,6 +10,7 @@ import { ProductTour } from "@/components/product-tour";
 import { CREDITS_PER_RUN, MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
 import { trackSignupConversion } from "@/lib/gtag";
 import { stripMarkdown } from "@/components/ui/output-cards";
+import { HeroCard } from "@/components/hero-card";
 
 interface RecentRun {
   id: string;
@@ -484,8 +485,15 @@ export default function DashboardPage() {
           </span>
         </div>
 
+        {/* ─── Hero Card (Free/Trial users only) ─── */}
+        {isTrial && (
+          <div style={fadeUp(1)} className="mb-10">
+            <HeroCard />
+          </div>
+        )}
+
         {/* ─── Quick Generate CTA ─── */}
-        <div style={fadeUp(1)} className="mb-16" data-tour="main-content">
+        <div style={fadeUp(isTrial ? 2 : 1)} className="mb-16" data-tour="main-content">
           <GlowCard glowColor="blue">
             <div className="p-8 sm:p-10" style={{ backgroundColor: "rgba(17,24,39,0.8)", borderRadius: "inherit" }}>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
