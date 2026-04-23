@@ -8,6 +8,9 @@ export default function SignupPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [companyUrl, setCompanyUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,6 +38,9 @@ export default function SignupPage() {
         emailRedirectTo,
         data: {
           full_name: fullName,
+          company_name: companyName || undefined,
+          industry: industry || undefined,
+          company_url: companyUrl || undefined,
         },
       },
     });
@@ -165,6 +171,63 @@ export default function SignupPage() {
                     onChange={(e) => setFullName(e.target.value)}
                     required
                     placeholder="Jane Smith"
+                    className="w-full px-3 py-2 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#6c8cff]/50"
+                    style={{
+                      backgroundColor: "#0a0f1e",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "#f1f5f9",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="companyName" className="block text-sm font-medium mb-1.5" style={{ color: "#f1f5f9" }}>
+                    Company name
+                  </label>
+                  <input
+                    id="companyName"
+                    type="text"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="Acme Studio"
+                    className="w-full px-3 py-2 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#6c8cff]/50"
+                    style={{
+                      backgroundColor: "#0a0f1e",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "#f1f5f9",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="industry" className="block text-sm font-medium mb-1.5" style={{ color: "#f1f5f9" }}>
+                    Industry
+                  </label>
+                  <input
+                    id="industry"
+                    type="text"
+                    value={industry}
+                    onChange={(e) => setIndustry(e.target.value)}
+                    placeholder="e.g. Design, Marketing, Consulting"
+                    className="w-full px-3 py-2 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#6c8cff]/50"
+                    style={{
+                      backgroundColor: "#0a0f1e",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "#f1f5f9",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="companyUrl" className="block text-sm font-medium mb-1.5" style={{ color: "#f1f5f9" }}>
+                    Website
+                  </label>
+                  <input
+                    id="companyUrl"
+                    type="url"
+                    value={companyUrl}
+                    onChange={(e) => setCompanyUrl(e.target.value)}
+                    placeholder="https://example.com"
                     className="w-full px-3 py-2 text-sm rounded-lg outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-[#6c8cff]/50"
                     style={{
                       backgroundColor: "#0a0f1e",

@@ -45,6 +45,9 @@ export async function POST() {
 
   // 4. Bootstrap: profile → workspace → subscription (sequential, service-role)
   const fullName = (user.user_metadata?.full_name as string) || "";
+  const signupCompanyName = (user.user_metadata?.company_name as string) || "";
+  const signupIndustry = (user.user_metadata?.industry as string) || "";
+  const signupCompanyUrl = (user.user_metadata?.company_url as string) || "";
 
   const { error: profileError } = await admin.from("profiles").insert({
     id: user.id,
@@ -66,6 +69,9 @@ export async function POST() {
     .insert({
       owner_user_id: user.id,
       name: workspaceName,
+      ...(signupCompanyName ? { company_name: signupCompanyName } : {}),
+      ...(signupIndustry ? { industry: signupIndustry } : {}),
+      ...(signupCompanyUrl ? { website: signupCompanyUrl } : {}),
     })
     .select("id")
     .single();
