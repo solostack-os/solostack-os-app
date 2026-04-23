@@ -10,7 +10,7 @@ import { ProductTour } from "@/components/product-tour";
 import { CREDITS_PER_RUN, MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
 import { trackSignupConversion } from "@/lib/gtag";
 import { stripMarkdown } from "@/components/ui/output-cards";
-import { HeroCard } from "@/components/hero-card";
+import { HeroCard, type HeroCompletionState } from "@/components/hero-card";
 
 interface RecentRun {
   id: string;
@@ -137,6 +137,7 @@ export default function DashboardPage() {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [exportingRunId, setExportingRunId] = useState<string | null>(null);
   const [showTour, setShowTour] = useState(false);
+  const [heroCompletion, setHeroCompletion] = useState<HeroCompletionState>({ socialPosts: false, coldEmail: false, weeklyPlan: false });
   const router = useRouter();
   const supabase = createClient();
 
@@ -187,11 +188,13 @@ export default function DashboardPage() {
       // Fetch workspace, subscription, recent runs list, and plans in parallel.
       // We don't fetch the runs count yet — it depends on the period start from
       // the subscription row, so we handle it in a second (cheap) query below.
+      const HERO_KEYS = ["social_posts", "cold_email", "weekly_plan"];
       const [
         { data: workspace },
         { data: subscription },
         { data: runs },
         { data: plans },
+        { data: heroRuns },
       ] = await Promise.all([
         supabase.from("workspaces").select("name, tour_completed").eq("id", workspace_id).single(),
         supabase
@@ -208,6 +211,14 @@ export default function DashboardPage() {
           .order("created_at", { ascending: false })
           .limit(10),
         supabase.from("plans").select("key, run_cap"),
+        // Hero completion: which of the 3 target workflows has a real (non-sample) completed run?
+        supabase
+          .from("runs")
+          .select("workflow_key")
+          .eq("workspace_id", workspace_id)
+          .eq("status", "completed")
+          .neq("is_sample", true)
+          .in("workflow_key", HERO_KEYS),
       ]);
 
       if (!workspace) {
@@ -218,6 +229,14 @@ export default function DashboardPage() {
 
       setWorkspaceName(workspace.name ?? "My Workspace");
       if (runs) setRecentRuns(runs as unknown as RecentRun[]);
+
+      // Derive hero card completion from real (non-sample) runs
+      const completedKeys = new Set(heroRuns?.map((r) => r.workflow_key) ?? []);
+      setHeroCompletion({
+        socialPosts: completedKeys.has("social_posts"),
+        coldEmail: completedKeys.has("cold_email"),
+        weeklyPlan: completedKeys.has("weekly_plan"),
+      });
 
       // Tour: show for first-time users (DB flag + localStorage + onboarding flag)
       const dbDone = (workspace as { tour_completed?: boolean }).tour_completed === true;
@@ -438,6 +457,7 @@ export default function DashboardPage() {
     ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : null;
   const isTrial = planKey === "trial";
+  const heroComplete = heroCompletion.socialPosts && heroCompletion.coldEmail && heroCompletion.weeklyPlan;
 
   return (
     <div className="relative min-h-screen isolate" style={{ backgroundColor: bg }}>
@@ -487,17 +507,27 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        {/* ─── Hero Card (Free/Trial users only) ─── */}
-        {isTrial && (
+        {/* ─── Hero Card (Free/Trial users who haven't completed all 3) ─── */}
+        {isTrial && !heroComplete && (
           <div style={fadeUp(1)} className="mb-10">
-            <HeroCard />
+            <HeroCard completion={heroCompletion} />
           </div>
         )}
 
-        {/* ─── Quick Generate CTA + Modules (Starter/Pro only — Free users have HeroCard) ─── */}
-        {!isTrial && (
+        {/* ─── Quick Generate CTA + Modules (visible for paid users, or Free users who completed all 3 hero outputs) ─── */}
+        {(!isTrial || heroComplete) && (
           <>
-            <div style={fadeUp(1)} className="mb-16" data-tour="main-content">
+            {/* Graduation nudge for Free users who completed all 3 hero outputs */}
+            {isTrial && heroComplete && (
+              <p
+                style={{ ...fadeUp(1), color: accent }}
+                className="text-xs font-medium mb-6 px-1"
+              >
+                All 3 done — explore the full catalog
+              </p>
+            )}
+
+            <div style={fadeUp(isTrial ? 2 : 1)} className="mb-16" data-tour="main-content">
               <GlowCard glowColor="blue">
                 <div className="p-8 sm:p-10" style={{ backgroundColor: "rgba(17,24,39,0.8)", borderRadius: "inherit" }}>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
