@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { getSampleForIndustry } from "@/lib/sample-outputs";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -104,6 +105,41 @@ export async function POST() {
       { error: "Failed to create subscription", detail: subError?.message },
       { status: 500 }
     );
+  }
+
+  // 5. Seed a sample output so the Recents rail is populated from day one.
+  //    Non-blocking — signup must succeed even if this fails.
+  try {
+    const sample = getSampleForIndustry(signupIndustry);
+    const now = new Date().toISOString();
+
+    const { data: sampleRun } = await admin
+      .from("runs")
+      .insert({
+        workspace_id: workspace.id,
+        user_id: user.id,
+        module_key: sample.module_key,
+        workflow_key: sample.workflow_key,
+        status: "completed",
+        input_json: {},
+        context_snapshot_json: {},
+        is_sample: true,
+        started_at: now,
+        completed_at: now,
+        created_at: now,
+      })
+      .select("id")
+      .single();
+
+    if (sampleRun) {
+      await admin.from("outputs").insert({
+        run_id: sampleRun.id,
+        title: sample.title,
+        output_markdown: sample.output_markdown,
+      });
+    }
+  } catch (sampleErr) {
+    console.error("[bootstrap] Failed to seed sample output:", sampleErr);
   }
 
   // Send welcome email for new trial users (non-blocking)

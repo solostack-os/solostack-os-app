@@ -63,7 +63,8 @@ export async function GET() {
   let runsQuery = admin
     .from("runs")
     .select("id", { count: "exact", head: true })
-    .eq("workspace_id", workspace.id);
+    .eq("workspace_id", workspace.id)
+    .neq("is_sample", true);
 
   if (periodStart) {
     runsQuery = runsQuery.gte("created_at", periodStart);

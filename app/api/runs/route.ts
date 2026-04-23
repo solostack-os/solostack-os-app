@@ -203,7 +203,8 @@ export async function POST(request: Request) {
       let runsQuery = admin
         .from("runs")
         .select("id", { count: "exact", head: true })
-        .eq("workspace_id", workspace.id);
+        .eq("workspace_id", workspace.id)
+        .neq("is_sample", true);
 
       // For paid plans, only count runs within the current billing period.
       if (periodStart) {

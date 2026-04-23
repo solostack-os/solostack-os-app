@@ -17,6 +17,7 @@ interface RecentRun {
   workflow_key: string;
   module_key: string;
   created_at: string;
+  is_sample?: boolean;
   outputs: { title: string | null; output_markdown: string }[];
 }
 
@@ -200,7 +201,7 @@ export default function DashboardPage() {
           .single(),
         supabase
           .from("runs")
-          .select("id, workflow_key, module_key, created_at, outputs(title, output_markdown)")
+          .select("id, workflow_key, module_key, created_at, is_sample, outputs(title, output_markdown)")
           .eq("workspace_id", workspace_id)
           .eq("status", "completed")
           .is("deleted_at", null)
@@ -241,7 +242,8 @@ export default function DashboardPage() {
         let countQuery = supabase
           .from("runs")
           .select("id", { count: "exact", head: true })
-          .eq("workspace_id", workspace_id);
+          .eq("workspace_id", workspace_id)
+          .neq("is_sample", true);
 
         if (start) {
           countQuery = countQuery.gte("created_at", start);
@@ -792,6 +794,11 @@ export default function DashboardPage() {
                     <span className="text-sm truncate flex-1" style={{ color: textPrimary }}>
                       {title}
                     </span>
+                    {run.is_sample && (
+                      <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded" style={{ color: textMuted, backgroundColor: "rgba(108,140,255,0.08)" }}>
+                        Sample &middot; generated for you
+                      </span>
+                    )}
                     <span className="text-xs flex-shrink-0" style={{ color: textMuted, fontVariantNumeric: "tabular-nums" }}>
                       {new Date(run.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </span>
