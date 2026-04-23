@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
 import { stripMarkdown } from "@/components/ui/output-cards";
 import { GoogleAdsConversion } from "@/components/GoogleAdsConversion";
+import { CreditMeter } from "@/components/credit-meter";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -527,7 +528,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         >
           Beta
         </span>
+        <div className="ml-auto">
+          <CreditMeter />
+        </div>
       </header>
+
+      {/* ─── Desktop credit meter (top-right) ─── */}
+      <div className="hidden md:block fixed top-5 right-6 z-30">
+        <CreditMeter />
+      </div>
 
       {/* ─── Main content ─── */}
       <main id="app-layout-main" className="flex-1 md:ml-80 pt-[52px] md:pt-0 pb-20 md:pb-0">
