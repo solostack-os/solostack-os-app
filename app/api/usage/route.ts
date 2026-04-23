@@ -38,7 +38,7 @@ export async function GET() {
   // Get subscription + plan
   const { data: subscription } = await admin
     .from("subscriptions")
-    .select("plan_key, status, current_period_start, extra_credits")
+    .select("plan_key, status, current_period_start, extra_credits, trial_ends_at")
     .eq("workspace_id", workspace.id)
     .single();
 
@@ -78,9 +78,15 @@ export async function GET() {
   const remaining = effectiveCap - creditsUsed;
   const limitReached = remaining < CREDITS_PER_RUN;
 
+  // trial_ends_at for trial users (needed by ambient credit meter)
+  const trialEndsAt = isTrial ? (subscription as { trial_ends_at?: string }).trial_ends_at ?? null : null;
+
   return NextResponse.json({
     remaining,
+    creditsUsed,
+    effectiveCap,
     limitReached,
     planKey: subscription.plan_key,
+    trialEndsAt,
   });
 }
