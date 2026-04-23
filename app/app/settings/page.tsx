@@ -977,6 +977,19 @@ function SettingsPageInner() {
               Business Profile
             </h2>
 
+            {/* Signup completion nudge — visible only when key fields are still empty */}
+            {(companyName || industry || website) && (!companyName || !industry || !website || !description || !brandVoice) && (
+              <div
+                className="flex items-start gap-3 rounded-lg px-4 py-3 mb-5 text-sm"
+                style={{ backgroundColor: "rgba(108,140,255,0.06)", border: "1px solid rgba(108,140,255,0.15)", color: textMuted }}
+              >
+                <svg className="w-4 h-4 mt-0.5 shrink-0" style={{ color: accent }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                </svg>
+                <span>Profile started from your signup — finish it for better outputs.</span>
+              </div>
+            )}
+
             {/* Company Name */}
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Company Name</label>
