@@ -335,7 +335,8 @@ function SettingsPageInner() {
             .from("runs")
             .select("id", { count: "exact", head: true })
             .eq("workspace_id", basicWs.id)
-            .is("deleted_at", null);
+            .is("deleted_at", null)
+            .neq("is_sample", true);
           if (periodStart) countQuery = countQuery.gte("created_at", periodStart);
           const countRes = await countQuery;
           setCreditsUsed((countRes.count ?? 0) * CREDITS_PER_RUN);
@@ -394,7 +395,8 @@ function SettingsPageInner() {
           .from("runs")
           .select("id", { count: "exact", head: true })
           .eq("workspace_id", workspace.id)
-          .is("deleted_at", null);
+          .is("deleted_at", null)
+          .neq("is_sample", true);
         if (periodStart2) countQuery2 = countQuery2.gte("created_at", periodStart2);
         const countRes2 = await countQuery2;
         setCreditsUsed((countRes2.count ?? 0) * CREDITS_PER_RUN);

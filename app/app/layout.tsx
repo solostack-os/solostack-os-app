@@ -23,6 +23,7 @@ interface SidebarRun {
   input_json: Record<string, unknown>;
   started_at: string;
   created_at: string;
+  is_sample?: boolean;
   outputs: { output_markdown: string }[];
 }
 
@@ -149,7 +150,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     const { data: runs } = await supabase
       .from("runs")
-      .select("id, workflow_key, input_json, started_at, created_at, outputs(output_markdown)")
+      .select("id, workflow_key, input_json, started_at, created_at, is_sample, outputs(output_markdown)")
       .eq("workspace_id", workspace.id)
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
@@ -435,6 +436,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <span className="text-sm truncate flex-1" style={{ color: textPrimary }}>
                     {getRunTitle(run)}
                   </span>
+                  {run.is_sample && (
+                    <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded" style={{ color: textMuted, backgroundColor: "rgba(108,140,255,0.08)" }}>
+                      Sample
+                    </span>
+                  )}
                   <button
                     onClick={(e) => handleExportRun(e, run)}
                     disabled={exportingRunId === run.id || !run.outputs?.[0]?.output_markdown}
