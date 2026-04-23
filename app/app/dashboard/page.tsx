@@ -492,94 +492,96 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* ─── Quick Generate CTA ─── */}
-        <div style={fadeUp(isTrial ? 2 : 1)} className="mb-16" data-tour="main-content">
-          <GlowCard glowColor="blue">
-            <div className="p-8 sm:p-10" style={{ backgroundColor: "rgba(17,24,39,0.8)", borderRadius: "inherit" }}>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                <div className="flex items-center gap-5">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: "rgba(108,140,255,0.12)" }}
-                  >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-white mb-1">
-                      Ready to create?
-                    </h2>
-                    <p className="text-base" style={{ color: textMuted }}>
-                      Jump into any module and start generating
-                    </p>
-                  </div>
-                </div>
-                <ShinyButton onClick={() => router.push("/app/marketing")}>
-                  Start generating &rarr;
-                </ShinyButton>
-              </div>
-            </div>
-          </GlowCard>
-        </div>
-
-        {/* ─── Section label ─── */}
-        <p
-          style={{ ...fadeUp(2), color: textMuted }}
-          className="text-xs font-medium uppercase tracking-widest mb-6 px-1"
-        >
-          Modules
-        </p>
-
-        {/* ─── Module Cards ─── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-16">
-          {modules.map((mod, idx) => {
-            const theme = moduleThemes[mod.colorKey];
-            return (
-              <div key={mod.name} style={fadeUp(3 + idx)}>
-                <Link href={mod.href} className="block h-full">
-                  <GlowCard glowColor={theme.glowColor} className="group cursor-pointer h-full">
-                    <div className="h-full flex flex-col" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
-                    {/* Accent bar */}
-                    <div className="h-[2px] flex-shrink-0" style={{ background: theme.barGradient, borderRadius: "14px 14px 0 0" }} />
-
-                    <div className="p-7 flex flex-col flex-1">
-                      {/* Icon */}
+        {/* ─── Quick Generate CTA + Modules (Starter/Pro only — Free users have HeroCard) ─── */}
+        {!isTrial && (
+          <>
+            <div style={fadeUp(1)} className="mb-16" data-tour="main-content">
+              <GlowCard glowColor="blue">
+                <div className="p-8 sm:p-10" style={{ backgroundColor: "rgba(17,24,39,0.8)", borderRadius: "inherit" }}>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                    <div className="flex items-center gap-5">
                       <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center mb-5"
-                        style={{ backgroundColor: theme.iconBg, color: theme.accent }}
+                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: "rgba(108,140,255,0.12)" }}
                       >
-                        {mod.icon}
-                      </div>
-
-                      {/* Title */}
-                      <h3 className="text-lg font-semibold text-white mb-2">
-                        {mod.name}
-                      </h3>
-
-                      {/* Description */}
-                      <p className="text-sm leading-relaxed mb-5 flex-1" style={{ color: textMuted }}>
-                        {mod.description}
-                      </p>
-
-                      {/* Hover link */}
-                      <div
-                        className="flex items-center gap-1.5 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                        style={{ color: theme.accent }}
-                      >
-                        Open
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="9 18 15 12 9 6" />
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                         </svg>
                       </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-white mb-1">
+                          Ready to create?
+                        </h2>
+                        <p className="text-base" style={{ color: textMuted }}>
+                          Jump into any module and start generating
+                        </p>
+                      </div>
                     </div>
-                    </div>
-                  </GlowCard>
-                </Link>
-              </div>
-            );
-          })}
-        </div>
+                    <ShinyButton onClick={() => router.push("/app/marketing")}>
+                      Start generating &rarr;
+                    </ShinyButton>
+                  </div>
+                </div>
+              </GlowCard>
+            </div>
+
+            <p
+              style={{ ...fadeUp(2), color: textMuted }}
+              className="text-xs font-medium uppercase tracking-widest mb-6 px-1"
+            >
+              Modules
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-16">
+              {modules.map((mod, idx) => {
+                const theme = moduleThemes[mod.colorKey];
+                return (
+                  <div key={mod.name} style={fadeUp(3 + idx)}>
+                    <Link href={mod.href} className="block h-full">
+                      <GlowCard glowColor={theme.glowColor} className="group cursor-pointer h-full">
+                        <div className="h-full flex flex-col" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+                        {/* Accent bar */}
+                        <div className="h-[2px] flex-shrink-0" style={{ background: theme.barGradient, borderRadius: "14px 14px 0 0" }} />
+
+                        <div className="p-7 flex flex-col flex-1">
+                          {/* Icon */}
+                          <div
+                            className="w-11 h-11 rounded-xl flex items-center justify-center mb-5"
+                            style={{ backgroundColor: theme.iconBg, color: theme.accent }}
+                          >
+                            {mod.icon}
+                          </div>
+
+                          {/* Title */}
+                          <h3 className="text-lg font-semibold text-white mb-2">
+                            {mod.name}
+                          </h3>
+
+                          {/* Description */}
+                          <p className="text-sm leading-relaxed mb-5 flex-1" style={{ color: textMuted }}>
+                            {mod.description}
+                          </p>
+
+                          {/* Hover link */}
+                          <div
+                            className="flex items-center gap-1.5 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                            style={{ color: theme.accent }}
+                          >
+                            Open
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                          </div>
+                        </div>
+                        </div>
+                      </GlowCard>
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
 
         {/* ─── Usage / Trial Bar ─── */}
         {runCap !== null && (
