@@ -6,14 +6,6 @@
 const STORAGE_KEY = "_ss_touch";
 const TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
-const UTM_KEYS = [
-  "utm_source",
-  "utm_medium",
-  "utm_campaign",
-  "utm_content",
-  "utm_term",
-] as const;
-
 export type TouchData = {
   utm_source: string | null;
   utm_medium: string | null;

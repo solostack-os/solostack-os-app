@@ -269,7 +269,8 @@ export async function POST(request: Request) {
           event_data: { module_key, workflow_key },
         });
       }
-    });
+    })
+    .catch(() => {});
 
   // 8. Dispatch helper — creates a fresh stream for the requested workflow.
   //    Accepts an optional streamFn to swap the underlying AI provider
@@ -425,7 +426,8 @@ export async function POST(request: Request) {
                   event_data: { module_key, workflow_key },
                 });
               }
-            });
+            })
+            .catch(() => {});
 
           // Emit provider metadata as the final stream token so the client
           // can decide whether CD Pass is eligible (anthropic-only, Pro plan).

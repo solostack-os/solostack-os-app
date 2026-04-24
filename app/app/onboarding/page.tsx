@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { trackEvent } from "@/lib/track";
+import { trackEvent, trackEventOnce } from "@/lib/track";
 
 /* ─── Design tokens (matching existing theme) ─── */
 const bg = "#0a0f1e";
@@ -70,7 +70,7 @@ export default function OnboardingPage() {
   const [tone, setTone] = useState("");
 
   useEffect(() => {
-    trackEvent("onboarding_started");
+    trackEventOnce("onboarding_started");
   }, []);
 
   function canContinue() {
