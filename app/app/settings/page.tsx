@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { CREDITS_PER_RUN } from "@/lib/constants";
 import { countExamples } from "@/lib/utils/copy-safety";
 import { trackPurchaseConversion } from "@/lib/gtag";
+import { trackEventOnce } from "@/lib/track";
 
 /* ─── Design tokens ─── */
 const bg = "#0a0f1e";
@@ -220,6 +221,7 @@ function SettingsPageInner() {
   useEffect(() => {
     if (!upgraded) return;
     trackPurchaseConversion();
+    trackEventOnce("upgrade_to_pro");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

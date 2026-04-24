@@ -255,6 +255,24 @@ export async function POST(request: Request) {
     .select("id")
     .single();
 
+  // Track first_workflow_run (one-time event, non-blocking)
+  void (async () => {
+    try {
+      const { count } = await admin
+        .from("user_events")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("event_name", "first_workflow_run");
+      if (!count) {
+        await admin.from("user_events").insert({
+          user_id: user.id,
+          event_name: "first_workflow_run",
+          event_data: { module_key, workflow_key },
+        });
+      }
+    } catch {}
+  })();
+
   // 8. Dispatch helper — creates a fresh stream for the requested workflow.
   //    Accepts an optional streamFn to swap the underlying AI provider
   //    (e.g. callOpenAIStream when Anthropic is overloaded).
@@ -394,6 +412,24 @@ export async function POST(request: Request) {
               })
               .eq("id", run.id),
           ]);
+
+          // Track first_workflow_run_completed (one-time, non-blocking)
+          void (async () => {
+            try {
+              const { count } = await admin
+                .from("user_events")
+                .select("id", { count: "exact", head: true })
+                .eq("user_id", user!.id)
+                .eq("event_name", "first_workflow_run_completed");
+              if (!count) {
+                await admin.from("user_events").insert({
+                  user_id: user!.id,
+                  event_name: "first_workflow_run_completed",
+                  event_data: { module_key, workflow_key },
+                });
+              }
+            } catch {}
+          })();
 
           // Emit provider metadata as the final stream token so the client
           // can decide whether CD Pass is eligible (anthropic-only, Pro plan).

@@ -9,6 +9,8 @@ import { ShinyButton } from "@/components/ui/shiny-button";
 import { ProductTour } from "@/components/product-tour";
 import { CREDITS_PER_RUN, MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
 import { trackSignupConversion } from "@/lib/gtag";
+import { getStoredTouch, getUtmDataForSignup, clearStoredTouch } from "@/lib/utm";
+import { trackEvent } from "@/lib/track";
 import { stripMarkdown } from "@/components/ui/output-cards";
 import { HeroCard, type HeroCompletionState } from "@/components/hero-card";
 
@@ -171,6 +173,18 @@ export default function DashboardPage() {
       if (is_new) {
         // Fire Google Ads conversion for new sign-ups
         trackSignupConversion();
+
+        // Attach UTMs for OAuth users (email users already have them from signUp).
+        // updateUser merges with existing metadata, so this is safe for both flows.
+        const touch = getStoredTouch();
+        if (touch) {
+          await supabase.auth.updateUser({ data: getUtmDataForSignup() });
+          clearStoredTouch();
+        }
+
+        // Track signup completion
+        trackEvent("signup_completed");
+
         router.push("/app/onboarding");
         return;
       }
