@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { sanitizeCopyExamples } from "@/lib/utils/copy-safety";
+import { buildContextPacket } from "@/lib/ai/context-packet";
 
 /**
  * POST /api/sparkle
@@ -10,7 +11,7 @@ import { sanitizeCopyExamples } from "@/lib/utils/copy-safety";
  * Pro-only feature. Uses claude-haiku for cost control.
  *
  * Input:
- *   { brand_type: string, tones: string[], avoid_text?: string }
+ *   { brand_type: string, tones: string[], avoid_text?: string, workspace_id?: string }
  *
  * Output (JSON):
  *   {
@@ -28,11 +29,20 @@ const RATE_LIMIT_PRO = 15;
 // Plans that are allowed to access sparkle at all.
 const ALLOWED_PLANS = ["pro"];
 
-const SYSTEM_PROMPT = `You are a copywriting calibration assistant. Your job is to generate original example copy that helps users understand their brand's tone and what to avoid.
+function buildSystemPrompt(brandContext: string, preferredLanguage: string | null): string {
+  const brandSection = brandContext
+    ? `\nBRAND CONTEXT (use this to calibrate examples to this specific brand):\n${brandContext}\nGenerate examples calibrated to THIS specific brand, not generic industry patterns. The examples should feel like they were written for this company's positioning and voice.\n`
+    : "";
+
+  const languageInstruction = preferredLanguage
+    ? `\nLANGUAGE: Generate all examples in ${preferredLanguage}.\n`
+    : "";
+
+  return `You are a copywriting calibration assistant. Your job is to generate original example copy that helps users understand their brand's tone and what to avoid.
 
 CRITICAL — Legal safety:
 Do not quote, paraphrase, or closely imitate copy from real brands or real campaigns. Do not mention real brand names in the generated examples. If the user references a specific brand, use it only as a tone direction — generate original copy that captures the same register. Never reproduce or closely mirror any brand's actual copy. Generate original copy that demonstrates the style, not that replicates any existing work.
-
+${brandSection}${languageInstruction}
 Output format:
 Return ONLY valid JSON, no markdown, no prose. The JSON must exactly follow this structure:
 {
@@ -52,6 +62,7 @@ Constraints:
 - avoid: exactly 2 examples. These should be generic buzzword-heavy copy patterns — not attributed to any real brand. Each "note" should name the specific anti-pattern.
 - admire examples must feel specific, confident, and original. Not generic. Calibrated to the user's described industry and tone.
 - avoid examples must contain the kind of language that would actually appear in bad copy for the described category.`;
+}
 
 function buildUserPrompt(brandType: string, tones: string[], avoidText?: string): string {
   const toneList = tones.join(", ");
@@ -92,7 +103,7 @@ export async function POST(request: Request) {
   }
 
   // 2. Parse & validate body
-  let body: { brand_type?: string; tones?: string[]; avoid_text?: string };
+  let body: { brand_type?: string; tones?: string[]; avoid_text?: string; workspace_id?: string };
   try {
     body = await request.json();
   } catch {
@@ -121,10 +132,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid input content" }, { status: 400 });
   }
 
-  // 3. Look up workspace and verify Pro plan
+  // 3. Look up workspace and verify Pro plan + fetch brand context
   const { data: workspace } = await supabase
     .from("workspaces")
-    .select("id")
+    .select("id, company_name, industry, description, brand_voice, use_brand_context, preferred_language")
     .eq("owner_user_id", user.id)
     .single();
 
@@ -182,7 +193,28 @@ export async function POST(request: Request) {
     );
   }
 
-  // 5. Call Haiku
+  // 5. Build brand context from workspace profile
+  let brandContext = "";
+  let preferredLanguage: string | null = null;
+
+  if (workspace) {
+    const useBrand = (workspace as { use_brand_context?: boolean | null }).use_brand_context ?? true;
+    preferredLanguage = (workspace as { preferred_language?: string | null }).preferred_language?.trim() || null;
+
+    if (useBrand) {
+      brandContext = buildContextPacket({
+        company_name: workspace.company_name,
+        industry: workspace.industry,
+        description: workspace.description,
+        brand_voice: workspace.brand_voice,
+        use_brand_context: true,
+      });
+    }
+  }
+
+  const systemPrompt = buildSystemPrompt(brandContext, preferredLanguage);
+
+  // 6. Call Haiku
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
   const userPrompt = buildUserPrompt(sanitizedBrandType, sanitizedTones, sanitizedAvoidText);
 
@@ -191,7 +223,7 @@ export async function POST(request: Request) {
     const response = await anthropic.messages.create({
       model: HAIKU_MODEL,
       max_tokens: 1024,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     });
 
@@ -207,7 +239,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // 6. Parse and validate JSON output
+  // 7. Parse and validate JSON output
   let parsed: {
     admire: { example: string; note: string }[];
     avoid: { example: string; note: string }[];
@@ -238,7 +270,7 @@ export async function POST(request: Request) {
   parsed.admire = parsed.admire.slice(0, 3);
   parsed.avoid = parsed.avoid.slice(0, 2);
 
-  // 7. Log usage (fire-and-forget — don't block response on this)
+  // 8. Log usage (fire-and-forget — don't block response on this)
   const inputHash = await hashInput(sanitizedBrandType, sanitizedTones, sanitizedAvoidText);
   supabase
     .from("sparkle_usage")
@@ -247,7 +279,7 @@ export async function POST(request: Request) {
       if (error) console.error("[api/sparkle] Usage log failed:", error);
     });
 
-  // 8. Return result with remaining quota
+  // 9. Return result with remaining quota
   return NextResponse.json({
     ...parsed,
     _meta: {
