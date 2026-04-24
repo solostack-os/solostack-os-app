@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { CookieBanner } from "@/components/ui/cookie-banner";
+import { UTMCapture } from "@/components/UTMCapture";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -59,6 +60,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body className={`${inter.variable} font-sans antialiased overflow-x-hidden`}>
+        <UTMCapture />
         {children}
         <CookieBanner />
       </body>

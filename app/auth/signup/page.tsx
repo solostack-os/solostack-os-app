@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { getUtmDataForSignup, clearStoredTouch } from "@/lib/utm";
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
@@ -41,6 +42,7 @@ export default function SignupPage() {
           company_name: companyName || undefined,
           industry: industry || undefined,
           company_url: companyUrl || undefined,
+          ...getUtmDataForSignup(),
         },
       },
     });
@@ -59,6 +61,9 @@ export default function SignupPage() {
         send_to: "AW-18049965987/nGB8CPKBzJwcEKO_8p5D",
       });
     }
+
+    // Clear first-touch attribution data (already saved in user metadata)
+    clearStoredTouch();
 
     setSuccess(true);
     setLoading(false);
