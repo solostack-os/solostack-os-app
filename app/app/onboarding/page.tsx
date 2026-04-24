@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { trackEvent } from "@/lib/track";
 
 /* ─── Design tokens (matching existing theme) ─── */
 const bg = "#0a0f1e";
@@ -68,6 +69,10 @@ export default function OnboardingPage() {
   const [targetAudience, setTargetAudience] = useState("");
   const [tone, setTone] = useState("");
 
+  useEffect(() => {
+    trackEvent("onboarding_started");
+  }, []);
+
   function canContinue() {
     switch (step) {
       case 1: return mainGoal !== "";
@@ -107,6 +112,11 @@ export default function OnboardingPage() {
       setSaving(false);
       return;
     }
+
+    trackEvent("onboarding_completed", {
+      main_goal: mainGoal,
+      tone,
+    });
 
     sessionStorage.setItem("solostack_show_tour", "1");
     router.push("/app/dashboard");
