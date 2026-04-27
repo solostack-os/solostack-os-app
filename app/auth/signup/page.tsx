@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { getUtmDataForSignup, clearStoredTouch } from "@/lib/utm";
+import { trackSignupConversion } from "@/lib/gtag";
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
@@ -54,13 +55,7 @@ export default function SignupPage() {
     }
 
     // Fire Google Ads conversion for email signup
-    type GtagWindow = Window & { gtag?: (...args: unknown[]) => void };
-    const gtagWindow = window as GtagWindow;
-    if (typeof window !== "undefined" && typeof gtagWindow.gtag === "function") {
-      gtagWindow.gtag("event", "conversion", {
-        send_to: "AW-18049965987/nGB8CPKBzJwcEKO_8p5D",
-      });
-    }
+    trackSignupConversion();
 
     // Clear first-touch attribution data (already saved in user metadata)
     clearStoredTouch();

@@ -45,9 +45,9 @@ export default function RootLayout({
             });
           `}
         </Script>
-        {/* Google Ads Tag (gtag.js) — AW-18049965987 */}
+        {/* Google Ads Tag (gtag.js) */}
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=AW-18049965987"
+          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GOOGLE_ADS_ID}`}
           strategy="afterInteractive"
         />
         <Script id="gtag-init" strategy="afterInteractive">
@@ -55,7 +55,7 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'AW-18049965987');
+            gtag('config', '${process.env.NEXT_PUBLIC_GOOGLE_ADS_ID}');
           `}
         </Script>
       </head>
