@@ -13,9 +13,9 @@
  *   (format: AW-18049965987/<LABEL>)
  */
 
-export const GA_ADS_ID = 'AW-18049965987';
+export const GA_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ?? '';
 
-export const SIGNUP_CONVERSION_LABEL = 'nGB8CPKBzJwcEKO_8p5D';
+export const SIGNUP_CONVERSION_LABEL = process.env.NEXT_PUBLIC_GOOGLE_ADS_SIGNUP_LABEL ?? '';
 
 /** Purchase conversion label — from Google Ads Goals → Conversions → Purchase → Tag setup. */
 export const PURCHASE_CONVERSION_LABEL = 'B6mcCJrM8ZEcEKO_8p5D';
