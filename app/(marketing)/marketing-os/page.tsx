@@ -220,7 +220,6 @@ const plans = [
     description:
       "Includes Marketing OS workflows, saved business context, and regular output generation for one person.",
     cta: "Start Free Trial",
-    highlighted: true,
   },
   {
     name: "Pro",
@@ -231,7 +230,6 @@ const plans = [
     description:
       "More monthly credits, more room to test campaigns, and enough capacity for heavier weekly use.",
     cta: "Start Free Trial",
-    highlighted: false,
   },
 ];
 
@@ -644,30 +642,23 @@ export default function MarketingOSPage() {
                 <div
                   className="relative rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:-translate-y-1"
                   style={{
-                    border: p.highlighted
-                      ? "1px solid transparent"
-                      : `1px solid rgba(108,140,255,0.15)`,
-                    background: p.highlighted
-                      ? `radial-gradient(ellipse at 50% 0%, rgba(108,140,255,.1), transparent 60%), linear-gradient(175deg, #14213d 0%, ${surface} 100%)`
-                      : surface,
-                    boxShadow: p.highlighted
-                      ? "0 0 0 1px rgba(108,140,255,.25), 0 12px 48px rgba(0,0,0,.4), 0 0 64px rgba(108,140,255,.18)"
-                      : "0 0 24px rgba(108,140,255,0.12), 0 4px 24px rgba(0,0,0,0.25)",
+                    border: "1px solid transparent",
+                    background: `radial-gradient(ellipse at 50% 0%, rgba(108,140,255,.1), transparent 60%), linear-gradient(175deg, #14213d 0%, ${surface} 100%)`,
+                    boxShadow:
+                      "0 0 0 1px rgba(108,140,255,.25), 0 12px 48px rgba(0,0,0,.4), 0 0 64px rgba(108,140,255,.18)",
                   }}
                 >
-                  {p.highlighted && (
-                    <div
-                      className="absolute rounded-2xl pointer-events-none"
-                      style={{
-                        inset: "-1px",
-                        background:
-                          "linear-gradient(135deg, #5eead4, #6c8cff, #8b5cf6)",
-                        zIndex: -1,
-                        opacity: 0.65,
-                        borderRadius: "inherit",
-                      }}
-                    />
-                  )}
+                  <div
+                    className="absolute rounded-2xl pointer-events-none"
+                    style={{
+                      inset: "-1px",
+                      background:
+                        "linear-gradient(135deg, #5eead4, #6c8cff, #8b5cf6)",
+                      zIndex: -1,
+                      opacity: 0.65,
+                      borderRadius: "inherit",
+                    }}
+                  />
 
                   <div className="mb-6">
                     <h3 className="text-lg font-bold text-white tracking-tight">
@@ -686,11 +677,7 @@ export default function MarketingOSPage() {
                     </div>
                     <p
                       className="text-xs mt-3 leading-relaxed font-medium"
-                      style={{
-                        color: p.highlighted
-                          ? "rgba(255,255,255,0.75)"
-                          : accent,
-                      }}
+                      style={{ color: "rgba(255,255,255,0.75)" }}
                     >
                       {p.audience}
                     </p>
@@ -711,25 +698,9 @@ export default function MarketingOSPage() {
                     {p.description}
                   </p>
 
-                  {p.highlighted ? (
-                    <a href="/auth/signup" className="block mt-auto">
-                      <ShinyButton fullWidth>{p.cta}</ShinyButton>
-                    </a>
-                  ) : (
-                    <a
-                      href="/auth/signup"
-                      className="mt-auto flex items-center justify-center text-sm font-bold py-3.5 transition-colors"
-                      style={{
-                        color: textMuted,
-                        border: `1px solid ${border}`,
-                        borderRadius: 999,
-                        background: "rgba(255,255,255,0.02)",
-                        width: "100%",
-                      }}
-                    >
-                      {p.cta}
-                    </a>
-                  )}
+                  <a href="/auth/signup" className="block mt-auto">
+                    <ShinyButton fullWidth>{p.cta}</ShinyButton>
+                  </a>
                 </div>
               </Reveal>
             ))}
