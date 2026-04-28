@@ -14,7 +14,7 @@ const CARD_WIDTH = 480; // px, desktop; mobile uses 100%
 const CONTENT_HEIGHT = 400; // px, inner content area below top bar
 
 /* ─── Module colors (exact match with app sidebar) ─── */
-const moduleThemes = {
+export const moduleThemes = {
   marketing: { accent: "#6c8cff", light: "#818cf8", label: "Marketing OS" },
   outreach: { accent: "#22c55e", light: "#34d399", label: "Outreach OS" },
   operations: { accent: "#f97316", light: "#fb923c", label: "Operations OS" },
@@ -39,7 +39,7 @@ function CursorIcon({ size = 20 }: { size?: number }) {
 }
 
 /* ─── Demo scenarios ─── */
-interface DemoScenario {
+export interface DemoScenario {
   moduleKey: "marketing" | "outreach" | "operations";
   workflow: string;
   useCursorFlow?: boolean;
@@ -150,7 +150,8 @@ type CursorPhase =
 
 type StandardPhase = "filling" | "generating" | "output";
 
-export function HeroDemo() {
+export function HeroDemo({ scenarios }: { scenarios?: DemoScenario[] } = {}) {
+  const demoData = scenarios ?? demos;
   const [activeIndex, setActiveIndex] = useState(0);
   const [phase, setPhase] = useState<StandardPhase>("filling");
   const [fillProgress, setFillProgress] = useState(0);
@@ -167,7 +168,7 @@ export function HeroDemo() {
   const generateRef = useRef<HTMLDivElement>(null);
   const [cursorXY, setCursorXY] = useState<{ left: number; top: number }>({ left: -40, top: -40 });
 
-  const demo = demos[activeIndex];
+  const demo = demoData[activeIndex];
   const theme = moduleThemes[demo.moduleKey];
   const isCursorFlow = !!demo.useCursorFlow;
 
@@ -191,7 +192,7 @@ export function HeroDemo() {
   );
 
   const advanceToNext = useCallback(() => {
-    setActiveIndex((i) => (i + 1) % demos.length);
+    setActiveIndex((i) => (i + 1) % demoData.length);
     setPhase("filling");
     setFillProgress(0);
     setVisibleOutputs(0);
@@ -201,7 +202,7 @@ export function HeroDemo() {
     setVisibleSuggestions(0);
     setSelectedSuggestion(-1);
     setTopicFilled(false);
-  }, []);
+  }, [demoData.length]);
 
   /* ─── CURSOR FLOW (Marketing) ─── */
   useEffect(() => {
@@ -504,7 +505,7 @@ export function HeroDemo() {
 
       {/* Dot indicators with pulsing glow */}
       <div className="flex items-center justify-center gap-3 mt-4">
-        {demos.map((d, i) => {
+        {demoData.map((d, i) => {
           const isActive = i === activeIndex;
           const dotColor = moduleThemes[d.moduleKey].accent;
           return (
