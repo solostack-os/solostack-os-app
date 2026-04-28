@@ -611,7 +611,7 @@ export default function MarketingOSPage() {
       {/* ════════════════════════════════════════════════════════
          PRICING
          ════════════════════════════════════════════════════════ */}
-      <section className="py-20 px-6">
+      <section id="pricing" className="py-20 px-6">
         <div className="max-w-4xl mx-auto">
           <Reveal>
             <div className="text-center mb-3">
