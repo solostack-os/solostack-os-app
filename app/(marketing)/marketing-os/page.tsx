@@ -19,11 +19,15 @@ export const metadata: Metadata = {
 };
 
 /* ─── Design Tokens (same as homepage) ─── */
+const bg = "#0a0f1e";
+const surface = "#111827";
 const accent = "#6c8cff";
 const textMuted = "#94a3b8";
 const border = "rgba(255,255,255,0.06)";
 
-/* ─── Marketing-specific workflow demo scenarios ─── */
+/* ════════════════════════════════════════════════════════════
+   WORKFLOW DEMO SCENARIOS — matches actual Marketing OS UI
+   ════════════════════════════════════════════════════════════ */
 const marketingScenarios: DemoScenario[] = [
   {
     moduleKey: "marketing",
@@ -39,8 +43,9 @@ const marketingScenarios: DemoScenario[] = [
       {
         type: "topic",
         label: "Topic",
-        value: "Launch announcement for our new brand strategy service",
-        placeholder: "e.g. Why small businesses need a content strategy",
+        value:
+          "Why B2B SaaS founders should hire a fractional CMO before scaling ad spend",
+        placeholder: "e.g. Why your business needs...",
       },
       {
         type: "number",
@@ -50,22 +55,22 @@ const marketingScenarios: DemoScenario[] = [
       },
     ],
     suggestions: [
-      "Launch announcement for our new brand strategy service",
-      "How to stand out in a crowded market",
-      "5 signs your brand needs a refresh",
+      "Why B2B SaaS founders should hire a fractional CMO before scaling ad spend",
+      "Signs your marketing lacks senior strategy",
+      "What a fractional CMO actually does in week one",
     ],
     outputs: [
       {
-        label: "Post 1",
-        text: "We just launched something we\u2019ve been building for months. Brand strategy for service businesses who want clarity, not templates.",
+        label: "POST 1",
+        text: "Most B2B SaaS founders scale ad spend too early. The problem is not the channel. It is the strategy underneath it. If your positioning is fuzzy and your offer sounds like every other tool in the category, paid traffic will simply make the problem more expensive.",
       },
       {
-        label: "Post 2",
-        text: "Most solo founders skip brand strategy because it sounds expensive. We made it practical: clear positioning, real messaging, and a plan you can execute on.",
+        label: "POST 2",
+        text: "Ads do not create clarity. They expose the lack of it. If your homepage says three different things, your demo calls attract the wrong buyers, and your best customers cannot be described in one sentence, paid traffic will not fix that. It will just send more people into a confusing story.",
       },
       {
-        label: "Post 3",
-        text: "Your brand isn\u2019t your logo. It\u2019s how people feel when they hear your name. We help you define that \u2014 then turn it into content that converts.",
+        label: "POST 3",
+        text: "A good fractional CMO does not start by asking for more budget. They look at the offer, positioning, pipeline, sales calls, website, and current customer patterns. Then they decide what should be fixed before traffic increases. Buy strategy before you buy volume.",
       },
     ],
   },
@@ -76,34 +81,36 @@ const marketingScenarios: DemoScenario[] = [
       {
         type: "pills",
         label: "Platform",
-        options: ["Facebook", "Google", "Instagram"],
+        options: ["Google Ads", "Facebook", "Instagram"],
         selected: 0,
       },
       {
-        type: "text",
-        label: "Product / service",
-        value: "Brand strategy for service businesses",
-        placeholder: "e.g. SEO consulting for e-commerce",
+        type: "pills",
+        label: "Goal",
+        options: ["Awareness", "Clicks", "Conversions"],
+        selected: 1,
       },
       {
         type: "text",
-        label: "Target audience",
-        value: "Freelancers and solopreneurs",
-        placeholder: "e.g. B2B SaaS founders",
+        label: "Brief",
+        value:
+          "Fractional CMO service for early-stage B2B SaaS founders. Position as the senior marketing brain before they scale ad spend.",
+        placeholder: "e.g. Describe your offer and positioning",
       },
     ],
     outputs: [
+      { label: "HEADLINE 1", text: "Stop Wasting SaaS Ad Spend" },
+      { label: "HEADLINE 2", text: "Fix Strategy Before Ads" },
+      { label: "HEADLINE 3", text: "Get Senior Marketing Clarity" },
+      { label: "HEADLINE 4", text: "Scale Spend With Clarity" },
+      { label: "HEADLINE 5", text: "Senior Marketing, Part-Time" },
       {
-        label: "Headline",
-        text: "Stop guessing what to post. Start with a strategy that works.",
+        label: "DESCRIPTION 1",
+        text: "Before you spend more on ads, fix the positioning, funnel, and message.",
       },
       {
-        label: "Body",
-        text: "Most freelancers waste hours on content that doesn\u2019t convert. SoloStack turns your business context into ready-to-use ad copy, social posts, and email campaigns \u2014 in seconds, not hours.",
-      },
-      {
-        label: "CTA",
-        text: "Try Free for 7 Days \u2192 No credit card required",
+        label: "DESCRIPTION 2",
+        text: "Running marketing yourself? Get senior strategy before you buy more traffic.",
       },
     ],
   },
@@ -113,37 +120,29 @@ const marketingScenarios: DemoScenario[] = [
     fields: [
       {
         type: "pills",
-        label: "Campaign type",
-        options: ["Welcome", "Nurture", "Promotional"],
+        label: "Email type",
+        options: ["Welcome", "Promotional", "Nurture", "Re-engagement"],
         selected: 0,
       },
       {
         type: "text",
-        label: "Goal",
-        value: "Onboard new trial users and drive first workflow run",
-        placeholder: "e.g. Re-engage inactive subscribers",
-      },
-      {
-        type: "text",
-        label: "Audience",
-        value: "New free trial signups",
-        placeholder: "e.g. Existing customers",
+        label: "Topic",
+        value:
+          "Welcome email for prospects who just booked a discovery call with my fractional CMO service",
+        placeholder: "e.g. Welcome sequence for new subscribers",
       },
     ],
     outputs: [
+      { label: "SUBJECT", text: "Before our discovery call" },
       {
-        label: "Subject",
-        text: "Your workspace is ready \u2014 here\u2019s how to get your first output",
-      },
-      {
-        label: "Email body",
-        text: "Welcome to SoloStack! You\u2019re 2 minutes away from your first AI-generated output.\n\nHere\u2019s how to start:\n1. Set your business context (company, audience, tone)\n2. Pick a workflow \u2014 Social Posts is the fastest win\n3. Hit Generate and review your output\n\nYour free credits are already loaded. No setup, no learning curve.",
+        label: "BODY",
+        text: "Hi {{first_name}},\n\nThanks for booking a discovery call.\n\nThe call is not a pitch deck in disguise. I will use it to understand where marketing is currently stuck, what you have already tried, and whether the problem is strategy, execution, positioning, pipeline quality, or something else entirely.\n\nA useful call usually covers three things:\n1. What you are trying to grow\n2. What is not working yet\n3. What decisions you need help making\n\nNo need to prepare a polished brief. If you have a current website, recent campaign, or funnel you want me to look at, send it over before the call.\n\nIf there is a fit, I will say so clearly. If not, I will point you toward the next useful step.\n\nSpeak soon,\n{{sender_name}}",
       },
     ],
   },
 ];
 
-/* ─── Marketing OS feature workflows ─── */
+/* ─── Marketing OS workflows (5 — no Topic Suggestions) ─── */
 const workflows = [
   {
     title: "Social Posts",
@@ -151,7 +150,7 @@ const workflows = [
   },
   {
     title: "Ad Copy",
-    text: "Headlines, body text, and CTAs for Facebook, Google, and Instagram ads.",
+    text: "Headlines, body text, and CTAs for Google, Facebook, and Instagram ads.",
   },
   {
     title: "Landing Page Copy",
@@ -165,9 +164,102 @@ const workflows = [
     title: "Content Briefs",
     text: "Structured briefs for blog posts, case studies, and long-form content.",
   },
+];
+
+/* ─── Problem section ─── */
+const painPoints = [
+  "ChatGPT helps, but only after you explain your business for the fifth time this week.",
+  "Your LinkedIn posts, emails, and ad copy all come out with slightly different personalities. None of them are quite yours.",
+  "So you rewrite the rewrite. Which was supposed to save time.",
+  "The first draft is usually too generic, too polished, or too obviously \u201cAI wrote this.\u201d",
+];
+
+/* ─── What you can create this week ─── */
+const weeklyPlan = [
   {
-    title: "Topic Suggestions",
-    text: "AI-generated content ideas based on your industry, audience, and goals.",
+    day: "Monday",
+    workflow: "Social Posts",
+    text: "3 LinkedIn posts based on a client problem you solve every week.",
+  },
+  {
+    day: "Tuesday",
+    workflow: "Ad Copy",
+    text: "Google Ads variations for your core consulting offer.",
+  },
+  {
+    day: "Wednesday",
+    workflow: "Landing Page Copy",
+    text: "A sharper hero and CTA section for your service page.",
+  },
+  {
+    day: "Thursday",
+    workflow: "Email Campaign",
+    text: "A welcome email for new leads who book a discovery call.",
+  },
+  {
+    day: "Friday",
+    workflow: "Content Brief",
+    text: "A blog or video brief built around one question your prospects keep asking.",
+  },
+];
+
+/* ─── Why this isn't ChatGPT ─── */
+const comparisons = [
+  "ChatGPT starts blank. SoloStack starts with your saved offer, audience, and tone.",
+  "ChatGPT gives you prose. Marketing OS gives you structured outputs for specific marketing jobs.",
+  "ChatGPT is built for everyone. Marketing OS is built for solo consultants who need to market their own service business.",
+];
+
+/* ─── Pricing ─── */
+const plans = [
+  {
+    name: "Starter",
+    price: "$19",
+    period: "/month",
+    audience: "For solo consultants who need consistent weekly marketing output.",
+    description:
+      "Includes Marketing OS workflows, saved business context, and regular output generation for one person.",
+    cta: "Start Free Trial",
+    highlighted: true,
+  },
+  {
+    name: "Pro",
+    price: "$39",
+    period: "/month",
+    audience:
+      "For higher-volume consultants or tiny teams creating more marketing assets.",
+    description:
+      "More monthly credits, more room to test campaigns, and enough capacity for heavier weekly use.",
+    cta: "Start Free Trial",
+    highlighted: false,
+  },
+];
+
+/* ─── FAQ ─── */
+const faqs = [
+  {
+    q: "How is this different from ChatGPT or Claude?",
+    a: "ChatGPT and Claude start from a blank chat unless you rebuild the context yourself. SoloStack saves your offer, audience, and tone, then applies them inside specific marketing workflows. It is less flexible than a blank chat, on purpose.",
+  },
+  {
+    q: "I already have prompts I use \u2014 why pay for this?",
+    a: "If your prompt system works and you actually use it every week, keep it. SoloStack is for the moment when your prompts live in five docs, your context keeps changing, and every new output still needs setup. It turns that repeated setup into a workflow.",
+  },
+  {
+    q: "Will the output actually sound like me?",
+    a: "It will get closer when you give it useful context: offer, audience, tone, and examples. It will not magically become your brain. The point is to start from a draft that needs editing, not rescuing.",
+  },
+  {
+    q: "What if I want to use it for a client\u2019s business, not my own?",
+    a: "You can set the context around the business you want to write for. If you are creating marketing assets for a client, use their offer, audience, and tone. Just make sure you review everything before sending it anywhere with your name on it.",
+  },
+  {
+    q: "Can I cancel anytime?",
+    a: "Yes. Start with the free trial, test the workflows, and cancel if it does not earn a place in your week.",
+  },
+  {
+    q: "Is this for agencies or solo consultants?",
+    a: "Marketing OS is best for solo consultants, freelancers, and very small service teams. If you need approval workflows, campaign management, or a full marketing automation platform, this is not that. It is for creating usable marketing copy faster when you are the person doing the work.",
   },
 ];
 
@@ -209,7 +301,7 @@ export default function MarketingOSPage() {
             <a
               href="/auth/signup"
               className="text-xs sm:text-sm font-medium px-3 sm:px-4 py-1.5 sm:py-2 transition-opacity hover:opacity-90 whitespace-nowrap"
-              style={{ backgroundColor: accent, color: "#0a0f1e", borderRadius: 8 }}
+              style={{ backgroundColor: accent, color: bg, borderRadius: 8 }}
             >
               Start Free Trial
             </a>
@@ -217,7 +309,9 @@ export default function MarketingOSPage() {
         </div>
       </nav>
 
-      {/* ── Hero ── */}
+      {/* ════════════════════════════════════════════════════════
+         HERO
+         ════════════════════════════════════════════════════════ */}
       <section className="relative pt-28 sm:pt-32 pb-16 sm:pb-20 px-6 overflow-hidden">
         <HeroBackground
           color="rgba(108, 140, 255, 0.12)"
@@ -232,7 +326,6 @@ export default function MarketingOSPage() {
         />
 
         <div className="relative z-10 max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-          {/* Copy */}
           <Reveal
             variant="fade-up"
             duration={800}
@@ -292,7 +385,6 @@ export default function MarketingOSPage() {
             </p>
           </Reveal>
 
-          {/* Demo */}
           <Reveal
             variant="fade-left"
             delay={300}
@@ -304,7 +396,9 @@ export default function MarketingOSPage() {
         </div>
       </section>
 
-      {/* ── Proof strip ── */}
+      {/* ════════════════════════════════════════════════════════
+         PROOF STRIP
+         ════════════════════════════════════════════════════════ */}
       <section
         className="py-5 text-center border-y"
         style={{ borderColor: border }}
@@ -313,12 +407,61 @@ export default function MarketingOSPage() {
           className="text-xs sm:text-sm tracking-wide"
           style={{ color: textMuted }}
         >
-          6 workflows&ensp;&middot;&ensp;One business context&ensp;&middot;&ensp;Works
-          in any language
+          5 workflows&ensp;&middot;&ensp;One business
+          context&ensp;&middot;&ensp;Works in any language
         </p>
       </section>
 
-      {/* ── Workflows included ── */}
+      {/* ════════════════════════════════════════════════════════
+         THE PROBLEM
+         ════════════════════════════════════════════════════════ */}
+      <section className="py-20 px-6">
+        <div className="max-w-4xl mx-auto">
+          <Reveal>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10">
+              You are the marketing team.{" "}
+              <span style={{ color: accent }}>Again.</span>
+            </h2>
+          </Reveal>
+
+          <div className="grid sm:grid-cols-2 gap-6">
+            {painPoints.map((point, i) => (
+              <Reveal key={i} delay={i * 120}>
+                <GlowCard className="h-full p-5 transition-transform duration-300 hover:translate-y-[-4px]">
+                  <div className="flex items-start gap-3">
+                    <span
+                      className="mt-0.5 flex-shrink-0"
+                      style={{ color: "#f87171" }}
+                    >
+                      &#10007;
+                    </span>
+                    <p
+                      className="text-sm leading-relaxed"
+                      style={{ color: textMuted }}
+                    >
+                      {point}
+                    </p>
+                  </div>
+                </GlowCard>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal delay={500}>
+            <p
+              className="text-sm text-center mt-10 leading-relaxed"
+              style={{ color: textMuted }}
+            >
+              Marketing OS starts with your business context, not a blank
+              prompt.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════
+         WHAT'S INCLUDED — 5 workflows
+         ════════════════════════════════════════════════════════ */}
       <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <Reveal>
@@ -331,7 +474,7 @@ export default function MarketingOSPage() {
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
-              6 workflows.{" "}
+              5 workflows.{" "}
               <span style={{ color: accent }}>One module.</span>
             </h2>
             <p
@@ -370,23 +513,302 @@ export default function MarketingOSPage() {
         </div>
       </section>
 
-      {/* ── Mid-page CTA ── */}
-      <Reveal delay={200}>
-        <div className="text-center py-12 px-6">
-          <a href="/auth/signup">
-            <ShinyButton>Create Your First Output &mdash; Free</ShinyButton>
-          </a>
-          <p className="mt-3 text-xs" style={{ color: textMuted }}>
-            No credit card required &middot; Free credits at signup
-          </p>
-        </div>
-      </Reveal>
+      {/* ════════════════════════════════════════════════════════
+         WHAT YOU CAN CREATE THIS WEEK
+         ════════════════════════════════════════════════════════ */}
+      <section className="py-20 px-6">
+        <div className="max-w-4xl mx-auto">
+          <Reveal>
+            <div className="text-center mb-3">
+              <span
+                className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
+                style={{ color: accent, border: `1px solid ${accent}33` }}
+              >
+                A real week
+              </span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
+              What you can create this week
+            </h2>
+            <p
+              className="text-sm text-center max-w-2xl mx-auto mb-12 leading-relaxed"
+              style={{ color: textMuted }}
+            >
+              Not &ldquo;content at scale.&rdquo; Just the useful pieces you
+              keep meaning to write.
+            </p>
+          </Reveal>
 
-      {/* ── Final CTA ── */}
+          <div className="space-y-4">
+            {weeklyPlan.map((item, i) => (
+              <Reveal key={item.day} delay={i * 100}>
+                <div
+                  className="flex items-start gap-4 sm:gap-6 rounded-xl p-4 sm:p-5 transition-transform duration-300 hover:translate-y-[-2px]"
+                  style={{
+                    backgroundColor: surface,
+                    border: `1px solid ${border}`,
+                    boxShadow:
+                      "0 0 18px rgba(108,140,255,0.06), 0 2px 8px rgba(0,0,0,0.2)",
+                  }}
+                >
+                  <span
+                    className="text-xs font-bold uppercase tracking-wider flex-shrink-0 w-20 pt-0.5"
+                    style={{ color: accent }}
+                  >
+                    {item.day}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white mb-1">
+                      {item.workflow}
+                    </p>
+                    <p
+                      className="text-sm leading-relaxed"
+                      style={{ color: textMuted }}
+                    >
+                      {item.text}
+                    </p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal delay={600}>
+            <p
+              className="text-base sm:text-lg font-medium text-center mt-10 leading-relaxed"
+              style={{ color: accent }}
+            >
+              One business context. Five usable marketing assets. Fewer blank
+              documents judging you.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════
+         WHY THIS ISN'T CHATGPT
+         ════════════════════════════════════════════════════════ */}
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10">
+              Why this isn&rsquo;t ChatGPT
+            </h2>
+          </Reveal>
+
+          <div className="grid sm:grid-cols-3 gap-6">
+            {comparisons.map((line, i) => (
+              <Reveal key={i} delay={i * 120}>
+                <GlowCard className="h-full p-6 transition-transform duration-300 hover:translate-y-[-4px]">
+                  <p className="text-sm leading-relaxed text-white font-medium">
+                    {line}
+                  </p>
+                </GlowCard>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════
+         PRICING
+         ════════════════════════════════════════════════════════ */}
+      <section className="py-20 px-6">
+        <div className="max-w-4xl mx-auto">
+          <Reveal>
+            <div className="text-center mb-3">
+              <span
+                className="inline-block text-xs font-medium uppercase tracking-widest px-3 py-1 rounded-full"
+                style={{ color: accent, border: `1px solid ${accent}33` }}
+              >
+                Pricing
+              </span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
+              Start free. Pay when it becomes part of your{" "}
+              <span style={{ color: accent }}>week.</span>
+            </h2>
+            <p
+              className="text-sm text-center max-w-2xl mx-auto mb-12 leading-relaxed"
+              style={{ color: textMuted }}
+            >
+              Your 7-day trial is not a demo maze. The goal is simple: save your
+              business context, create 3 marketing outputs, and decide if
+              SoloStack saves enough time to keep.
+            </p>
+          </Reveal>
+
+          <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {plans.map((p, i) => (
+              <Reveal key={p.name} delay={i * 120}>
+                <div
+                  className="relative rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:-translate-y-1"
+                  style={{
+                    border: p.highlighted
+                      ? "1px solid transparent"
+                      : `1px solid rgba(108,140,255,0.15)`,
+                    background: p.highlighted
+                      ? `radial-gradient(ellipse at 50% 0%, rgba(108,140,255,.1), transparent 60%), linear-gradient(175deg, #14213d 0%, ${surface} 100%)`
+                      : surface,
+                    boxShadow: p.highlighted
+                      ? "0 0 0 1px rgba(108,140,255,.25), 0 12px 48px rgba(0,0,0,.4), 0 0 64px rgba(108,140,255,.18)"
+                      : "0 0 24px rgba(108,140,255,0.12), 0 4px 24px rgba(0,0,0,0.25)",
+                  }}
+                >
+                  {p.highlighted && (
+                    <div
+                      className="absolute rounded-2xl pointer-events-none"
+                      style={{
+                        inset: "-1px",
+                        background:
+                          "linear-gradient(135deg, #5eead4, #6c8cff, #8b5cf6)",
+                        zIndex: -1,
+                        opacity: 0.65,
+                        borderRadius: "inherit",
+                      }}
+                    />
+                  )}
+
+                  <div className="mb-6">
+                    <h3 className="text-lg font-bold text-white tracking-tight">
+                      {p.name}
+                    </h3>
+                    <div className="mt-4 flex items-baseline gap-1">
+                      <span className="text-4xl font-black text-white tracking-tight leading-none">
+                        {p.price}
+                      </span>
+                      <span
+                        className="text-sm ml-1"
+                        style={{ color: textMuted }}
+                      >
+                        {p.period}
+                      </span>
+                    </div>
+                    <p
+                      className="text-xs mt-3 leading-relaxed font-medium"
+                      style={{
+                        color: p.highlighted
+                          ? "rgba(255,255,255,0.75)"
+                          : accent,
+                      }}
+                    >
+                      {p.audience}
+                    </p>
+                  </div>
+
+                  <div
+                    className="mb-6"
+                    style={{
+                      height: "1px",
+                      background: "rgba(108,140,255,0.15)",
+                    }}
+                  />
+
+                  <p
+                    className="text-sm leading-relaxed flex-1 mb-8"
+                    style={{ color: textMuted }}
+                  >
+                    {p.description}
+                  </p>
+
+                  {p.highlighted ? (
+                    <a href="/auth/signup" className="block mt-auto">
+                      <ShinyButton fullWidth>{p.cta}</ShinyButton>
+                    </a>
+                  ) : (
+                    <a
+                      href="/auth/signup"
+                      className="mt-auto flex items-center justify-center text-sm font-bold py-3.5 transition-colors"
+                      style={{
+                        color: textMuted,
+                        border: `1px solid ${border}`,
+                        borderRadius: 999,
+                        background: "rgba(255,255,255,0.02)",
+                        width: "100%",
+                      }}
+                    >
+                      {p.cta}
+                    </a>
+                  )}
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal delay={300}>
+            <p
+              className="text-center text-xs mt-8"
+              style={{ color: textMuted }}
+            >
+              7-day free trial. No credit card required. Cancel anytime.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════
+         FAQ
+         ════════════════════════════════════════════════════════ */}
+      <section className="py-20 px-6">
+        <div className="max-w-3xl mx-auto">
+          <Reveal>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10">
+              Frequently asked questions
+            </h2>
+          </Reveal>
+
+          <Reveal delay={100}>
+            <div className="space-y-3">
+              {faqs.map((faq) => (
+                <details
+                  key={faq.q}
+                  className="mkt-faq group rounded-xl overflow-hidden transition-colors"
+                  style={{ border: `1px solid rgba(108,140,255,0.08)` }}
+                >
+                  <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                    <span className="text-sm font-medium text-white pr-4">
+                      {faq.q}
+                    </span>
+                    <span
+                      className="text-lg flex-shrink-0 transition-transform duration-200 group-open:rotate-45"
+                      style={{ color: accent }}
+                    >
+                      +
+                    </span>
+                  </summary>
+                  <p
+                    className="px-5 pb-4 text-sm leading-relaxed"
+                    style={{ color: textMuted }}
+                  >
+                    {faq.a}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* FAQ open-state styles */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            .mkt-faq[open] {
+              background-color: #111827;
+              border-color: rgba(108,140,255,0.25) !important;
+              box-shadow: 0 0 18px rgba(108,140,255,0.1), 0 4px 16px rgba(0,0,0,0.2);
+            }
+          `,
+        }}
+      />
+
+      {/* ════════════════════════════════════════════════════════
+         FINAL CTA
+         ════════════════════════════════════════════════════════ */}
       <section
         className="relative overflow-hidden py-20 px-6 text-center"
         style={{
-          background: `linear-gradient(180deg, ${accent}0D 0%, #0a0f1e 100%)`,
+          background: `linear-gradient(180deg, ${accent}0D 0%, ${bg} 100%)`,
         }}
       >
         <HeroBackground

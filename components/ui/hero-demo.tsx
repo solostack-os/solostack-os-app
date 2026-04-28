@@ -333,7 +333,7 @@ export function HeroDemo({ scenarios }: { scenarios?: DemoScenario[] } = {}) {
         <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${theme.accent}, ${theme.light})` }} />
 
         {/* ── Content area — FIXED height, overflow hidden ── */}
-        <div className="p-4 sm:p-5 overflow-hidden" style={{ height: CONTENT_HEIGHT }}>
+        <div className="p-4 sm:p-5 overflow-hidden relative" style={{ height: CONTENT_HEIGHT }}>
           {showForm ? (
             <div className="flex flex-col h-full" style={{ height: CONTENT_HEIGHT - 40 }}>
               <div className="space-y-3 flex-shrink-0">
@@ -478,6 +478,11 @@ export function HeroDemo({ scenarios }: { scenarios?: DemoScenario[] } = {}) {
                   </div>
                 ))}
               </div>
+              {/* Fade gradient for long outputs */}
+              <div
+                className="absolute bottom-0 left-0 right-0 h-12 pointer-events-none z-10"
+                style={{ background: `linear-gradient(to bottom, transparent, ${surface})` }}
+              />
             </div>
           ) : null}
         </div>
