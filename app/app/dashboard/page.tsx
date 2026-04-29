@@ -6,7 +6,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { GlowCard } from "@/components/ui/glow-card";
 import { ShinyButton } from "@/components/ui/shiny-button";
-import { ProductTour } from "@/components/product-tour";
 import { CREDITS_PER_RUN, MULTI_OUTPUT_WORKFLOWS } from "@/lib/constants";
 import { trackSignupConversion } from "@/lib/gtag";
 import { getStoredTouch, getUtmDataForSignup, clearStoredTouch } from "@/lib/utm";
@@ -138,7 +137,6 @@ export default function DashboardPage() {
   const [selectedRun, setSelectedRun] = useState<RecentRun | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [exportingRunId, setExportingRunId] = useState<string | null>(null);
-  const [showTour, setShowTour] = useState(false);
   const [heroCompletion, setHeroCompletion] = useState<HeroCompletionState>({ socialPosts: false, coldEmail: false, weeklyPlan: false });
   const router = useRouter();
   const supabase = createClient();
@@ -184,9 +182,6 @@ export default function DashboardPage() {
 
         // Track signup completion
         trackEvent("signup_completed");
-
-        router.push("/app/onboarding");
-        return;
       }
 
       if (!workspace_id) {
@@ -210,7 +205,7 @@ export default function DashboardPage() {
         { data: plans },
         { data: heroRuns },
       ] = await Promise.all([
-        supabase.from("workspaces").select("name, tour_completed").eq("id", workspace_id).single(),
+        supabase.from("workspaces").select("name").eq("id", workspace_id).single(),
         supabase
           .from("subscriptions")
           .select("plan_key, trial_ends_at, current_period_start, extra_credits")
@@ -252,13 +247,6 @@ export default function DashboardPage() {
         weeklyPlan: completedKeys.has("weekly_plan"),
       });
 
-      // Tour: show for first-time users (DB flag + localStorage + onboarding flag)
-      const dbDone = (workspace as { tour_completed?: boolean }).tour_completed === true;
-      const lsDone = localStorage.getItem("solostack_tour_completed") === "true";
-      const freshFromOnboarding = sessionStorage.getItem("solostack_show_tour") === "1";
-      if (freshFromOnboarding) sessionStorage.removeItem("solostack_show_tour");
-      const shouldShowTour = freshFromOnboarding || (!dbDone && !lsDone);
-
       if (subscription) {
         const isTrial = subscription.plan_key === "trial";
         const start = !isTrial ? subscription.current_period_start : null;
@@ -288,18 +276,10 @@ export default function DashboardPage() {
 
       console.timeEnd("dashboard-load");
       setLoading(false);
-      if (shouldShowTour) setShowTour(true);
     }
 
     bootstrap();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Listen for "Restart tour" from sidebar
-  useEffect(() => {
-    const handler = () => setShowTour(true);
-    window.addEventListener("tour:restart", handler);
-    return () => window.removeEventListener("tour:restart", handler);
-  }, []);
 
   const handleCopy = useCallback(async (text: string, idx: number) => {
     await navigator.clipboard.writeText(stripMarkdown(text));
@@ -954,9 +934,6 @@ export default function DashboardPage() {
           </div>
         );
       })()}
-
-      {/* ─── Product Tour (first-time users only) ─── */}
-      {showTour && <ProductTour onComplete={() => setShowTour(false)} />}
     </div>
   );
 }

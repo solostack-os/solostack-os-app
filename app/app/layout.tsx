@@ -484,29 +484,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        {/* Restart tour */}
-        <div className="px-5 py-4 flex-shrink-0">
-          <button
-            onClick={() => {
-              localStorage.removeItem("solostack_tour_completed");
-              fetch("/api/workspace/tour-complete", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ completed: false }),
-              });
-              window.dispatchEvent(new Event("tour:restart"));
-            }}
-            className="flex items-center gap-1.5 text-xs cursor-pointer transition-opacity opacity-50 hover:opacity-80"
-            style={{ color: textMuted }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-            Restart tour
-          </button>
-        </div>
       </aside>
 
       {/* ─── Mobile top header ─── */}
