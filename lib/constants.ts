@@ -17,4 +17,5 @@ export const CREDITS_PER_RUN = 3;
 export const MULTI_OUTPUT_WORKFLOWS = new Set([
   "social_posts",
   "ad_copy",
+  "vo_script",
 ]);

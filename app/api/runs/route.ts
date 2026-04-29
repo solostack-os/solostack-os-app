@@ -20,6 +20,7 @@ import { runSopGenerator, type SopGeneratorInput } from "@/lib/workflows/operati
 import { runWeeklyPlan, type WeeklyPlanInput } from "@/lib/workflows/operations/weekly-plan";
 import { runOnboardingDoc, type OnboardingDocInput } from "@/lib/workflows/operations/onboarding-doc";
 import { runProcessNotes, type ProcessNotesInput } from "@/lib/workflows/operations/process-notes";
+import { runVoScript, type VoScriptInput } from "@/lib/workflows/marketing/vo-script";
 
 export async function POST(request: Request) {
   // 1. Authenticate
@@ -47,6 +48,12 @@ export async function POST(request: Request) {
     workflow_key: string;
     input_json: Record<string, unknown>;
   };
+
+  // 2b. Enforce brief/topic length limit (backend safety net for client-side enforcement).
+  const topic = (input_json?.topic as string) ?? "";
+  if (topic.length > 2600) {
+    return NextResponse.json({ error: "Brief exceeds maximum length" }, { status: 400 });
+  }
 
   // 3. Topic suggestions — bypass usage gate (no credits charged) but DO fetch
   //    workspace context so we can personalise suggestions when use_brand_context
@@ -323,6 +330,17 @@ export async function POST(request: Request) {
     } else if (module_key === "operations" && workflow_key === "process_notes") {
       outputTitle = `Process notes — ${input_json.process_title}`;
       return runProcessNotes(context, input_json as unknown as ProcessNotesInput, resolvedStreamFn);
+    } else if (module_key === "marketing" && workflow_key === "vo_script") {
+      const voFormatLabels: Record<string, string> = {
+        commercial_ad: "Commercial Ad",
+        corporate_brand: "Corporate Brand",
+        educational_explainer: "Explainer",
+        radio_spot: "Radio Spot",
+        podcast_intro_outro: "Podcast Intro/Outro",
+        presentation: "Presentation",
+      };
+      outputTitle = `VO script — ${voFormatLabels[input_json.format as string] ?? input_json.format}`;
+      return runVoScript(context, input_json as unknown as VoScriptInput, resolvedStreamFn);
     } else {
       throw new Error(`Unknown workflow: ${module_key}/${workflow_key}`);
     }

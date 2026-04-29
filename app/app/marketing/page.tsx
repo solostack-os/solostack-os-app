@@ -64,8 +64,38 @@ const contentTypes = [
   { value: "podcast_episode", label: "Podcast Episode" },
 ] as const;
 
+const voDurations = [
+  { value: "15", label: "15s" },
+  { value: "30", label: "30s" },
+  { value: "60", label: "60s" },
+  { value: "90", label: "90s" },
+  { value: "custom", label: "Custom" },
+] as const;
+
+const voFormats = [
+  { value: "commercial_ad", label: "Commercial Ad" },
+  { value: "corporate_brand", label: "Corporate Brand" },
+  { value: "educational_explainer", label: "Explainer" },
+  { value: "radio_spot", label: "Radio Spot" },
+  { value: "podcast_intro_outro", label: "Podcast Intro/Outro" },
+  { value: "presentation", label: "Presentation" },
+] as const;
+
+const voPaces = [
+  { value: "slow_premium", label: "Slow / Premium" },
+  { value: "standard_conversational", label: "Standard" },
+  { value: "energetic_punchy", label: "Energetic" },
+] as const;
+
+const voGoals = [
+  { value: "inform", label: "Inform" },
+  { value: "persuade", label: "Persuade" },
+  { value: "convert", label: "Convert" },
+  { value: "inspire", label: "Inspire" },
+] as const;
+
 /* ─── Tab definitions ─── */
-type TabKey = "social_posts" | "ad_copy" | "landing_page" | "email_campaign" | "content_brief";
+type TabKey = "social_posts" | "ad_copy" | "landing_page" | "email_campaign" | "content_brief" | "vo_script";
 
 const tabs: { key: TabKey; label: string }[] = [
   { key: "social_posts", label: "Social Posts" },
@@ -73,6 +103,7 @@ const tabs: { key: TabKey; label: string }[] = [
   { key: "landing_page", label: "Landing Page" },
   { key: "email_campaign", label: "Email Campaign" },
   { key: "content_brief", label: "Content Brief" },
+  { key: "vo_script", label: "VO Script" },
 ];
 
 /* ─── Reusable pill selector ─── */
@@ -142,7 +173,7 @@ function TopicInput({
   value,
   onChange,
   placeholder,
-  maxLen = 600,
+  maxLen = 2500,
   multiline = false,
   label = "Topic",
   loadingSuggestions,
@@ -163,13 +194,14 @@ function TopicInput({
 }) {
   const len = value.length;
 
-  // 4-state feedback machine — evaluated once per value change, not per render
+  // 4-state feedback machine — thresholds scale with maxLen so they work
+  // correctly for both short topic fields (200) and full briefs (2500).
   const feedbackState = useMemo((): "short" | "good" | "detailed" | "approaching" => {
-    if (len < 100) return "short";
-    if (len < 400) return "good";
-    if (len < 550) return "detailed";
+    if (len < Math.max(30, Math.round(maxLen * 0.15))) return "short";
+    if (len < Math.max(80, Math.round(maxLen * 0.6))) return "good";
+    if (len < Math.round(maxLen * 0.9)) return "detailed";
     return "approaching";
-  }, [len]);
+  }, [len, maxLen]);
 
   const counterColor = useMemo(() => {
     if (feedbackState === "good") return "#4ade80";
@@ -310,6 +342,7 @@ export default function MarketingPage() {
   /* ── Ad Copy state ── */
   const [acPlatform, setAcPlatform] = useState<"google_ads" | "facebook" | "instagram">("google_ads");
   const [acGoal, setAcGoal] = useState<"awareness" | "clicks" | "conversions">("clicks");
+  const [acFbMode, setAcFbMode] = useState<"ad" | "organic">("ad");
   const [acRegister, setAcRegister] = useState("warm_human");
   const [acCdPassStatus, setAcCdPassStatus] = useState<"idle" | "running" | "done" | "skipped">("idle");
   const [acTopic, setAcTopic] = useState("");
@@ -350,6 +383,21 @@ export default function MarketingPage() {
   const [cbError, setCbError] = useState<string | null>(null);
   const [cbCopied, setCbCopied] = useState<number | null>(null);
   const cbStreamTextRef = useRef<HTMLDivElement | null>(null);
+
+  /* ── VO Script state ── */
+  const [voDuration, setVoDuration] = useState<"15" | "30" | "60" | "90" | "custom">("30");
+  const [voCustomSeconds, setVoCustomSeconds] = useState(45);
+  const [voFormat, setVoFormat] = useState<"commercial_ad" | "corporate_brand" | "educational_explainer" | "radio_spot" | "podcast_intro_outro" | "presentation">("commercial_ad");
+  const [voPace, setVoPace] = useState<"slow_premium" | "standard_conversational" | "energetic_punchy">("standard_conversational");
+  const [voGoal, setVoGoal] = useState<"inform" | "persuade" | "convert" | "inspire">("persuade");
+  const [voIncludeDirection, setVoIncludeDirection] = useState(true);
+  const [voTopic, setVoTopic] = useState("");
+  const [voLoading, setVoLoading] = useState(false);
+  const [voStreaming, setVoStreaming] = useState(false);
+  const [voOutput, setVoOutput] = useState<string | null>(null);
+  const [voError, setVoError] = useState<string | null>(null);
+  const [voCopied, setVoCopied] = useState<number | null>(null);
+  const voStreamTextRef = useRef<HTMLDivElement | null>(null);
 
   /* ─── META token helpers ─── */
   // The server appends \n__META:{"provider":"anthropic|openai"}__ as the last
@@ -509,8 +557,9 @@ export default function MarketingPage() {
     }
   }
 
-  function splitCards(raw: string | null, workflowKey: string) {
+  function splitCards(raw: string | null, workflowKey: string, opts?: { singleCard?: boolean }) {
     if (!raw) return [];
+    if (opts?.singleCard) return [raw.trim()];
     if (MULTI_OUTPUT_WORKFLOWS.has(workflowKey)) {
       return raw.split(/\n---\n/).map((p) => p.trim()).filter(Boolean);
     }
@@ -540,6 +589,9 @@ export default function MarketingPage() {
     }
     if (activeTab === "content_brief") {
       return { platform: "linkedin", content_type: cbType };
+    }
+    if (activeTab === "vo_script") {
+      return { platform: "linkedin", vo_format: voFormat };
     }
     return { platform: "linkedin" };
   }
@@ -627,6 +679,7 @@ export default function MarketingPage() {
     landing_page: { title: "Create landing page copy", subtitle: "Generate conversion-focused copy for any section." },
     email_campaign: { title: "Create marketing emails", subtitle: "Generate complete, ready-to-send marketing emails." },
     content_brief: { title: "Create a content brief", subtitle: "Generate structured briefs for any content format." },
+    vo_script: { title: "Create a VO script", subtitle: "Generate voiceover scripts with breath-paced structure and timing." },
   };
 
   /* ─── CD Pass status indicator ─── */
@@ -872,7 +925,31 @@ export default function MarketingPage() {
               <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
-                <PillSelector label="Platform" options={adPlatforms} value={acPlatform} onChange={setAcPlatform} />
+                <PillSelector label="Platform" options={adPlatforms} value={acPlatform} onChange={(v) => { setAcPlatform(v); if (v !== "facebook") setAcFbMode("ad"); }} />
+
+                {/* Facebook mode toggle */}
+                {acPlatform === "facebook" && (
+                  <div className="mb-5">
+                    <label className="block text-sm font-medium mb-2.5" style={{ color: textPrimary }}>Mode</label>
+                    <div className="flex gap-2">
+                      {([{ value: "ad", label: "Ad" }, { value: "organic", label: "Organic Post" }] as const).map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setAcFbMode(opt.value)}
+                          className="px-4 py-2 text-sm rounded-lg border transition-all cursor-pointer"
+                          style={{
+                            backgroundColor: acFbMode === opt.value ? "rgba(108,140,255,0.1)" : "transparent",
+                            borderColor: acFbMode === opt.value ? accent : border,
+                            color: acFbMode === opt.value ? accent : textMuted,
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <PillSelector label="Goal" options={adGoals} value={acGoal} onChange={setAcGoal} />
 
                 {/* Voice Register */}
@@ -911,7 +988,7 @@ export default function MarketingPage() {
                     setAcCdPassStatus("idle");
                     const { provider, text } = await callWorkflow(
                       "ad_copy",
-                      { platform: acPlatform, goal: acGoal, topic: acTopic, register: acRegister },
+                      { platform: acPlatform, goal: acGoal, topic: acTopic, register: acRegister, fb_mode: acPlatform === "facebook" ? acFbMode : undefined },
                       setAcLoading, setAcOutput, setAcError, setAcStreaming, acStreamTextRef
                     );
                     if (provider === "anthropic" && currentPlanKey === "pro" && text) {
@@ -927,12 +1004,12 @@ export default function MarketingPage() {
               </div>
               </div>
             </GlowCard>
-            {acLoading && !acStreaming && <LoadingSkeleton message="Generating ad variations..." />}
+            {acLoading && !acStreaming && <LoadingSkeleton message={acPlatform === "google_ads" ? "Generating RSA assets..." : "Generating ad variations..."} />}
             <StreamingCard ref={acStreamTextRef} visible={acStreaming} accent={accent} accentLight={accentLight} />
             {!acLoading && !acStreaming && acOutput && (
               <CdPassIndicator status={acCdPassStatus} />
             )}
-            {!acLoading && !acStreaming && <OutputCards cards={splitCards(acOutput, 'ad_copy')} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} accent={accent} accentLight={accentLight} contentType="ad_copy" onClear={() => { setAcOutput(null); setAcError(null); setAcCdPassStatus("idle"); }} />}
+            {!acLoading && !acStreaming && <OutputCards cards={splitCards(acOutput, 'ad_copy', { singleCard: acPlatform === "google_ads" })} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} accent={accent} accentLight={accentLight} contentType="ad_copy" onClear={() => { setAcOutput(null); setAcError(null); setAcCdPassStatus("idle"); }} />}
             {!acLoading && !acStreaming && acOutput && currentPlanKey !== "pro" && (
               <a
                 href="/app/settings#upgrade"
@@ -957,7 +1034,7 @@ export default function MarketingPage() {
               <div className="p-7">
                 <PillSelector label="Section" options={landingSections} value={lpSection} onChange={setLpSection} />
                 <PillSelector label="Goal" options={landingGoals} value={lpGoal} onChange={setLpGoal} />
-                <TopicInput value={lpTopic} onChange={(v) => { setLpTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. AI-powered project management tool" maxLen={300} multiline={true} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
+                <TopicInput value={lpTopic} onChange={(v) => { setLpTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. AI-powered project management tool" maxLen={2500} multiline={true} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
                 <GenerateButton
                   loading={lpLoading}
                   disabled={!lpTopic.trim()}
@@ -984,7 +1061,7 @@ export default function MarketingPage() {
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Email type" options={emailTypes} value={ecType} onChange={setEcType} />
-                <TopicInput value={ecTopic} onChange={(v) => { setEcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. New feature launch announcement" maxLen={300} multiline={true} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
+                <TopicInput value={ecTopic} onChange={(v) => { setEcTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. New feature launch announcement" maxLen={2500} multiline={true} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
                 <GenerateButton
                   loading={ecLoading}
                   disabled={!ecTopic.trim()}
@@ -1011,7 +1088,7 @@ export default function MarketingPage() {
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
               <div className="p-7">
                 <PillSelector label="Content type" options={contentTypes} value={cbType} onChange={setCbType} />
-                <TopicInput value={cbTopic} onChange={(v) => { setCbTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. How to build a personal brand in 2025" maxLen={2000} multiline={true} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
+                <TopicInput value={cbTopic} onChange={(v) => { setCbTopic(v); if (suggestions.length) setSuggestions([]); }} placeholder="e.g. How to build a personal brand in 2025" maxLen={2500} multiline={true} loadingSuggestions={loadingSuggestions} onSuggest={handleSuggest} suggestions={suggestions} suggestDisabled={creditLimitReached === true} />
                 <GenerateButton
                   loading={cbLoading}
                   disabled={!cbTopic.trim()}
@@ -1025,6 +1102,128 @@ export default function MarketingPage() {
             {cbLoading && !cbStreaming && <LoadingSkeleton message="Generating your brief..." />}
             <StreamingCard ref={cbStreamTextRef} visible={cbStreaming} accent={accent} accentLight={accentLight} />
             {!cbLoading && !cbStreaming && <OutputCards cards={splitCards(cbOutput, 'content_brief')} copiedIdx={cbCopied} onCopy={(t, i) => handleCopy(t, i, setCbCopied)} accent={accent} accentLight={accentLight} contentType="content_brief" onClear={() => { setCbOutput(null); setCbError(null); }} />}
+          </>
+        )}
+
+        {/* ════════════════════════════════════════════════
+            VO Script tab
+            ════════════════════════════════════════════════ */}
+        {activeTab === "vo_script" && (
+          <>
+            <GlowCard glowColor="blue" className="mb-6">
+              <div className="overflow-hidden" style={{ backgroundColor: "rgba(17,24,39,0.85)", borderRadius: "inherit" }}>
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${accent}, ${accentLight})`, borderRadius: "14px 14px 0 0" }} />
+              <div className="p-7">
+                {/* Duration */}
+                <PillSelector label="Duration" options={voDurations} value={voDuration} onChange={setVoDuration} />
+                {voDuration === "custom" && (
+                  <div className="mb-5 -mt-2">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="number"
+                        min={5}
+                        max={300}
+                        value={voCustomSeconds}
+                        onChange={(e) => setVoCustomSeconds(Math.max(5, Math.min(300, parseInt(e.target.value) || 5)))}
+                        className="w-24 px-3 py-2 text-sm rounded-lg outline-none focus:ring-2 focus:ring-[#6c8cff]/40"
+                        style={{ backgroundColor: bg, border: `1px solid ${border}`, color: textPrimary }}
+                      />
+                      <span className="text-sm" style={{ color: textMuted }}>seconds</span>
+                    </div>
+                  </div>
+                )}
+
+                <PillSelector label="Format" options={voFormats} value={voFormat} onChange={setVoFormat} />
+                <PillSelector label="Pace" options={voPaces} value={voPace} onChange={setVoPace} />
+                <PillSelector label="Goal" options={voGoals} value={voGoal} onChange={setVoGoal} />
+
+                {/* Direction notes toggle */}
+                <div className="mb-5">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={voIncludeDirection}
+                      onClick={() => setVoIncludeDirection((v) => !v)}
+                      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer"
+                      style={{ backgroundColor: voIncludeDirection ? accent : "rgba(255,255,255,0.1)" }}
+                    >
+                      <span
+                        className="inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform"
+                        style={{ transform: voIncludeDirection ? "translateX(18px)" : "translateX(3px)" }}
+                      />
+                    </button>
+                    <span className="text-sm font-medium" style={{ color: textPrimary }}>
+                      Include direction notes
+                    </span>
+                    <span className="text-xs" style={{ color: textMuted }}>
+                      (pause), (emphasis), (slow)
+                    </span>
+                  </label>
+                </div>
+
+                {/* Word count estimate */}
+                {(() => {
+                  const seconds = voDuration === "custom" ? voCustomSeconds : parseInt(voDuration, 10);
+                  const wpsMap: Record<string, [number, number]> = {
+                    slow_premium: [2.3, 2.5],
+                    standard_conversational: [2.5, 2.8],
+                    energetic_punchy: [2.8, 3.2],
+                  };
+                  const [wMin, wMax] = wpsMap[voPace] ?? [2.5, 2.8];
+                  const wordMin = Math.round(seconds * wMin);
+                  const wordMax = Math.round(seconds * wMax);
+                  return (
+                    <div
+                      className="flex items-center gap-2 mb-5 px-3 py-2 rounded-lg text-xs"
+                      style={{ backgroundColor: "rgba(108,140,255,0.06)", border: `1px solid rgba(108,140,255,0.12)`, color: textMuted }}
+                    >
+                      <span style={{ color: accent }}>⏱</span>
+                      <span>{seconds}s · {wordMin}–{wordMax} words target</span>
+                    </div>
+                  );
+                })()}
+
+                <TopicInput
+                  value={voTopic}
+                  onChange={(v) => { setVoTopic(v); if (suggestions.length) setSuggestions([]); }}
+                  label="Brief"
+                  multiline={true}
+                  placeholder={"e.g. 30-second brand spot for a sustainable fashion startup. Target: conscious consumers aged 25-40. Key message: quality over quantity, clothes that last."}
+                  loadingSuggestions={loadingSuggestions}
+                  onSuggest={handleSuggest}
+                  suggestions={suggestions}
+                  suggestDisabled={creditLimitReached === true}
+                />
+                <GenerateButton
+                  loading={voLoading}
+                  disabled={!voTopic.trim()}
+                  onClick={() => {
+                    if (creditLimitReached) { setShowUpgradeModal(true); return; }
+                    callWorkflow(
+                      "vo_script",
+                      {
+                        duration: voDuration,
+                        custom_seconds: voDuration === "custom" ? voCustomSeconds : undefined,
+                        format: voFormat,
+                        pace: voPace,
+                        goal: voGoal,
+                        topic: voTopic,
+                        include_direction: voIncludeDirection,
+                      },
+                      setVoLoading, setVoOutput, setVoError, setVoStreaming, voStreamTextRef
+                    );
+                  }}
+                  label="Generate"
+                />
+                <ErrorMsg error={voError} />
+                {/* TODO v2: TTS preview integration — hook audio playback here using voOutput variants */}
+              </div>
+              </div>
+            </GlowCard>
+            {voLoading && !voStreaming && <LoadingSkeleton message="Generating VO scripts..." />}
+            <StreamingCard ref={voStreamTextRef} visible={voStreaming} accent={accent} accentLight={accentLight} />
+            {!voLoading && !voStreaming && <OutputCards cards={splitCards(voOutput, 'vo_script')} copiedIdx={voCopied} onCopy={(t, i) => handleCopy(t, i, setVoCopied)} accent={accent} accentLight={accentLight} contentType="vo_script" onClear={() => { setVoOutput(null); setVoError(null); }} />}
           </>
         )}
       </div>

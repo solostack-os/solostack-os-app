@@ -142,7 +142,7 @@ ${brandContext ? `\nBRAND CONTEXT:\n${brandContext}\n` : ""}
 VOICE REGISTER: ${registerDef.label}
 ${registerDef.description}
 NOTE: The examples above are for tone and style calibration only. They do not define the output language.
-${goodExamples ? `\nCOPY I ADMIRE — calibrate to this register, match the energy without copying directly:\n${goodExamples}\n` : ""}${badExamples ? `\nCOPY I AVOID — anti-calibration, do not write in this register or style under any circumstances:\n${badExamples}\n` : ""}
+${goodExamples ? `\nPOSITIVE STYLISTIC ANCHORS — emulate the register, structure, and tone of these examples:\n${goodExamples}\n` : ""}${badExamples ? `\nNEGATIVE ANTI-PATTERNS — actively steer away from this register, vocabulary, and structure:\n${badExamples}\n` : ""}
 PLATFORM: ${input.platform}
 
 ${platformConstraints[input.platform]}

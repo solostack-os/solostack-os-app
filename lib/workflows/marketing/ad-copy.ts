@@ -8,6 +8,8 @@ export interface AdCopyInput {
   goal: "awareness" | "clicks" | "conversions";
   topic: string;
   register?: string;
+  /** Facebook only — "ad" (default) or "organic" */
+  fb_mode?: "ad" | "organic";
 }
 
 /* ─── System prompt (fixed) ─── */
@@ -34,16 +36,6 @@ Never use, in any language: unlock, empower, seamless, revolutionary, game-chang
 In Romanian also avoid: revoluționar, inovator, complet, unic, de top, fără efort, la un singur click.
 
 If you reach for these, the thinking stopped. Rewrite the line.
-
-## How you work
-
-You generate three variants per request, not one. Each variant takes a genuinely different angle, not a rewording of the same angle. One might lead with tension, one with a surprising admission, one with a concrete outcome. The user should feel a real choice between them, not three versions of the same thought.
-
-Make the third variant the most unexpected. Take a real risk. Not weird for its own sake — but genuinely surprising. If it does not feel slightly dangerous, it is not the third variant yet.
-
-After writing each variant, re-read it. Remove the line you are most proud of. It is probably the one that sounds most like copy. Replace it with something that sounds like speech.
-
-Do not reuse phrases directly from the user's brief. If an idea from the brief is worth using, express it with entirely fresh language. Borrowed phrases are a sign the thinking stopped.
 
 ## Language
 
@@ -83,23 +75,6 @@ Examples: "A browser for the way you actually think." / "The work of making thin
   },
 };
 
-/* ─── Platform constraints ─── */
-const platformConstraints: Record<AdCopyInput["platform"], string> = {
-  google_ads: `PLATFORM CONSTRAINTS — Google Ads RSA:
-- Headline: MAXIMUM 30 characters. Count every character including spaces. Hard technical limit — ad will be disapproved if exceeded.
-- Description (body): MAXIMUM 90 characters.
-- Each headline must stand completely alone — it will appear in random combinations without the others.
-- No em dashes, no ellipses in headlines.`,
-  facebook: `PLATFORM CONSTRAINTS — Facebook Ads:
-- Headline: maximum 40 characters.
-- Body (primary text): maximum 125 characters for the hook.
-- Lead with feeling or tension, not the product name.`,
-  instagram: `PLATFORM CONSTRAINTS — Instagram Ads:
-- Headline: maximum 40 characters.
-- Body: maximum 125 characters.
-- Outcome-first, stop-the-scroll energy.`,
-};
-
 /* ─── Goal context ─── */
 const goalContext: Record<AdCopyInput["goal"], string> = {
   awareness: "Brand awareness — plant a question, make the brand memorable, create curiosity without requiring immediate action.",
@@ -107,6 +82,271 @@ const goalContext: Record<AdCopyInput["goal"], string> = {
   conversions: "Conversions — name the top objection and dissolve it, state the concrete outcome, close with a specific CTA.",
 };
 
+/* ─── Shared preamble builder ─── */
+function buildPreamble(
+  brandContext: string,
+  registerDef: { label: string; description: string },
+  goodExamples: string | null,
+  badExamples: string | null,
+  goal: AdCopyInput["goal"],
+  topic: string,
+): string {
+  return `${brandContext ? `BRAND CONTEXT:\n${brandContext}\n\n` : ""}VOICE REGISTER: ${registerDef.label}
+${registerDef.description}
+NOTE: The examples above are for tone and style calibration only. They do not define the output language.
+${goodExamples ? `\nPOSITIVE STYLISTIC ANCHORS — emulate the register, structure, and tone of these examples:\n${goodExamples}\n` : ""}${badExamples ? `\nNEGATIVE ANTI-PATTERNS — actively steer away from this register, vocabulary, and structure:\n${badExamples}\n` : ""}
+GOAL: ${goalContext[goal]}
+
+CURRENT DATE: ${currentDate()} — use this for any time-sensitive references (year, season, "this year", "recently", etc.).
+
+BRIEF: ${topic}
+
+---
+
+CRITICAL: Write all output in the same language as the BRIEF above. If the brief is in Romanian, write in Romanian. If in English, write in English. Do not use voice register example language as a guide for output language.`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Google Ads RSA — 15 headlines + 4 descriptions
+   ═══════════════════════════════════════════════════════════════════════════ */
+function buildGoogleAdsPrompt(
+  preamble: string,
+): string {
+  return `Generate a complete Google Ads Responsive Search Ad (RSA) asset set for the following brief.
+
+${preamble}
+
+PLATFORM: Google Ads — Responsive Search Ad (RSA)
+
+## RSA FORMAT REQUIREMENTS
+
+Google Ads RSA combines headlines and descriptions in random pairs. Each line must work independently AND in any combination.
+
+You must produce exactly:
+- 15 headlines: MAXIMUM 30 characters each (including spaces). This is a hard technical limit — the ad will be disapproved if exceeded.
+- 4 descriptions: MAXIMUM 90 characters each (including spaces).
+
+After each line, display the character count in square brackets, e.g. [28/30] or [85/90].
+If any line exceeds its limit, prefix it with ⚠️ and show [33/30 — OVER].
+
+## HEADLINE RULES
+- Each headline must stand completely alone — it appears in random combinations.
+- No em dashes, no ellipses.
+- Mix of: benefit-driven, feature-specific, urgency/CTA, brand/trust, and curiosity headlines.
+- Do NOT repeat the same idea across headlines — each must bring a distinct angle or proof point.
+- At least 3 headlines should contain a specific number, stat, or concrete detail.
+
+## DESCRIPTION RULES
+- Each description expands on a different angle (benefit, proof, urgency, differentiator).
+- Include a clear CTA verb in at least 2 descriptions.
+- Descriptions will be paired with random headlines — do not reference specific headlines.
+
+## OUTPUT FORMAT
+
+**Headlines**
+H1. [headline text] [char/30]
+H2. [headline text] [char/30]
+H3. [headline text] [char/30]
+H4. [headline text] [char/30]
+H5. [headline text] [char/30]
+H6. [headline text] [char/30]
+H7. [headline text] [char/30]
+H8. [headline text] [char/30]
+H9. [headline text] [char/30]
+H10. [headline text] [char/30]
+H11. [headline text] [char/30]
+H12. [headline text] [char/30]
+H13. [headline text] [char/30]
+H14. [headline text] [char/30]
+H15. [headline text] [char/30]
+
+**Descriptions**
+D1. [description text] [char/90]
+D2. [description text] [char/90]
+D3. [description text] [char/90]
+D4. [description text] [char/90]
+
+No preamble. No explanations. Just the headlines and descriptions in the exact format above.`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Facebook Ad — 3 angle-labeled variations
+   ═══════════════════════════════════════════════════════════════════════════ */
+function buildFacebookAdPrompt(
+  preamble: string,
+): string {
+  return `Write Facebook Ad copy for the following brief.
+
+${preamble}
+
+PLATFORM: Facebook — Paid Ad
+
+## FACEBOOK AD FORMAT REQUIREMENTS
+
+Each variation must contain:
+- **Primary text**: The main copy that appears above the image/video. Recommend keeping the hook within the first 125 characters (before the "See more" fold). Can extend beyond 125 for the full text.
+- **Headline**: Maximum 40 characters. Appears below the image — bold, high impact.
+- **Description**: Maximum 30 characters. Appears below the headline — supporting context or CTA.
+
+After each constrained element, show the character count: [char/limit].
+
+## ANGLE REQUIREMENTS
+
+Generate 3 variations. Each must use a genuinely DIFFERENT narrative angle — not a rewording. Label each with its narrative approach.
+
+Suggested angle types (pick 3 that fit the brief — do NOT use all of these):
+- Insight-led: Opens with a surprising truth or counterintuitive observation
+- Aphorism-led: Opens with a memorable, quotable statement
+- Question-led: Opens with a question that names the reader's exact situation
+- Tension-led: Opens with a friction point or frustration the reader recognizes
+- Outcome-led: Opens with the concrete result, then works backward
+- Story-led: Opens with a micro-narrative or scenario
+
+The third variation should be the most unexpected angle.
+
+## OUTPUT FORMAT
+
+Variation 1 — [Narrative angle name]
+Primary text: [full primary text]
+Headline: [headline] [char/40]
+Description: [description] [char/30]
+
+---
+
+Variation 2 — [Narrative angle name]
+Primary text: [full primary text]
+Headline: [headline] [char/40]
+Description: [description] [char/30]
+
+---
+
+Variation 3 — [Narrative angle name]
+Primary text: [full primary text]
+Headline: [headline] [char/40]
+Description: [description] [char/30]
+
+No preamble. No explanations after. Just the three variations.`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Facebook Organic Post — free-form engagement copy
+   ═══════════════════════════════════════════════════════════════════════════ */
+function buildFacebookOrganicPrompt(
+  preamble: string,
+): string {
+  return `Write a Facebook organic post for the following brief.
+
+${preamble}
+
+PLATFORM: Facebook — Organic Post
+
+## ORGANIC POST GUIDELINES
+
+This is NOT an ad. No character constraints. Optimize for engagement: comments, shares, saves.
+
+Write 3 variations, each with a genuinely different narrative approach:
+- Hook within the first 2 lines (before "See more" fold)
+- Natural paragraph breaks — not a wall of text
+- End with a conversation-starter (question, prompt, or open loop) — NOT a sales CTA
+- No hashtags unless the brief specifically requests them
+
+Label each with its narrative angle (e.g., "Insight-led", "Story-led", "Question-led").
+The third variation should take the most unexpected angle.
+
+Do not reuse phrases from the brief. If an idea is worth using, express it with fresh language.
+
+After writing each post, re-read it. Remove the line you are most proud of. It probably sounds like marketing. Replace it with something that sounds like speech.
+
+## OUTPUT FORMAT
+
+Variation 1 — [Narrative angle name]
+[full post text]
+
+---
+
+Variation 2 — [Narrative angle name]
+[full post text]
+
+---
+
+Variation 3 — [Narrative angle name]
+[full post text]
+
+No preamble. No explanations after. Just the three variations.`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Instagram — 3 variations (Feed / Stories / Reels) + hashtags
+   ═══════════════════════════════════════════════════════════════════════════ */
+function buildInstagramPrompt(
+  preamble: string,
+): string {
+  return `Write Instagram ad copy for the following brief.
+
+${preamble}
+
+PLATFORM: Instagram
+
+## INSTAGRAM FORMAT REQUIREMENTS
+
+Generate 3 variations optimized for different Instagram placements. Each must use a genuinely different narrative angle.
+
+### Variation 1 — Feed Post
+- Caption: maximum 2200 characters total
+- CRITICAL: The hook (first 125 characters before "...more") must stop the scroll. Front-load the most compelling line.
+- Use paragraph breaks for readability
+- End with a CTA appropriate for feed (save, share, comment, link in bio)
+
+### Variation 2 — Stories
+- Short, punchy text designed for story cards (1-3 cards worth of text)
+- Each card: 1-2 sentences max. Think overlay text on an image.
+- Include a swipe-up / link CTA or poll/question sticker suggestion
+- Conversational, urgent, ephemeral tone
+
+### Variation 3 — Reels
+- Hook line (first 3 seconds / first sentence must grab)
+- Caption that complements the visual, not duplicates it
+- Optimized for discovery — trending angle, relatable take, or pattern interrupt
+- End with a save/share prompt
+
+After each variation, add the character count for the full caption: [char total].
+
+## HASHTAGS
+
+After all 3 variations, output a separate hashtag block:
+
+**Suggested hashtags** (pick 5-10 relevant to the brief):
+[hashtags, space-separated]
+
+Mix of: 2-3 high-volume discovery tags, 3-4 niche/specific tags, 1-2 branded or community tags.
+
+## OUTPUT FORMAT
+
+Variation 1 — Feed: [narrative angle]
+[caption text]
+[char/2200]
+
+---
+
+Variation 2 — Stories: [narrative angle]
+[card-by-card text]
+
+---
+
+Variation 3 — Reels: [narrative angle]
+[hook + caption text]
+
+---
+
+**Suggested hashtags**
+[hashtags]
+
+No preamble. No explanations after.`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Main export
+   ═══════════════════════════════════════════════════════════════════════════ */
 export function runAdCopy(
   context: WorkspaceContext,
   input: AdCopyInput,
@@ -120,44 +360,27 @@ export function runAdCopy(
   const goodExamples = context.copy_good_examples?.trim() || null;
   const badExamples = context.copy_bad_examples?.trim() || null;
 
-  // Injection order: general context first, specific brief last (nearest to the
-  // "generate" instruction) so the model keeps the brief in sharp focus.
-  const userPrompt = `Write ad copy for the following brief.
-${brandContext ? `\nBRAND CONTEXT:\n${brandContext}\n` : ""}
-VOICE REGISTER: ${registerDef.label}
-${registerDef.description}
-NOTE: The examples above are for tone and style calibration only. They do not define the output language.
-${goodExamples ? `\nCOPY I ADMIRE — calibrate to this register, match the energy without copying directly:\n${goodExamples}\n` : ""}${badExamples ? `\nCOPY I AVOID — anti-calibration, do not write in this register or style under any circumstances:\n${badExamples}\n` : ""}
-PLATFORM: ${input.platform.replace(/_/g, " ")}
-GOAL: ${goalContext[input.goal]}
+  const preamble = buildPreamble(
+    brandContext,
+    registerDef,
+    goodExamples,
+    badExamples,
+    input.goal,
+    input.topic,
+  );
 
-${platformConstraints[input.platform]}
-
-CURRENT DATE: ${currentDate()} — use this for any time-sensitive references (year, season, "this year", "recently", etc.).
-
-BRIEF: ${input.topic}
-
----
-
-CRITICAL: Write all output in the same language as the BRIEF above. If the brief is in Romanian, write in Romanian. If in English, write in English. Do not use voice register example language as a guide for output language.
-
-Generate three variants. Each takes a genuinely different angle — not a rewording of the same thought. One might lead with tension, one with a surprising admission, one with a concrete outcome. The third variant must be the most unexpected — take a real risk with the angle.
-
-Format each as:
-
-Variant 1 — [two-word angle description]
-Headline: ...
-Body: ...
-
-Variant 2 — [two-word angle description]
-Headline: ...
-Body: ...
-
-Variant 3 — [two-word angle description]
-Headline: ...
-Body: ...
-
-No preamble. No explanations after. Just the three variants.`;
+  let userPrompt: string;
+  if (input.platform === "google_ads") {
+    userPrompt = buildGoogleAdsPrompt(preamble);
+  } else if (input.platform === "facebook") {
+    if (input.fb_mode === "organic") {
+      userPrompt = buildFacebookOrganicPrompt(preamble);
+    } else {
+      userPrompt = buildFacebookAdPrompt(preamble);
+    }
+  } else {
+    userPrompt = buildInstagramPrompt(preamble);
+  }
 
   return callStream(SYSTEM_PROMPT, userPrompt);
 }

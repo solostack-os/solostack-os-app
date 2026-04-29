@@ -1038,12 +1038,15 @@ function SettingsPageInner() {
               <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Business Description</label>
               <textarea
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => setDescription(e.target.value.slice(0, 1500))}
                 rows={4}
                 placeholder="Describe what you do, who you serve, and your brand voice. This is used by AI to personalize all outputs."
                 className={`${inputClass} resize-none custom-scrollbar`}
                 style={inputStyle}
               />
+              <div className="flex justify-end mt-1">
+                <span className="text-[11px] tabular-nums" style={{ color: description.length >= 1350 ? "#fb923c" : textMuted }}>{description.length}/1500</span>
+              </div>
             </div>
 
             {/* Brand Voice */}
@@ -1051,12 +1054,15 @@ function SettingsPageInner() {
               <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Brand Voice</label>
               <textarea
                 value={brandVoice}
-                onChange={(e) => setBrandVoice(e.target.value)}
+                onChange={(e) => setBrandVoice(e.target.value.slice(0, 1500))}
                 rows={3}
                 placeholder="Describe your tone of voice. e.g. Warm but direct. Confident, never pushy. Use plain language — avoid jargon."
                 className={`${inputClass} resize-none custom-scrollbar`}
                 style={inputStyle}
               />
+              <div className="flex justify-end mt-1">
+                <span className="text-[11px] tabular-nums" style={{ color: brandVoice.length >= 1350 ? "#fb923c" : textMuted }}>{brandVoice.length}/1500</span>
+              </div>
             </div>
 
             {/* Copy calibration — Ad Copy */}
@@ -1112,7 +1118,7 @@ function SettingsPageInner() {
                     <textarea
                       value={copyGoodExamples}
                       onChange={(e) => {
-                        const val = e.target.value;
+                        const val = e.target.value.slice(0, 1000);
                         setCopyGoodExamples(val);
                         setCopyGoodOverLimit(countExamples(val) > 3);
                       }}
@@ -1121,6 +1127,9 @@ function SettingsPageInner() {
                       className={`${inputClass} resize-none custom-scrollbar`}
                       style={inputStyle}
                     />
+                    <div className="flex justify-end mt-1">
+                      <span className="text-[11px] tabular-nums" style={{ color: copyGoodExamples.length >= 900 ? "#fb923c" : textMuted }}>{copyGoodExamples.length}/1000</span>
+                    </div>
                     {copyGoodOverLimit && (
                       <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
                         <span className="flex-shrink-0 mt-px">⚠</span>
@@ -1157,7 +1166,7 @@ function SettingsPageInner() {
                     <textarea
                       value={copyBadExamples}
                       onChange={(e) => {
-                        const val = e.target.value;
+                        const val = e.target.value.slice(0, 1000);
                         setCopyBadExamples(val);
                         setCopyBadOverLimit(countExamples(val) > 3);
                       }}
@@ -1166,6 +1175,9 @@ function SettingsPageInner() {
                       className={`${inputClass} resize-none custom-scrollbar`}
                       style={inputStyle}
                     />
+                    <div className="flex justify-end mt-1">
+                      <span className="text-[11px] tabular-nums" style={{ color: copyBadExamples.length >= 900 ? "#fb923c" : textMuted }}>{copyBadExamples.length}/1000</span>
+                    </div>
                     {copyBadOverLimit && (
                       <div className="mt-2 flex items-start gap-1.5 text-xs" style={{ color: "#fbbf24" }}>
                         <span className="flex-shrink-0 mt-px">⚠</span>
@@ -1178,9 +1190,15 @@ function SettingsPageInner() {
                         <span>Paste actual copy examples, not instructions.</span>
                       </div>
                     )}
-                    <p className="text-xs mt-1.5" style={{ color: textMuted }}>
-                      Anti-examples steer the AI away from entire zones of writing. More effective than describing what you want.
-                    </p>
+                    <div
+                      className="flex items-start gap-2 mt-3 px-3 py-2.5 rounded-lg text-xs leading-relaxed"
+                      style={{ backgroundColor: "rgba(108,140,255,0.06)", border: "1px solid rgba(108,140,255,0.12)", color: accent }}
+                    >
+                      <svg className="w-3.5 h-3.5 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                      </svg>
+                      <span>Anti-examples have <strong style={{ color: textPrimary }}>higher steering impact</strong> than positive examples. Paste copy that feels wrong for your brand — the AI will actively avoid that entire register.</span>
+                    </div>
                   </div>
                 </>
               ) : (

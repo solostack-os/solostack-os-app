@@ -116,6 +116,7 @@ const workflowDotColor: Record<string, string> = {
   email_campaign: "#6c8cff",
   landing_page: "#6c8cff",
   content_brief: "#6c8cff",
+  vo_script: "#6c8cff",
   /* Outreach — green */
   cold_email: "#22c55e",
   follow_up: "#22c55e",
