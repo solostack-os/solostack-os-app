@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { HeroDemo, type DemoScenario } from "@/components/ui/hero-demo";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { GlowCard } from "@/components/ui/glow-card";
@@ -7,13 +8,13 @@ import { Reveal } from "@/components/ui/reveal";
 
 /* ─── SEO Metadata ─── */
 export const metadata: Metadata = {
-  title: "Marketing OS for Solo Consultants — SoloStack",
+  title: "SoloStack — The AI Workspace That Remembers Your Brand",
   description:
-    "Save your business context once. Generate posts, ad copy, landing page copy, emails, and content briefs that start closer to usable. 7-day free trial.",
+    "AI workspace for solopreneurs. Generate social posts, ad copy, landing page copy, emails, content briefs, and voiceover scripts that sound like you. From $19/mo.",
   openGraph: {
-    title: "Marketing OS for Solo Consultants — SoloStack",
+    title: "SoloStack — The AI Workspace That Remembers Your Brand",
     description:
-      "Save your business context once. Generate posts, ad copy, landing page copy, emails, and content briefs that start closer to usable.",
+      "AI workspace for solopreneurs. Generate social posts, ad copy, landing page copy, emails, content briefs, and voiceover scripts that sound like you. From $19/mo.",
     url: "https://solostack.io/marketing-os",
   },
 };
@@ -142,7 +143,7 @@ const marketingScenarios: DemoScenario[] = [
   },
 ];
 
-/* ─── Marketing OS workflows (5 — no Topic Suggestions) ─── */
+/* ─── Marketing OS workflows (6 — no Topic Suggestions) ─── */
 const workflows = [
   {
     title: "Social Posts",
@@ -163,6 +164,10 @@ const workflows = [
   {
     title: "Content Briefs",
     text: "Structured briefs for blog posts, case studies, and long-form content.",
+  },
+  {
+    title: "VO Script",
+    text: "Voiceover scripts for ads, explainers, and podcast intros \u2014 with breath-paced structure, timing, and direction notes.",
   },
 ];
 
@@ -200,6 +205,11 @@ const weeklyPlan = [
     day: "Friday",
     workflow: "Content Brief",
     text: "A blog or video brief built around one question your prospects keep asking.",
+  },
+  {
+    day: "Saturday",
+    workflow: "VO Script",
+    text: "A 30-second commercial ad script for next week\u2019s campaign. Breath-paced, ready to record.",
   },
 ];
 
@@ -277,11 +287,12 @@ export default function MarketingOSPage() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-            <img
+            <Image
               src="/logo.png"
               alt="SoloStack OS"
               width={40}
               height={40}
+              priority
               className="h-8 w-8 sm:h-10 sm:w-10 object-contain flex-shrink-0"
             />
             <span className="text-base sm:text-lg font-bold text-white tracking-tight truncate">
@@ -345,9 +356,9 @@ export default function MarketingOSPage() {
               className="text-base sm:text-lg mb-8 leading-relaxed"
               style={{ color: textMuted }}
             >
-              Save your business context once. Get social posts, ad copy,
-              landing page copy, emails, and content briefs that sound like
-              you &mdash; not like a template.
+              Stop re-explaining your brand to AI. SoloStack saves your
+              business context once, then runs all your marketing workflows
+              &mdash; sounding like you, not like a template.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4">
@@ -405,7 +416,7 @@ export default function MarketingOSPage() {
           className="text-xs sm:text-sm tracking-wide"
           style={{ color: textMuted }}
         >
-          5 workflows&ensp;&middot;&ensp;One business
+          6 workflows&ensp;&middot;&ensp;One business
           context&ensp;&middot;&ensp;Works in any language
         </p>
       </section>
@@ -458,7 +469,7 @@ export default function MarketingOSPage() {
       </section>
 
       {/* ════════════════════════════════════════════════════════
-         WHAT'S INCLUDED — 5 workflows
+         WHAT'S INCLUDED — 6 workflows
          ════════════════════════════════════════════════════════ */}
       <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
@@ -472,7 +483,7 @@ export default function MarketingOSPage() {
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
-              5 workflows.{" "}
+              6 workflows.{" "}
               <span style={{ color: accent }}>One module.</span>
             </h2>
             <p
@@ -502,6 +513,67 @@ export default function MarketingOSPage() {
                       style={{ color: textMuted }}
                     >
                       {w.text}
+                    </p>
+                  </div>
+                </GlowCard>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════
+         PRIVACY & SECURITY
+         ════════════════════════════════════════════════════════ */}
+      <section className="py-20 px-6">
+        <div className="max-w-4xl mx-auto">
+          <Reveal>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-3">
+              Your context, <span style={{ color: accent }}>encrypted.</span>
+            </h2>
+            <p
+              className="text-sm text-center max-w-2xl mx-auto mb-12 leading-relaxed"
+              style={{ color: textMuted }}
+            >
+              You&apos;re putting your business voice into a tool. We treat
+              that data accordingly.
+            </p>
+          </Reveal>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                title: "AES-256 at rest",
+                text: "Industry-standard encryption for stored data.",
+              },
+              {
+                title: "TLS 1.3 in transit",
+                text: "Secure connection for everything you send and receive.",
+              },
+              {
+                title: "GDPR-aligned",
+                text: "Built with European data protection standards in mind. Delete your context anytime.",
+              },
+              {
+                title: "Your data is yours",
+                text: "Never used to train AI models. Not shared with third parties.",
+              },
+            ].map((item, i) => (
+              <Reveal key={item.title} delay={i * 100}>
+                <GlowCard className="h-full p-5 transition-transform duration-300 hover:translate-y-[-4px]">
+                  <div
+                    className="absolute top-0 left-0 right-0 h-[2px]"
+                    style={{ backgroundColor: "#22c55e" }}
+                  />
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-sm font-semibold text-white">
+                      {item.title}
+                    </h3>
+                    <p
+                      className="text-sm leading-relaxed"
+                      style={{ color: textMuted }}
+                    >
+                      {item.text}
                     </p>
                   </div>
                 </GlowCard>
@@ -576,8 +648,8 @@ export default function MarketingOSPage() {
               className="text-base sm:text-lg font-medium text-center mt-10 leading-relaxed"
               style={{ color: accent }}
             >
-              One business context. Five usable marketing assets. Fewer blank
-              documents judging you.
+              One business context. Six usable marketing assets, ready by
+              Saturday. Fewer blank documents judging you.
             </p>
           </Reveal>
         </div>
@@ -623,7 +695,7 @@ export default function MarketingOSPage() {
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
-              Start free. Pay when it becomes part of your{" "}
+              Start free. From $19/mo. Pay when it becomes part of your{" "}
               <span style={{ color: accent }}>week.</span>
             </h2>
             <p
@@ -729,7 +801,7 @@ export default function MarketingOSPage() {
           </Reveal>
 
           <Reveal delay={100}>
-            <div className="space-y-3">
+            <div className="space-y-3" role="list" aria-label="Frequently asked questions">
               {faqs.map((faq) => (
                 <details
                   key={faq.q}
@@ -796,8 +868,8 @@ export default function MarketingOSPage() {
             className="text-sm mb-8 leading-relaxed"
             style={{ color: textMuted }}
           >
-            Set your business context once and start generating social posts, ad
-            copy, emails, and more that actually sound like your business.
+            Set your business context once and start generating all your
+            marketing assets &mdash; sounding like you, not like a template.
           </p>
           <a href="/auth/signup">
             <ShinyButton>Start Your 7-Day Free Trial</ShinyButton>
@@ -813,7 +885,7 @@ export default function MarketingOSPage() {
       <footer className="py-8 px-6 border-t border-white/[0.08] bg-[#0a0f1e]/80 backdrop-blur-md">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 sm:flex-1">
-            <img
+            <Image
               src="/logo.png"
               alt="SoloStack OS"
               width={24}
