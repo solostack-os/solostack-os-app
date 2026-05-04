@@ -63,7 +63,7 @@ const modules: {
   {
     name: "Marketing OS",
     description:
-      "Social posts, ad copy, landing pages, email campaigns, and content briefs",
+      "All your marketing content workflows — context-aware, ready to publish.",
     href: "/app/marketing",
     colorKey: "marketing",
     icon: (

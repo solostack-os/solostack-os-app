@@ -694,6 +694,72 @@ export default function MarketingOSPage() {
                 Pricing
               </span>
             </div>
+
+            {/* ─── Comparator table ─── */}
+            <p
+              className="text-base sm:text-lg font-semibold text-center mb-6"
+              style={{ color: "#f1f5f9" }}
+            >
+              No feature gates. Every workflow, every plan.
+              <br />
+              <span className="font-normal text-sm" style={{ color: textMuted }}>
+                Pick by usage volume, not by access.
+              </span>
+            </p>
+
+            <div
+              className="rounded-xl border overflow-hidden mb-12 max-w-2xl mx-auto"
+              style={{ backgroundColor: surface, borderColor: border }}
+            >
+              <table className="w-full text-sm">
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${border}` }}>
+                    <th className="text-left px-5 py-3 font-medium" style={{ color: textMuted }} />
+                    <th className="px-5 py-3 text-center font-semibold" style={{ color: "#f1f5f9" }}>
+                      <span className="block text-sm">Starter</span>
+                      <span className="block text-xs font-normal" style={{ color: textMuted }}>$19/mo</span>
+                    </th>
+                    <th className="px-5 py-3 text-center font-semibold" style={{ color: "#5eead4" }}>
+                      <span className="block text-sm">Pro</span>
+                      <span className="block text-xs font-normal" style={{ color: textMuted }}>$39/mo</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["All 14 workflows", true, true],
+                    ["Monthly credits", "300", "1,000"],
+                    ["CD Pass (senior review)", false, true],
+                    ["Multilingual support", true, true],
+                    ["Brand profile customization", true, true],
+                    ["Cancel anytime", true, true],
+                  ].map(([feature, starter, pro], i) => (
+                    <tr
+                      key={i}
+                      style={{
+                        borderBottom: i < 5 ? `1px solid ${border}` : undefined,
+                      }}
+                    >
+                      <td className="px-5 py-3 text-left" style={{ color: "#f1f5f9" }}>
+                        {feature as string}
+                      </td>
+                      {[starter, pro].map((val, j) => (
+                        <td key={j} className="px-5 py-3 text-center" style={{ color: textMuted }}>
+                          {val === true ? (
+                            <span style={{ color: "#5eead4" }}>✓</span>
+                          ) : val === false ? (
+                            <span style={{ color: "rgba(255,255,255,0.15)" }}>—</span>
+                          ) : (
+                            <span style={{ color: "#f1f5f9" }}>{val as string}</span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
             <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
               Start free. From $19/mo. Pay when it becomes part of your{" "}
               <span style={{ color: accent }}>week.</span>

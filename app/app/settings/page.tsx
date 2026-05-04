@@ -101,6 +101,8 @@ function SettingsPageInner() {
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+  const [exportingData, setExportingData] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
   const [openingPortal, setOpeningPortal] = useState(false);
   const [hasStripeCustomer, setHasStripeCustomer] = useState(false);
   const [profileAvailable, setProfileAvailable] = useState(true);
@@ -1699,6 +1701,14 @@ function SettingsPageInner() {
           </div>
         </div>
 
+        {/* ─── Tier context note ─── */}
+        {(planKey === "pro" || planKey === "starter") && (
+          <p className="text-xs leading-relaxed mb-4" style={{ color: textMuted }}>
+            Your current plan: <span style={{ color: planKey === "pro" ? "#5eead4" : accent }} className="font-medium">{planKey === "pro" ? "Pro" : "Starter"}</span>.
+            {" "}All workflows are available on every plan — Pro adds CD Pass and 3× more credits.
+          </p>
+        )}
+
         {/* ─── Pro: Feature highlights ─── */}
         {planKey === "pro" && (
           <div
@@ -1924,6 +1934,50 @@ function SettingsPageInner() {
           </div>
         )}
 
+        {/* ─── Export My Data ─── */}
+        <div className="pt-6 mt-2 border-t" style={{ borderColor: border }}>
+          <button
+            onClick={async () => {
+              setExportingData(true);
+              setExportError(null);
+              try {
+                const res = await fetch("/api/account/export");
+                if (!res.ok) {
+                  const body = await res.json().catch(() => null);
+                  throw new Error(body?.error ?? `Export failed (${res.status})`);
+                }
+                const blob = await res.blob();
+                const disposition = res.headers.get("Content-Disposition") ?? "";
+                const match = disposition.match(/filename="(.+)"/);
+                const filename = match?.[1] ?? "solostack-export.json";
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+              } catch (err: unknown) {
+                setExportError(err instanceof Error ? err.message : "Export failed");
+              } finally {
+                setExportingData(false);
+              }
+            }}
+            disabled={exportingData}
+            className="w-full py-3 text-sm font-medium rounded-xl border transition-colors hover:bg-white/[0.04] cursor-pointer disabled:opacity-50"
+            style={{ color: textMuted, borderColor: border }}
+          >
+            {exportingData ? "Preparing export..." : "Export My Data"}
+          </button>
+          <p className="mt-2 text-xs text-center" style={{ color: "#475569" }}>
+            Downloads a JSON file with your profile, brand settings, and generation history.
+          </p>
+          {exportError && (
+            <p className="mt-2 text-xs text-center" style={{ color: "#f87171" }}>{exportError}</p>
+          )}
+        </div>
+
         {/* ─── Sign Out ─── */}
         <div className="pt-6 mt-2 border-t" style={{ borderColor: border }}>
           <button
@@ -1963,6 +2017,9 @@ function SettingsPageInner() {
           </a>
           <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-400 transition-colors">
             Privacy Policy
+          </a>
+          <a href="/app/settings/sub-processors" className="hover:text-slate-400 transition-colors">
+            Sub-Processors
           </a>
         </div>
       </div>
