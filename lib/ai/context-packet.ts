@@ -105,7 +105,7 @@ export function buildContextPacket(ctx: WorkspaceContext): string {
 
   // ── Usage instruction ──
   parts.push("");
-  parts.push("Use these details as source material. Anchor examples, arguments, and specificity in this business context. Do not force the company name into every output — use it only when natural. Do not make the output sound like an ad unless the workflow requires it.");
+  parts.push("Use these details as source material. Anchor examples, arguments, and specificity in this business context. When the topic directly overlaps with the product's core mechanism or operating principle, naturally reference that mechanism as the practical answer — write from this business's point of view, not just in its tone. Do not force the company name into every output — use it only when natural. Do not make the output sound like an ad unless the workflow requires it.");
 
   if (lang) {
     parts.push(`\nIMPORTANT: Always respond in ${lang}, unless the user's input is clearly written in a different language — in that case, match the user's language instead.`);
