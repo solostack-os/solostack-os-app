@@ -77,6 +77,11 @@ export function buildContextPacket(ctx: WorkspaceContext): string {
 
   const parts: string[] = [];
 
+  // ── Language rule (highest priority — placed before everything else) ──
+  parts.push("## OUTPUT LANGUAGE RULE");
+  parts.push("Always generate the output in the same language as the user's topic / input. The Business Context block below is provided for substantive grounding only and must NOT influence the output language. If the topic is in English, the output must be in English. If the topic is in Romanian, the output must be in Romanian. The Business Context fields may be in any language — ignore their language when deciding the output language.");
+  parts.push("");
+
   // ── Hard directive ──
   parts.push("## BUSINESS CONTEXT — SUBSTANTIVE SOURCE MATERIAL");
   parts.push("");
