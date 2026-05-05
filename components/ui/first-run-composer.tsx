@@ -28,6 +28,7 @@ export function FirstRunComposer({ workspaceId }: FirstRunComposerProps) {
   const [state, setState] = useState<ComposerState>("input");
 
   // Input state
+  const [freeformInput, setFreeformInput] = useState("");
   const [helpWho, setHelpWho] = useState("");
   const [helpDo, setHelpDo] = useState("");
   const [helpWithout, setHelpWithout] = useState("");
@@ -50,9 +51,9 @@ export function FirstRunComposer({ workspaceId }: FirstRunComposerProps) {
 
   // ── Handlers ──
 
-  async function handleInfer() {
-    const sentence = `I help ${helpWho.trim()} do ${helpDo.trim()} without ${helpWithout.trim()}`.trim();
-    if (!helpWho.trim() && !helpDo.trim() && !helpWithout.trim()) return;
+  async function handleInfer(description?: string) {
+    const input = description ?? freeformInput.trim();
+    if (!input) return;
 
     setState("inferring");
 
@@ -60,25 +61,25 @@ export function FirstRunComposer({ workspaceId }: FirstRunComposerProps) {
       const res = await fetch("/api/infer-context", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: sentence }),
+        body: JSON.stringify({ description: input }),
       });
       const data = await res.json();
 
       if (data.confidence === "low" && !data.audience && !data.offer) {
-        // Inference failed — go to manual editing
-        setCtx({ audience: helpWho.trim(), offer: helpDo.trim(), outcome: helpWithout.trim() });
+        // Inference failed — go to structured fallback
+        setCtx({ audience: "", offer: "", outcome: "" });
         setState("editing");
       } else {
         setCtx({
-          audience: data.audience || helpWho.trim(),
-          offer: data.offer || helpDo.trim(),
+          audience: data.audience || "",
+          offer: data.offer || "",
           outcome: data.outcome || "",
         });
         setState("confirm");
       }
     } catch {
-      // Network failure — fall back to manual editing with raw input
-      setCtx({ audience: helpWho.trim(), offer: helpDo.trim(), outcome: helpWithout.trim() });
+      // Network failure — fall back to structured editing
+      setCtx({ audience: "", offer: "", outcome: "" });
       setState("editing");
     }
   }
@@ -229,54 +230,30 @@ export function FirstRunComposer({ workspaceId }: FirstRunComposerProps) {
           Create your first useful asset in 60 seconds.
         </h2>
         <p className="text-sm mb-6 leading-relaxed" style={{ color: textMuted }}>
-          SoloStack works better when it knows what you actually do. Start with one sentence.
+          Paste your website, profile, product page, or describe your business in one sentence.
         </p>
 
         <div
           className="rounded-xl border p-6"
           style={{ backgroundColor: surface, borderColor: border }}
         >
-          <div className="flex flex-wrap items-center gap-2 text-sm" style={{ color: textMuted }}>
-            <span style={{ color: textPrimary, fontWeight: 500 }}>I help</span>
-            <input
-              type="text"
-              value={helpWho}
-              onChange={(e) => setHelpWho(e.target.value)}
-              placeholder="solo consultants"
-              className="flex-1 min-w-[140px] px-3 py-2 rounded-md border outline-none text-sm"
-              style={{ backgroundColor: "rgba(0,0,0,0.3)", borderColor: "rgba(255,255,255,0.1)", color: textPrimary }}
-            />
-            <span style={{ color: textPrimary, fontWeight: 500 }}>to</span>
-            <input
-              type="text"
-              value={helpDo}
-              onChange={(e) => setHelpDo(e.target.value)}
-              placeholder="turn client insight into marketing"
-              className="flex-1 min-w-[140px] px-3 py-2 rounded-md border outline-none text-sm"
-              style={{ backgroundColor: "rgba(0,0,0,0.3)", borderColor: "rgba(255,255,255,0.1)", color: textPrimary }}
-            />
-            <span style={{ color: textPrimary, fontWeight: 500 }}>without</span>
-            <input
-              type="text"
-              value={helpWithout}
-              onChange={(e) => setHelpWithout(e.target.value)}
-              placeholder="sounding like generic AI"
-              className="flex-1 min-w-[140px] px-3 py-2 rounded-md border outline-none text-sm"
-              style={{ backgroundColor: "rgba(0,0,0,0.3)", borderColor: "rgba(255,255,255,0.1)", color: textPrimary }}
-            />
-          </div>
-
-          <p className="text-xs mt-3 italic" style={{ color: textMuted, opacity: 0.6 }}>
-            Example: I help solo consultants turn client insight into marketing without sounding like generic AI.
-          </p>
+          <input
+            type="text"
+            value={freeformInput}
+            onChange={(e) => setFreeformInput(e.target.value)}
+            placeholder="https://yourbusiness.com or I help solo consultants turn client insight into marketing without sounding like generic AI"
+            className="w-full px-4 py-3 rounded-lg border outline-none text-sm"
+            style={{ backgroundColor: "rgba(0,0,0,0.3)", borderColor: "rgba(255,255,255,0.1)", color: textPrimary }}
+            onKeyDown={(e) => { if (e.key === "Enter") handleInfer(); }}
+          />
 
           <button
-            onClick={handleInfer}
-            disabled={!helpWho.trim() && !helpDo.trim() && !helpWithout.trim()}
-            className="mt-5 text-sm font-medium px-6 py-2.5 rounded-lg transition-colors cursor-pointer disabled:opacity-40"
+            onClick={() => handleInfer()}
+            disabled={!freeformInput.trim()}
+            className="mt-4 text-sm font-medium px-6 py-2.5 rounded-lg transition-colors cursor-pointer disabled:opacity-40"
             style={{ color: "#fff", backgroundColor: accent }}
           >
-            Create first draft
+            Understand my business
           </button>
         </div>
 
@@ -347,7 +324,7 @@ export function FirstRunComposer({ workspaceId }: FirstRunComposerProps) {
     );
   }
 
-  // EDITING STATE
+  // EDITING STATE (structured fallback)
   if (state === "editing") {
     return (
       <div className="mb-10">
@@ -355,9 +332,13 @@ export function FirstRunComposer({ workspaceId }: FirstRunComposerProps) {
           className="rounded-xl border p-6"
           style={{ backgroundColor: surface, borderColor: border }}
         >
-          {genError && (
+          {genError ? (
             <p className="text-xs mb-4" style={{ color: "#f87171" }}>{genError}</p>
-          )}
+          ) : !ctx.audience && !ctx.offer && !ctx.outcome ? (
+            <p className="text-xs mb-4" style={{ color: textMuted }}>
+              I couldn&apos;t understand enough yet. You can refine it here.
+            </p>
+          ) : null}
 
           <div className="space-y-4 mb-5">
             <div>
