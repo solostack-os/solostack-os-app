@@ -2,7 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { callClaude } from "@/lib/ai/providers/anthropic";
 
-const SYSTEM_PROMPT = `You are helping infer a provisional business context from a short user description.
+const SYSTEM_PROMPT = `You are helping infer a provisional business context from user-provided information about their business.
+
+Your job is to identify the BUSINESS behind the input — not describe a webpage, URL, or internet presence.
 
 Return JSON only with:
 {
@@ -13,12 +15,115 @@ Return JSON only with:
 }
 
 Rules:
+- Infer the business behind the content, not the function of a webpage.
+- "audience" = the actual customers or clients this business serves. Prefer concrete categories: businesses, brands, retailers, founders, consultants, clinics, agencies, authors, creators, etc. NEVER use generic audiences like "internet users", "website visitors", "potential clients", or "people online" unless the business is explicitly a web traffic / analytics / conversion product.
+- "offer" = the actual service, product, or value the business provides. Prefer concrete offers: advertising production, visual identity, consulting, marketing operations, design services, software platform, coaching, etc. NEVER say "services/products sold via [domain] website" — describe the actual service.
+- "outcome" = the real business result the customer gets. NEVER default to "attract visitors and convert them into customers" unless the business specifically sells website conversion, CRO, ads, or digital marketing.
 - Do not invent specifics that are not reasonably implied.
 - Keep each field short and plain (under 15 words each).
-- If the input is vague, make the safest useful inference and set confidence to "low".
+- If the input is ambiguous, make the safest conservative inference and set confidence to "low".
 - Do not write marketing copy.
 - Do not include explanations.
 - Return ONLY the JSON object, no markdown, no code blocks.`;
+
+/**
+ * Detect whether a string looks like a URL.
+ */
+function looksLikeUrl(input: string): boolean {
+  // Starts with http(s):// or looks like a domain (word.tld)
+  return /^https?:\/\//i.test(input) || /^[a-z0-9]([a-z0-9-]*[a-z0-9])?\.[a-z]{2,}/i.test(input);
+}
+
+/**
+ * Normalise a URL — add https:// if missing.
+ */
+function normaliseUrl(input: string): string {
+  if (/^https?:\/\//i.test(input)) return input;
+  return `https://${input}`;
+}
+
+interface PageSignals {
+  url: string;
+  title: string | null;
+  metaDescription: string | null;
+  ogTitle: string | null;
+  ogDescription: string | null;
+  headings: string[];
+  snippets: string[];
+}
+
+/**
+ * Fetch a URL and extract lightweight page signals using regex.
+ * No DOM parser needed — we only need meta tags, headings, and first paragraphs.
+ */
+async function extractPageSignals(url: string): Promise<PageSignals | null> {
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; SoloStackBot/1.0)",
+        "Accept": "text/html",
+      },
+      signal: AbortSignal.timeout(8000),
+      redirect: "follow",
+    });
+
+    if (!res.ok) return null;
+
+    const contentType = res.headers.get("content-type") || "";
+    if (!contentType.includes("text/html")) return null;
+
+    const html = await res.text();
+    // Limit processing to first 50KB to avoid huge pages
+    const chunk = html.slice(0, 50_000);
+
+    const title = chunk.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1]?.trim() || null;
+    const metaDescription = chunk.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i)?.[1]?.trim()
+      || chunk.match(/<meta[^>]*content=["']([^"']*)["'][^>]*name=["']description["']/i)?.[1]?.trim()
+      || null;
+    const ogTitle = chunk.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']*)["']/i)?.[1]?.trim()
+      || chunk.match(/<meta[^>]*content=["']([^"']*)["'][^>]*property=["']og:title["']/i)?.[1]?.trim()
+      || null;
+    const ogDescription = chunk.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["']/i)?.[1]?.trim()
+      || chunk.match(/<meta[^>]*content=["']([^"']*)["'][^>]*property=["']og:description["']/i)?.[1]?.trim()
+      || null;
+
+    // Extract h1 and h2 headings (up to 8)
+    const headings: string[] = [];
+    const hRe = /<h[12][^>]*>([\s\S]*?)<\/h[12]>/gi;
+    let hMatch: RegExpExecArray | null;
+    while ((hMatch = hRe.exec(chunk)) !== null && headings.length < 8) {
+      const text = hMatch[1].replace(/<[^>]*>/g, "").trim();
+      if (text.length > 0 && text.length < 200) headings.push(text);
+    }
+
+    // Extract first few paragraph snippets (up to 4, max 200 chars each)
+    const snippets: string[] = [];
+    const pRe = /<p[^>]*>([\s\S]*?)<\/p>/gi;
+    let pMatch: RegExpExecArray | null;
+    while ((pMatch = pRe.exec(chunk)) !== null && snippets.length < 4) {
+      const text = pMatch[1].replace(/<[^>]*>/g, "").trim();
+      if (text.length > 20 && text.length < 500) snippets.push(text.slice(0, 200));
+    }
+
+    return { url, title, metaDescription, ogTitle, ogDescription, headings, snippets };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Build a text summary of page signals for the inference prompt.
+ */
+function formatSignals(signals: PageSignals): string {
+  const lines: string[] = [`Website: ${signals.url}`];
+  if (signals.title) lines.push(`Page title: ${signals.title}`);
+  if (signals.ogTitle && signals.ogTitle !== signals.title) lines.push(`OG title: ${signals.ogTitle}`);
+  if (signals.metaDescription) lines.push(`Meta description: ${signals.metaDescription}`);
+  if (signals.ogDescription && signals.ogDescription !== signals.metaDescription) lines.push(`OG description: ${signals.ogDescription}`);
+  if (signals.headings.length > 0) lines.push(`Headings: ${signals.headings.join(" | ")}`);
+  if (signals.snippets.length > 0) lines.push(`Page snippets:\n${signals.snippets.map(s => `- ${s}`).join("\n")}`);
+  return lines.join("\n");
+}
 
 export async function POST(request: Request) {
   const supabase = createClient();
@@ -44,9 +149,29 @@ export async function POST(request: Request) {
       });
     }
 
+    // If input looks like a URL, fetch and extract page signals
+    let userInput: string;
+    if (looksLikeUrl(description)) {
+      const url = normaliseUrl(description);
+      const signals = await extractPageSignals(url);
+
+      if (signals) {
+        // Dev-only logging of extracted signals
+        if (process.env.NODE_ENV === "development") {
+          console.log("[infer-context] Extracted page signals:", JSON.stringify(signals, null, 2));
+        }
+        userInput = `The user provided a website URL. Here is what I extracted from the page:\n\n${formatSignals(signals)}\n\nBased on this, infer what business this is, who their customers are, what they offer, and what outcome they deliver.`;
+      } else {
+        // Fetch failed — use the URL as-is
+        userInput = `The user provided a URL: ${description}\nI could not fetch the page. Based on the domain name alone, make a conservative inference about what business this might be. Set confidence to "low".`;
+      }
+    } else {
+      userInput = `The user describes their business as:\n${description}`;
+    }
+
     const result = await callClaude(
       SYSTEM_PROMPT,
-      `Input:\n${description}`,
+      userInput,
     );
 
     // Strip markdown code fences if the model wraps the JSON
