@@ -20,6 +20,7 @@ interface InferredContext {
   outcome: string;
   description?: string | null;
   business_type?: string | null;
+  company_name?: string | null;
 }
 
 interface FirstRunComposerProps {
@@ -80,6 +81,7 @@ export function FirstRunComposer({ workspaceId, onDismiss }: FirstRunComposerPro
           outcome: data.outcome || "",
           description: data.description || null,
           business_type: data.business_type || null,
+          company_name: data.company_name || null,
         });
         setState("confirm");
       }
@@ -106,7 +108,7 @@ export function FirstRunComposer({ workspaceId, onDismiss }: FirstRunComposerPro
     try {
       const { data: wsRow } = await supabase
         .from("workspaces")
-        .select("description, industry")
+        .select("description, industry, website, company_name")
         .eq("id", workspaceId)
         .single();
       if (wsRow) existingWs = wsRow as Record<string, string | null>;
@@ -149,7 +151,7 @@ export function FirstRunComposer({ workspaceId, onDismiss }: FirstRunComposerPro
       return;
     }
 
-    // 4. Save to workspaces table (description, industry) — only fill empty fields
+    // 4. Save to workspaces table (description, industry, website, company_name) — only fill empty fields
     const wsPatch: Record<string, string> = {};
     if (context.description && !existingWs.description?.trim()) {
       wsPatch.description = context.description;
@@ -158,6 +160,19 @@ export function FirstRunComposer({ workspaceId, onDismiss }: FirstRunComposerPro
     if (context.business_type && !existingWs.industry?.trim()) {
       wsPatch.industry = context.business_type;
       // Don't double-count — "business type" already added above if applicable
+    }
+    // Gap 1: Save URL to website field (deterministic — no AI needed)
+    const inputUrl = freeformInput.trim();
+    if (inputUrl && (/^https?:\/\//i.test(inputUrl) || /^[a-z0-9]([a-z0-9-]*[a-z0-9])?\.[a-z]{2,}/i.test(inputUrl))) {
+      if (!existingWs.website?.trim()) {
+        wsPatch.website = /^https?:\/\//i.test(inputUrl) ? inputUrl : `https://${inputUrl}`;
+        filled.push("website");
+      }
+    }
+    // Gap 2: Save company_name from AI extraction
+    if (context.company_name && !existingWs.company_name?.trim()) {
+      wsPatch.company_name = context.company_name;
+      filled.push("company name");
     }
 
     if (Object.keys(wsPatch).length > 0) {

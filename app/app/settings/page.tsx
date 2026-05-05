@@ -112,6 +112,8 @@ function SettingsPageInner() {
   const [companyName, setCompanyName] = useState("");
   const [website, setWebsite] = useState("");
   const [industry, setIndustry] = useState("");
+  const [targetAudience, setTargetAudience] = useState("");
+  const [offer, setOffer] = useState("");
   const [description, setDescription] = useState("");
   const [brandVoice, setBrandVoice] = useState("");
   const [useBrandContext, setUseBrandContext] = useState(true);
@@ -368,6 +370,17 @@ function SettingsPageInner() {
         setCompanyPhone(workspace.company_phone ?? "");
         setCompanyEmail(workspace.company_email ?? "");
         setIncludeCompanyDetails(workspace.include_company_details ?? true);
+
+        // Load workspace_context fields (target_audience, offer)
+        const { data: wsCtx } = await supabase
+          .from("workspace_context")
+          .select("target_audience, offer")
+          .eq("workspace_id", workspace.id)
+          .single();
+        if (wsCtx) {
+          setTargetAudience((wsCtx as { target_audience?: string | null }).target_audience ?? "");
+          setOffer((wsCtx as { offer?: string | null }).offer ?? "");
+        }
 
         const [subRes2, custRes] = await Promise.all([
           supabase
@@ -761,6 +774,18 @@ function SettingsPageInner() {
       }
     }
 
+    // Also save target_audience and offer to workspace_context
+    if (workspaceId) {
+      await fetch("/api/workspace/context", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          target_audience: targetAudience.trim() || null,
+          offer: offer.trim() || null,
+        }),
+      });
+    }
+
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -1033,6 +1058,38 @@ function SettingsPageInner() {
                 className={inputClass}
                 style={inputStyle}
               />
+            </div>
+
+            {/* Target Audience */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Target Audience</label>
+              <input
+                type="text"
+                value={targetAudience}
+                onChange={(e) => setTargetAudience(e.target.value.slice(0, 500))}
+                placeholder="Who you help — be specific."
+                className={inputClass}
+                style={inputStyle}
+              />
+              <div className="flex justify-end mt-1">
+                <span className="text-[11px] tabular-nums" style={{ color: targetAudience.length >= 450 ? "#fb923c" : textMuted }}>{targetAudience.length}/500</span>
+              </div>
+            </div>
+
+            {/* Offer */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1.5" style={{ color: textPrimary }}>Offer</label>
+              <input
+                type="text"
+                value={offer}
+                onChange={(e) => setOffer(e.target.value.slice(0, 500))}
+                placeholder="What you do for them — keep it concrete."
+                className={inputClass}
+                style={inputStyle}
+              />
+              <div className="flex justify-end mt-1">
+                <span className="text-[11px] tabular-nums" style={{ color: offer.length >= 450 ? "#fb923c" : textMuted }}>{offer.length}/500</span>
+              </div>
             </div>
 
             {/* Description */}

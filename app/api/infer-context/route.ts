@@ -13,6 +13,7 @@ Return JSON only with:
   "outcome": "...",
   "description": "...",
   "business_type": "...",
+  "company_name": "...",
   "confidence": "low|medium|high"
 }
 
@@ -23,6 +24,7 @@ Rules:
 - "outcome" = the real business result the customer gets. NEVER default to "attract visitors and convert them into customers" unless the business specifically sells website conversion, CRO, ads, or digital marketing.
 - "description" = a 1-2 sentence plain summary of what this business does. Write it as a neutral fact, not marketing copy.
 - "business_type" = the category of business (e.g. "SaaS", "agency", "consultancy", "e-commerce", "freelance", "clinic", "studio"). One or two words max.
+- "company_name" = the brand or company name. For page titles like "SoloStack OS — AI Operating System", extract only the brand part (before the em-dash, pipe, or colon). Set to null if uncertain.
 - Do not invent specifics that are not reasonably implied.
 - Keep each field short and plain (under 15 words each, except description which can be 1-2 sentences).
 - If a field cannot be inferred with reasonable confidence, set it to null.
@@ -205,6 +207,7 @@ export async function POST(request: Request) {
       outcome: String(parsed.outcome || "").slice(0, 200),
       description: parsed.description ? String(parsed.description).slice(0, 500) : null,
       business_type: parsed.business_type ? String(parsed.business_type).slice(0, 100) : null,
+      company_name: parsed.company_name ? String(parsed.company_name).slice(0, 200) : null,
       confidence: ["low", "medium", "high"].includes(parsed.confidence)
         ? parsed.confidence
         : "low",
@@ -217,6 +220,7 @@ export async function POST(request: Request) {
       outcome: "",
       description: null,
       business_type: null,
+      company_name: null,
       confidence: "low" as const,
     });
   }
