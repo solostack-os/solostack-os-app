@@ -138,7 +138,7 @@ export function runSocialPosts(
   // Injection order: general context first, specific brief last (nearest to the
   // "generate" instruction) so the model keeps the brief in sharp focus.
   const userPrompt = `Write ${count} ${input.platform} ${postWord} for the following brief.
-${brandContext ? `\nBRAND CONTEXT:\n${brandContext}\n` : ""}
+${brandContext ? `\n${brandContext}\n` : ""}
 VOICE REGISTER: ${registerDef.label}
 ${registerDef.description}
 NOTE: The examples above are for tone and style calibration only. They do not define the output language.

@@ -31,7 +31,7 @@ const ALLOWED_PLANS = ["pro"];
 
 function buildSystemPrompt(brandContext: string, preferredLanguage: string | null): string {
   const brandSection = brandContext
-    ? `\nBRAND CONTEXT (use this to calibrate examples to this specific brand):\n${brandContext}\nGenerate examples calibrated to THIS specific brand, not generic industry patterns. The examples should feel like they were written for this company's positioning and voice.\n`
+    ? `\n${brandContext}\n`
     : "";
 
   const languageInstruction = preferredLanguage

@@ -99,7 +99,7 @@ export function runVoScript(
     : `\nINCLUDE DIRECTION NOTES: No — output clean script text only, no parenthetical cues.`;
 
   const userPrompt = `Write a voiceover script for the following brief.
-${brandContext ? `\nBRAND CONTEXT:\n${brandContext}\n` : ""}
+${brandContext ? `\n${brandContext}\n` : ""}
 FORMAT: ${formatGuidance[input.format]}
 PACE: ${paceLabel} (${paceWordsPerSecond[input.pace].min}–${paceWordsPerSecond[input.pace].max} words per second)
 ${goalContext[input.goal]}

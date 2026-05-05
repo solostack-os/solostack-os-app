@@ -91,7 +91,7 @@ function buildPreamble(
   goal: AdCopyInput["goal"],
   topic: string,
 ): string {
-  return `${brandContext ? `BRAND CONTEXT:\n${brandContext}\n\n` : ""}VOICE REGISTER: ${registerDef.label}
+  return `${brandContext ? `${brandContext}\n\n` : ""}VOICE REGISTER: ${registerDef.label}
 ${registerDef.description}
 NOTE: The examples above are for tone and style calibration only. They do not define the output language.
 ${goodExamples ? `\nPOSITIVE STYLISTIC ANCHORS — emulate the register, structure, and tone of these examples:\n${goodExamples}\n` : ""}${badExamples ? `\nNEGATIVE ANTI-PATTERNS — actively steer away from this register, vocabulary, and structure:\n${badExamples}\n` : ""}
