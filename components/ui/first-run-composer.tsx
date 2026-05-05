@@ -18,6 +18,8 @@ interface InferredContext {
   audience: string;
   offer: string;
   outcome: string;
+  description?: string | null;
+  business_type?: string | null;
 }
 
 interface FirstRunComposerProps {
@@ -39,6 +41,9 @@ export function FirstRunComposer({ workspaceId, onDismiss }: FirstRunComposerPro
   const [outputText, setOutputText] = useState("");
   const [genError, setGenError] = useState<string | null>(null);
   const streamRef = useRef<HTMLDivElement | null>(null);
+
+  // Saved fields tracking (for inline confirmation)
+  const [savedFields, setSavedFields] = useState<string[]>([]);
 
   // Refinement CTA state
   const [refinementValue, setRefinementValue] = useState("");
@@ -73,6 +78,8 @@ export function FirstRunComposer({ workspaceId, onDismiss }: FirstRunComposerPro
           audience: data.audience || "",
           offer: data.offer || "",
           outcome: data.outcome || "",
+          description: data.description || null,
+          business_type: data.business_type || null,
         });
         setState("confirm");
       }
@@ -84,33 +91,56 @@ export function FirstRunComposer({ workspaceId, onDismiss }: FirstRunComposerPro
   }
 
   async function saveContextAndGenerate(context: InferredContext) {
-    // 1. Read existing brand_notes to append (not overwrite)
-    let existingNotes = "";
+    // 1. Read existing workspace_context and workspaces to avoid overwriting
+    let existingCtx: Record<string, string | null> = {};
+    let existingWs: Record<string, string | null> = {};
     try {
       const { data: ctxRow } = await supabase
         .from("workspace_context")
-        .select("brand_notes")
+        .select("target_audience, offer, brand_notes, business_type")
         .eq("workspace_id", workspaceId)
         .single();
-      existingNotes = ctxRow?.brand_notes?.trim() || "";
-    } catch {
-      // No existing row — that's fine
+      if (ctxRow) existingCtx = ctxRow as Record<string, string | null>;
+    } catch { /* no row */ }
+
+    try {
+      const { data: wsRow } = await supabase
+        .from("workspaces")
+        .select("description, industry")
+        .eq("id", workspaceId)
+        .single();
+      if (wsRow) existingWs = wsRow as Record<string, string | null>;
+    } catch { /* no row */ }
+
+    // 2. Build workspace_context patch — only fill empty fields
+    const ctxPatch: Record<string, string> = {};
+    const filled: string[] = [];
+
+    if (context.audience && !existingCtx.target_audience?.trim()) {
+      ctxPatch.target_audience = context.audience;
+      filled.push("audience");
+    }
+    if (context.offer && !existingCtx.offer?.trim()) {
+      ctxPatch.offer = context.offer;
+      filled.push("offer");
+    }
+    if (context.business_type && !existingCtx.business_type?.trim()) {
+      ctxPatch.business_type = context.business_type;
+      filled.push("business type");
     }
 
+    // Append first-run block to brand_notes (never overwrite)
+    const existingNotes = existingCtx.brand_notes?.trim() || "";
     const newBlock = `First-run confirmed context:\nAudience: ${context.audience}\nOffer / problem: ${context.offer}\nDesired outcome: ${context.outcome}`;
-    const updatedNotes = existingNotes
+    ctxPatch.brand_notes = existingNotes
       ? `${existingNotes}\n\n${newBlock}`
       : newBlock;
 
-    // 2. Save context — await before generating
+    // 3. Save workspace_context — await before generating
     const saveRes = await fetch("/api/workspace/context", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        target_audience: context.audience,
-        offer: context.offer,
-        brand_notes: updatedNotes,
-      }),
+      body: JSON.stringify(ctxPatch),
     });
 
     if (!saveRes.ok) {
@@ -118,6 +148,26 @@ export function FirstRunComposer({ workspaceId, onDismiss }: FirstRunComposerPro
       setState("editing");
       return;
     }
+
+    // 4. Save to workspaces table (description, industry) — only fill empty fields
+    const wsPatch: Record<string, string> = {};
+    if (context.description && !existingWs.description?.trim()) {
+      wsPatch.description = context.description;
+      filled.push("description");
+    }
+    if (context.business_type && !existingWs.industry?.trim()) {
+      wsPatch.industry = context.business_type;
+      // Don't double-count — "business type" already added above if applicable
+    }
+
+    if (Object.keys(wsPatch).length > 0) {
+      await supabase
+        .from("workspaces")
+        .update(wsPatch)
+        .eq("id", workspaceId);
+    }
+
+    setSavedFields(filled);
 
     // 3. Generate LinkedIn post
     setState("generating");
@@ -446,6 +496,14 @@ export function FirstRunComposer({ workspaceId, onDismiss }: FirstRunComposerPro
           {outputText}
         </div>
       </div>
+
+      {/* Saved fields confirmation */}
+      {savedFields.length > 0 && (
+        <div className="mt-3 px-4 py-2.5 rounded-lg text-xs" style={{ backgroundColor: "rgba(108,140,255,0.08)", color: accent }}>
+          Saved to your Business Context: {savedFields.join(", ")}. You can review and edit anytime in{" "}
+          <Link href="/app/settings" style={{ textDecoration: "underline", textUnderlineOffset: "2px" }}>Settings</Link>.
+        </div>
+      )}
 
       {/* Refinement CTA */}
       {!refinementDismissed && !refinementSaved && (

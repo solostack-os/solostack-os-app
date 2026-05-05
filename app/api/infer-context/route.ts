@@ -11,6 +11,8 @@ Return JSON only with:
   "audience": "...",
   "offer": "...",
   "outcome": "...",
+  "description": "...",
+  "business_type": "...",
   "confidence": "low|medium|high"
 }
 
@@ -19,9 +21,12 @@ Rules:
 - "audience" = the actual customers or clients this business serves. Prefer concrete categories: businesses, brands, retailers, founders, consultants, clinics, agencies, authors, creators, etc. NEVER use generic audiences like "internet users", "website visitors", "potential clients", or "people online" unless the business is explicitly a web traffic / analytics / conversion product.
 - "offer" = the actual service, product, or value the business provides. Prefer concrete offers: advertising production, visual identity, consulting, marketing operations, design services, software platform, coaching, etc. NEVER say "services/products sold via [domain] website" — describe the actual service.
 - "outcome" = the real business result the customer gets. NEVER default to "attract visitors and convert them into customers" unless the business specifically sells website conversion, CRO, ads, or digital marketing.
+- "description" = a 1-2 sentence plain summary of what this business does. Write it as a neutral fact, not marketing copy.
+- "business_type" = the category of business (e.g. "SaaS", "agency", "consultancy", "e-commerce", "freelance", "clinic", "studio"). One or two words max.
 - Do not invent specifics that are not reasonably implied.
-- Keep each field short and plain (under 15 words each).
-- If the input is ambiguous, make the safest conservative inference and set confidence to "low".
+- Keep each field short and plain (under 15 words each, except description which can be 1-2 sentences).
+- If a field cannot be inferred with reasonable confidence, set it to null.
+- If the overall input is ambiguous, set confidence to "low".
 - Do not write marketing copy.
 - Do not include explanations.
 - Return ONLY the JSON object, no markdown, no code blocks.`;
@@ -53,28 +58,42 @@ interface PageSignals {
 }
 
 /**
+ * Block localhost, private IPs, and link-local addresses.
+ */
+function isPrivateUrl(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname;
+    return /^(localhost|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|0\.0\.0\.0|::1|\[::1\]|fe80)/i.test(hostname);
+  } catch {
+    return true;
+  }
+}
+
+/**
  * Fetch a URL and extract lightweight page signals using regex.
- * No DOM parser needed — we only need meta tags, headings, and first paragraphs.
+ * Safety: 5s timeout, 100KB limit, block private IPs, only accept 200.
  */
 async function extractPageSignals(url: string): Promise<PageSignals | null> {
+  if (isPrivateUrl(url)) return null;
+
   try {
     const res = await fetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; SoloStackBot/1.0)",
         "Accept": "text/html",
       },
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(5000),
       redirect: "follow",
     });
 
-    if (!res.ok) return null;
+    if (res.status !== 200) return null;
 
     const contentType = res.headers.get("content-type") || "";
     if (!contentType.includes("text/html")) return null;
 
     const html = await res.text();
-    // Limit processing to first 50KB to avoid huge pages
-    const chunk = html.slice(0, 50_000);
+    // Limit processing to first 100KB
+    const chunk = html.slice(0, 100_000);
 
     const title = chunk.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1]?.trim() || null;
     const metaDescription = chunk.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i)?.[1]?.trim()
@@ -184,6 +203,8 @@ export async function POST(request: Request) {
       audience: String(parsed.audience || "").slice(0, 200),
       offer: String(parsed.offer || "").slice(0, 200),
       outcome: String(parsed.outcome || "").slice(0, 200),
+      description: parsed.description ? String(parsed.description).slice(0, 500) : null,
+      business_type: parsed.business_type ? String(parsed.business_type).slice(0, 100) : null,
       confidence: ["low", "medium", "high"].includes(parsed.confidence)
         ? parsed.confidence
         : "low",
@@ -194,6 +215,8 @@ export async function POST(request: Request) {
       audience: "",
       offer: "",
       outcome: "",
+      description: null,
+      business_type: null,
       confidence: "low" as const,
     });
   }
