@@ -71,6 +71,8 @@ interface OutputCardsProps {
    * false at page load).
    */
   showContextCta?: boolean;
+  /** Called when the context CTA is dismissed or saved, so the parent can flip isFirstGeneration off. */
+  onContextCtaDismiss?: () => void;
 }
 
 export function OutputCards({
@@ -82,6 +84,7 @@ export function OutputCards({
   contentType,
   onClear,
   showContextCta = false,
+  onContextCtaDismiss,
 }: OutputCardsProps) {
   const [exportingIdx, setExportingIdx] = useState<number | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -267,7 +270,7 @@ export function OutputCards({
           </div>
         );
       })}
-      {showContextCta && <ContextCta />}
+      {showContextCta && <ContextCta onDismiss={onContextCtaDismiss} />}
     </div>
   );
 }

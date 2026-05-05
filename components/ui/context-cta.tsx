@@ -12,7 +12,11 @@ const accent = "#6c8cff";
  * business detail. Saves it to workspace_context.brand_notes by appending.
  * Shows only once per session (dismissed after save or manual close).
  */
-export function ContextCta() {
+interface ContextCtaProps {
+  onDismiss?: () => void;
+}
+
+export function ContextCta({ onDismiss }: ContextCtaProps) {
   const [visible, setVisible] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const [value, setValue] = useState("");
@@ -58,6 +62,7 @@ export function ContextCta() {
       });
 
       setSaved(true);
+      onDismiss?.();
       setTimeout(() => setVisible(false), 2000);
     } finally {
       setSaving(false);
@@ -94,7 +99,7 @@ export function ContextCta() {
               Add
             </button>
             <button
-              onClick={() => setVisible(false)}
+              onClick={() => { setVisible(false); onDismiss?.(); }}
               className="text-xs px-2 py-1.5 rounded-md transition-opacity opacity-50 hover:opacity-100 cursor-pointer"
               style={{ color: textMuted }}
               aria-label="Dismiss"
