@@ -12,7 +12,7 @@ import { getStoredTouch, getUtmDataForSignup, clearStoredTouch } from "@/lib/utm
 import { trackEvent } from "@/lib/track";
 import { stripMarkdown } from "@/components/ui/output-cards";
 import { HeroCard, type HeroCompletionState } from "@/components/hero-card";
-import { ActivationPanel } from "@/components/ui/activation-panel";
+import { FirstRunComposer } from "@/components/ui/first-run-composer";
 
 interface RecentRun {
   id: string;
@@ -140,6 +140,7 @@ export default function DashboardPage() {
   const [exportingRunId, setExportingRunId] = useState<string | null>(null);
   const [heroCompletion, setHeroCompletion] = useState<HeroCompletionState>({ socialPosts: false, coldEmail: false, sopGenerator: false });
   const [hasGenerated, setHasGenerated] = useState(true); // default true to avoid flash
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -191,6 +192,8 @@ export default function DashboardPage() {
         setLoading(false);
         return;
       }
+
+      setWorkspaceId(workspace_id);
 
       // ── Step 2: All dashboard data in ONE parallel batch ──────────────────────
       // Previously these were 5 sequential awaits; now they fire simultaneously.
@@ -504,10 +507,10 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        {/* ─── Activation Panel (brand-new users with zero generations) ─── */}
-        {!hasGenerated && (
-          <div style={fadeUp(1)} className="mb-10">
-            <ActivationPanel />
+        {/* ─── First-Run Composer (brand-new users with zero generations) ─── */}
+        {!hasGenerated && workspaceId && (
+          <div style={fadeUp(1)}>
+            <FirstRunComposer workspaceId={workspaceId} />
           </div>
         )}
 
