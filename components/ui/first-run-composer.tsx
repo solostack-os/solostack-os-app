@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 /* ─── Design tokens (matching dashboard) ─── */
@@ -508,6 +509,43 @@ export function FirstRunComposer({ workspaceId }: FirstRunComposerProps) {
         <div className="mt-4 px-4 py-3 rounded-lg text-xs" style={{ backgroundColor: "rgba(108,140,255,0.08)", color: accent }}>
           <p className="font-medium">Saved to Business Context.</p>
           <p className="mt-0.5 opacity-80">Future outputs will start with more of what you actually know.</p>
+        </div>
+      )}
+
+      {/* Next steps — shown after refinement CTA is resolved (saved or skipped) */}
+      {(refinementSaved || refinementDismissed) && (
+        <div className="mt-6 rounded-lg border px-5 py-4" style={{ borderColor: border, backgroundColor: "rgba(17,24,39,0.6)" }}>
+          <p className="text-sm font-medium mb-1" style={{ color: textPrimary }}>
+            {refinementSaved
+              ? "Good. SoloStack now knows a little more about your business."
+              : "You can add more Business Context later."}
+          </p>
+          <p className="text-xs mb-4" style={{ color: textMuted }}>
+            What would you like to do next?
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/app/marketing"
+              className="text-xs font-medium px-4 py-2 rounded-lg transition-colors"
+              style={{ color: "#fff", backgroundColor: accent }}
+            >
+              Create another LinkedIn post
+            </Link>
+            <Link
+              href="/app/outreach"
+              className="text-xs font-medium px-4 py-2 rounded-lg transition-colors"
+              style={{ color: accent, backgroundColor: "rgba(108,140,255,0.1)" }}
+            >
+              Write a cold email
+            </Link>
+            <Link
+              href="/app/dashboard"
+              className="text-xs px-4 py-2 rounded-lg transition-opacity opacity-60 hover:opacity-100"
+              style={{ color: textMuted }}
+            >
+              Explore all workflows
+            </Link>
+          </div>
         </div>
       )}
     </div>
