@@ -8,6 +8,10 @@ New users with `has_generated = false` land on a passive dashboard. The current 
 
 Replace the passive activation panel with an interactive **First-Run Composer** that helps a new user create one useful LinkedIn post in under 60 seconds — without leaving the dashboard, choosing a workflow, or filling in Settings.
 
+## Prerequisites
+
+- `workspaces.has_generated` column already exists and is already flipped to `true` by `/api/runs/route.ts` after a successful persisted generation. **Verified:** migration `add_has_generated.sql` adds the column; route.ts lines 442-448 perform the idempotent update.
+
 ## Constraints
 
 - No new DB columns or schema changes.
@@ -116,24 +120,27 @@ On parse failure, network error, or any exception: return `{ audience: "", offer
 
 When the user confirms (either "Yes" from `confirm` state or submits from `editing` state):
 
-1. Build the context string:
+1. Build the context block to append to `brand_notes`:
    ```
+   First-run confirmed context:
    Audience: [audience]
    Offer / problem: [offer]
    Desired outcome: [outcome]
    ```
 
-2. `PATCH /api/workspace/context` with:
+2. Read the current `brand_notes` value from `workspace_context` (client-side Supabase query, same pattern as `ContextCta`). Append the new block with a separator (`\n\n`), preserving any existing content.
+
+3. `PATCH /api/workspace/context` with:
    ```json
    {
      "target_audience": "[audience]",
      "offer": "[offer]",
-     "brand_notes": "Audience: [audience]\nOffer / problem: [offer]\nDesired outcome: [outcome]"
+     "brand_notes": "[existing content]\n\nFirst-run confirmed context:\nAudience: [audience]\nOffer / problem: [offer]\nDesired outcome: [outcome]"
    }
    ```
-   This saves `audience` and `offer` into their dedicated fields AND preserves the full confirmed context (including outcome) in `brand_notes`.
+   This saves `audience` and `offer` into their dedicated fields AND appends the full confirmed context (including outcome) to `brand_notes` without overwriting existing content.
 
-3. **Await the PATCH response successfully** before proceeding to generation.
+4. **Await the PATCH response successfully** before proceeding to generation.
 
 ---
 
@@ -153,7 +160,9 @@ After context save succeeds:
      }
    }
    ```
-   The topic includes the confirmed context as a fallback. The saved Business Context (via `buildContextPacket`) does the heavy lifting, but this prevents weak output if context injection fails or lags.
+   `/api/runs` resolves the workspace from the authenticated user session — no `workspace_id` needed in the request body. The payload is `{ module_key, workflow_key, input_json }` only.
+
+   `num_posts` is the existing field name used by the `social_posts` workflow (confirmed in `SocialPostsInput` interface). The topic includes the confirmed context as a fallback. The saved Business Context (via `buildContextPacket`) does the heavy lifting, but this prevents weak output if context injection fails or lags.
 
 2. Stream the response using the same `fetch` + `ReadableStream` + ref-based text update pattern used by the marketing page (no React re-renders during streaming).
 
@@ -175,6 +184,8 @@ This is a real run — it costs credits, creates a run record, inserts an output
 ```
 I help [___________] do [___________] without [___________]
 ```
+
+**Example:** *I help solo consultants turn client insight into marketing without sounding like generic AI.*
 
 **Button:** Create first draft
 
@@ -236,7 +247,7 @@ In `app/app/dashboard/page.tsx`:
 - The composer renders inline above the rest of the dashboard — not a modal, not an overlay.
 - Normal navigation (sidebar, module links) remains available at all times.
 - After `has_generated` flips (run completes), the composer stays visible for the current session (the user is viewing their output). On next dashboard load, `has_generated = true` → hero card renders instead.
-- The `workspaceId` prop is needed so the composer can call `/api/runs` (which is workspace-scoped) without a redundant fetch.
+- The `workspaceId` prop is passed for the context save flow (reading existing `brand_notes`). The `/api/runs` call itself resolves workspace from the authenticated session — no `workspaceId` in the request body.
 
 ---
 
@@ -248,6 +259,6 @@ In `app/app/dashboard/page.tsx`:
 - Credit special-casing or free runs
 - New DB columns or schema changes
 - Changes to Settings UI
-- Changes to onboarding flow
+- Changes to the legacy tour, Settings onboarding, or account creation flow
 - Smart context extraction or field mapping
 - Anti-abuse logic
