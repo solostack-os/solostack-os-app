@@ -63,10 +63,10 @@ export async function POST(request: Request) {
       let brandContext: string | null = null;
       let preferredLanguage: string | null = null;
 
-      // Best-effort workspace fetch — if it fails, suggestions remain generic.
+      // Best-effort workspace + context fetch — if it fails, suggestions remain generic.
       const { data: wsForSuggest } = await supabase
         .from("workspaces")
-        .select("company_name, industry, description, brand_voice, use_brand_context, preferred_language")
+        .select("id, company_name, industry, description, brand_voice, use_brand_context, preferred_language")
         .eq("owner_user_id", user.id)
         .single();
 
@@ -75,8 +75,16 @@ export async function POST(request: Request) {
 
         const useBrand = (wsForSuggest as { use_brand_context?: boolean | null }).use_brand_context ?? true;
         if (useBrand) {
+          // Fetch workspace_context so topic suggestions get substantive fields too.
+          const { data: ctxForSuggest } = await supabase
+            .from("workspace_context")
+            .select("main_goal, business_type, offer, target_audience, tone, brand_notes")
+            .eq("workspace_id", wsForSuggest.id)
+            .single();
+
           const { buildContextPacket } = await import("@/lib/ai/context-packet");
           brandContext = buildContextPacket({
+            ...(ctxForSuggest ?? {}),
             company_name: wsForSuggest.company_name,
             industry: wsForSuggest.industry,
             description: wsForSuggest.description,

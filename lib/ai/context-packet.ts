@@ -26,18 +26,19 @@ export function currentDate(): string {
 }
 
 /**
- * Build the brand-context prefix that gets prepended to every AI system prompt.
+ * Build the business-context block injected into every AI prompt.
  *
  * - When `use_brand_context` is explicitly false, returns an empty string so the
- *   workflow falls back to a generic prompt with no brand injection.
- * - Otherwise returns a single sentence describing who the AI is writing for,
- *   using whichever profile fields are populated. Missing fields are skipped
- *   gracefully so a partially-filled profile still produces a clean sentence.
+ *   workflow falls back to a generic prompt with no context injection.
+ * - Otherwise returns a structured block that includes both identity/voice fields
+ *   AND substantive business fields (audience, offer, positioning, etc.).
+ *   The model is instructed to treat these as source material — shaping examples,
+ *   arguments, angles, and specificity — not just tone.
+ * - Missing fields are skipped gracefully so a partially-filled profile still
+ *   produces a clean block.
  * - If `preferred_language` is set, appends a language instruction at the end.
- *   This is overridden naturally when the user writes their input in a different
- *   language — the model will follow the input language instead.
  *
- * Callers should treat an empty return value as "no brand context" and avoid
+ * Callers should treat an empty return value as "no business context" and avoid
  * rendering any surrounding labels around it.
  */
 export function buildContextPacket(ctx: WorkspaceContext): string {
@@ -55,15 +56,31 @@ export function buildContextPacket(ctx: WorkspaceContext): string {
   const description = ctx.description?.trim();
   const voice = ctx.brand_voice?.trim();
   const lang = ctx.preferred_language?.trim();
+  const audience = ctx.target_audience?.trim();
+  const offer = ctx.offer?.trim();
+  const businessType = ctx.business_type?.trim();
+  const mainGoal = ctx.main_goal?.trim();
+  const tone = ctx.tone?.trim();
+  const brandNotes = ctx.brand_notes?.trim();
 
   // If the user hasn't filled in anything meaningful, only inject language if set.
-  if (!company && !industry && !description && !voice) {
+  if (
+    !company && !industry && !description && !voice &&
+    !audience && !offer && !businessType && !mainGoal && !tone && !brandNotes
+  ) {
     if (lang) {
       return `IMPORTANT: Always respond in ${lang}, unless the user's input is clearly written in a different language — in that case, match the user's language instead.`;
     }
     return "";
   }
 
+  const parts: string[] = [];
+
+  // ── Guiding principle ──
+  parts.push("A topic gives direction. The saved Business Context gives judgment. If Business Context exists, use it to make the output specific to this business — not just in tone, but in substance: examples, arguments, angles, specificity, and recommendations.");
+  parts.push("");
+
+  // ── Identity ──
   const subject =
     company && industry
       ? `${company}, a ${industry} business`
@@ -72,15 +89,27 @@ export function buildContextPacket(ctx: WorkspaceContext): string {
       : industry
       ? `a ${industry} business`
       : "this business";
+  parts.push(`Business: ${subject}.`);
 
-  const parts: string[] = [`You are writing for ${subject}.`];
-  if (description) parts.push(`About the business: ${description}.`);
-  if (voice) parts.push(`Brand voice: ${voice}.`);
-  parts.push("Write in this brand's voice and style.");
+  // ── Substantive fields ──
+  if (description) parts.push(`What they do: ${description}`);
+  if (offer) parts.push(`Offer: ${offer}`);
+  if (businessType) parts.push(`Business type: ${businessType}`);
+  if (audience) parts.push(`Target audience: ${audience}`);
+  if (mainGoal) parts.push(`Main goal: ${mainGoal}`);
+  if (brandNotes) parts.push(`Positioning & notes: ${brandNotes}`);
+
+  // ── Voice / tone (stylistic layer) ──
+  if (voice) parts.push(`Brand voice: ${voice}`);
+  if (tone) parts.push(`Tone: ${tone}`);
+
+  // ── Usage instruction ──
+  parts.push("");
+  parts.push("Use these details as source material. Anchor examples, arguments, and specificity in this business context. Do not force the company name into every output — use it only when natural. Do not make the output sound like an ad unless the workflow requires it.");
 
   if (lang) {
-    parts.push(`IMPORTANT: Always respond in ${lang}, unless the user's input is clearly written in a different language — in that case, match the user's language instead.`);
+    parts.push(`\nIMPORTANT: Always respond in ${lang}, unless the user's input is clearly written in a different language — in that case, match the user's language instead.`);
   }
 
-  return parts.join(" ");
+  return parts.join("\n");
 }
