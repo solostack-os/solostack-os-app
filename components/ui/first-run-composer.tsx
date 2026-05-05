@@ -29,9 +29,6 @@ export function FirstRunComposer({ workspaceId }: FirstRunComposerProps) {
 
   // Input state
   const [freeformInput, setFreeformInput] = useState("");
-  const [helpWho, setHelpWho] = useState("");
-  const [helpDo, setHelpDo] = useState("");
-  const [helpWithout, setHelpWithout] = useState("");
 
   // Inferred / editing context
   const [ctx, setCtx] = useState<InferredContext>({ audience: "", offer: "", outcome: "" });
