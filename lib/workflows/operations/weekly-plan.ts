@@ -26,7 +26,9 @@ export function runWeeklyPlan(
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `${brandPrefix}You are an expert productivity strategist. You create realistic, actionable weekly plans that help solopreneurs and small teams stay focused and make progress on what matters.
+  const systemPrompt = `${brandPrefix}LANGUAGE: Always generate the output in the same language as the user's input. The Business Context block is for substantive grounding only and must NOT influence the output language.
+
+You are an expert productivity strategist. You create realistic, actionable weekly plans that help solopreneurs and small teams stay focused and make progress on what matters.
 
 Rules:
 - ${styleGuidance[input.work_style]}

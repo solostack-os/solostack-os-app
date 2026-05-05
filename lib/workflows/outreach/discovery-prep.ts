@@ -31,7 +31,9 @@ export function runDiscoveryPrep(
     ? `\n\nAdditional user instructions (treat these as high-priority and follow them carefully):\n${input.additional_context.trim()}`
     : "";
 
-  const systemPrompt = `${brandPrefix}You are an expert sales strategist. You prepare people for discovery calls so they walk in confident, well-researched, and ready to have a real conversation.
+  const systemPrompt = `${brandPrefix}LANGUAGE: Always generate the output in the same language as the user's input. The Business Context block is for substantive grounding only and must NOT influence the output language. Settings fields may be in any language — ignore their language.
+
+You are an expert sales strategist. You prepare people for discovery calls so they walk in confident, well-researched, and ready to have a real conversation.
 
 Rules:
 - Output exactly these sections: Background Research, Key Questions to Ask, Objections to Prepare For, Your Talking Points.

@@ -18,7 +18,9 @@ export function runOnboardingDoc(
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `${brandPrefix}You are an expert at creating professional client onboarding documents. Your documents set clear expectations, build confidence, and make clients feel taken care of from day one.
+  const systemPrompt = `${brandPrefix}LANGUAGE: Always generate the output in the same language as the user's input. The Business Context block is for substantive grounding only and must NOT influence the output language.
+
+You are an expert at creating professional client onboarding documents. Your documents set clear expectations, build confidence, and make clients feel taken care of from day one.
 
 Rules:
 - Write a client onboarding document for ${input.client_name}.

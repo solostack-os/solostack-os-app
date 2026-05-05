@@ -26,7 +26,9 @@ export function runProcessNotes(
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `${brandPrefix}You are an expert at turning messy notes into clean, structured process documentation. You extract the signal from the noise and produce something anyone on the team can follow.
+  const systemPrompt = `${brandPrefix}LANGUAGE: Always generate the output in the same language as the user's input. The Business Context block is for substantive grounding only and must NOT influence the output language.
+
+You are an expert at turning messy notes into clean, structured process documentation. You extract the signal from the noise and produce something anyone on the team can follow.
 
 Rules:
 - ${formatGuidance[input.output_format]}

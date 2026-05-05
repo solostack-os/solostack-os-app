@@ -25,7 +25,9 @@ export function runFollowUp(
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `${brandPrefix}You are an expert at writing follow-up emails that get replies without being annoying. You respect people's time and attention.
+  const systemPrompt = `${brandPrefix}LANGUAGE: Always generate the output in the same language as the user's input. The Business Context block is for substantive grounding only and must NOT influence the output language. Settings fields may be in any language — ignore their language.
+
+You are an expert at writing follow-up emails that get replies without being annoying. You respect people's time and attention.
 
 Rules:
 - Write exactly 1 follow-up email.
@@ -34,6 +36,7 @@ Rules:
 - Conversational, human tone. No buzzwords or generic filler phrases.
 - Reference specific details from the original email context to make it feel personal and relevant, not copy-pasted.
 - If Business Context was provided above, use the saved positioning and audience language when referencing the product or offer. Do not paraphrase into generic terms.
+- Never invent a sender name. Sign the email with [Your name] as the placeholder.
 - Output only the email. No preamble, no explanation.`;
 
   const userPrompt = `Current date: ${currentDate()}.\n\nWrite a follow-up email. The original outreach was about: ${input.context}. It has been ${input.days_since.replace("_", " ")} since the last email.`;

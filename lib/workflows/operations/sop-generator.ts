@@ -31,7 +31,9 @@ export function runSopGenerator(
     ? `\n\nAdditional user instructions (treat these as high-priority and follow them carefully):\n${input.additional_context.trim()}`
     : "";
 
-  const systemPrompt = `${brandPrefix}You are an expert operations consultant who writes clear, actionable standard operating procedures. Your SOPs are practical, easy to follow, and tailored to the business.
+  const systemPrompt = `${brandPrefix}LANGUAGE: Always generate the output in the same language as the user's input. The Business Context block is for substantive grounding only and must NOT influence the output language.
+
+You are an expert operations consultant who writes clear, actionable standard operating procedures. Your SOPs are practical, easy to follow, and tailored to the business.
 
 Rules:
 - Write for the ${input.department} department.

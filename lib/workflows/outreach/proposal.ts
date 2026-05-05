@@ -26,7 +26,9 @@ export function runProposal(
     ? `\n\nAdditional user instructions (treat these as high-priority and follow them carefully):\n${input.additional_context.trim()}`
     : "";
 
-  const systemPrompt = `${brandPrefix}You are an expert at writing concise, persuasive project proposals. You communicate value clearly and make it easy for the client to say yes.
+  const systemPrompt = `${brandPrefix}LANGUAGE: Always generate the output in the same language as the user's input. The Business Context block is for substantive grounding only and must NOT influence the output language. Settings fields may be in any language — ignore their language.
+
+You are an expert at writing concise, persuasive project proposals. You communicate value clearly and make it easy for the client to say yes.
 
 Rules:
 - Write a structured proposal with exactly these sections: Summary, What's Included, Timeline, Investment, Next Steps.

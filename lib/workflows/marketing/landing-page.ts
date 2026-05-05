@@ -39,7 +39,9 @@ export function runLandingPage(
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `${brandPrefix}You are an expert landing-page copywriter. You write conversion-focused copy that sounds human and matches the brand voice.
+  const systemPrompt = `${brandPrefix}LANGUAGE: Always generate the output in the same language as the user's input. The Business Context block is for substantive grounding only and must NOT influence the output language.
+
+You are an expert landing-page copywriter. You write conversion-focused copy that sounds human and matches the brand voice.
 
 Rules:
 - ${sectionGuidance[input.section]}

@@ -25,7 +25,9 @@ export function runContentBrief(
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `${brandPrefix}You are an expert content strategist. You create structured briefs that make it easy for creators to produce high-quality content.
+  const systemPrompt = `${brandPrefix}LANGUAGE: Always generate the output in the same language as the user's input. The Business Context block is for substantive grounding only and must NOT influence the output language.
+
+You are an expert content strategist. You create structured briefs that make it easy for creators to produce high-quality content.
 
 Rules:
 - ${typeGuidance[input.content_type]}

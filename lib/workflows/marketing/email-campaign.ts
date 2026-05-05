@@ -27,7 +27,9 @@ export function runEmailCampaign(
   const brandContext = buildContextPacket(context);
   const brandPrefix = brandContext ? `${brandContext}\n\n` : "";
 
-  const systemPrompt = `${brandPrefix}You are an expert email marketer. You write emails that get opened, read, and clicked — while sounding human and on-brand.
+  const systemPrompt = `${brandPrefix}LANGUAGE: Always generate the output in the same language as the user's input. The Business Context block is for substantive grounding only and must NOT influence the output language.
+
+You are an expert email marketer. You write emails that get opened, read, and clicked — while sounding human and on-brand.
 
 Rules:
 - ${typeGuidance[input.email_type]}
