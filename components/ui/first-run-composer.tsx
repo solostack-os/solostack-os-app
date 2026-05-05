@@ -37,6 +37,8 @@ export function FirstRunComposer({ workspaceId, onDismiss }: FirstRunComposerPro
 
   // Inferred / editing context
   const [ctx, setCtx] = useState<InferredContext>({ audience: "", offer: "", outcome: "" });
+  // Structural fields from URL extraction — preserved across "Not really" clicks
+  const [structuralCtx, setStructuralCtx] = useState<Pick<InferredContext, "description" | "business_type" | "company_name">>({});
 
   // Generation state
   const [outputText, setOutputText] = useState("");
@@ -69,6 +71,13 @@ export function FirstRunComposer({ workspaceId, onDismiss }: FirstRunComposerPro
         body: JSON.stringify({ description: input }),
       });
       const data = await res.json();
+
+      // Always preserve structural fields from extraction (used if user clicks "Not really")
+      setStructuralCtx({
+        description: data.description || null,
+        business_type: data.business_type || null,
+        company_name: data.company_name || null,
+      });
 
       if (data.confidence === "low" && !data.audience && !data.offer) {
         // Inference failed — go to structured fallback
@@ -376,7 +385,7 @@ export function FirstRunComposer({ workspaceId, onDismiss }: FirstRunComposerPro
               Almost — let me tweak it
             </button>
             <button
-              onClick={() => { setCtx({ audience: "", offer: "", outcome: "" }); setState("editing"); }}
+              onClick={() => { setCtx({ audience: "", offer: "", outcome: "", ...structuralCtx }); setState("editing"); }}
               className="text-sm px-3 py-2.5 cursor-pointer transition-opacity opacity-60 hover:opacity-100"
               style={{ color: textMuted }}
             >
