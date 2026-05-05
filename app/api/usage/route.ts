@@ -27,12 +27,12 @@ export async function GET() {
   // Get workspace
   const { data: workspace } = await supabase
     .from("workspaces")
-    .select("id")
+    .select("id, has_generated")
     .eq("owner_user_id", user.id)
     .single();
 
   if (!workspace) {
-    return NextResponse.json({ remaining: null, limitReached: false });
+    return NextResponse.json({ remaining: null, limitReached: false, hasGenerated: false });
   }
 
   // Get subscription + plan
@@ -42,8 +42,10 @@ export async function GET() {
     .eq("workspace_id", workspace.id)
     .single();
 
+  const hasGenerated = (workspace as { has_generated?: boolean }).has_generated ?? false;
+
   if (!subscription) {
-    return NextResponse.json({ remaining: null, limitReached: false, planKey: "trial" });
+    return NextResponse.json({ remaining: null, limitReached: false, planKey: "trial", hasGenerated });
   }
 
   const { data: plan } = await admin
@@ -53,7 +55,7 @@ export async function GET() {
     .single();
 
   if (!plan?.run_cap) {
-    return NextResponse.json({ remaining: null, limitReached: false, planKey: subscription.plan_key });
+    return NextResponse.json({ remaining: null, limitReached: false, planKey: subscription.plan_key, hasGenerated });
   }
 
   // Count runs in current period
@@ -88,5 +90,6 @@ export async function GET() {
     limitReached,
     planKey: subscription.plan_key,
     trialEndsAt,
+    hasGenerated,
   });
 }

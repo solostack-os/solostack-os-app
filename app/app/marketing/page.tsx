@@ -325,6 +325,7 @@ export default function MarketingPage() {
   // null = still loading from API; false = credits available; true = limit reached
   const [creditLimitReached, setCreditLimitReached] = useState<boolean | null>(null);
   const [currentPlanKey, setCurrentPlanKey] = useState<string>("trial");
+  const [isFirstGeneration, setIsFirstGeneration] = useState(false);
 
   // On mount, sync credit-limit state from server — always overwrite both directions.
   useEffect(() => {
@@ -335,6 +336,7 @@ export default function MarketingPage() {
         setCreditLimitReached(limited);
         if (d.planKey) setCurrentPlanKey(d.planKey);
         if (limited) setShowUpgradeModal(true);
+        if (d.hasGenerated === false) setIsFirstGeneration(true);
       })
       .catch(() => { setCreditLimitReached(false); });
   }, []);
@@ -902,7 +904,7 @@ export default function MarketingPage() {
             {!spLoading && !spStreaming && spOutput && (
               <CdPassIndicator status={spCdPassStatus} />
             )}
-            {!spLoading && !spStreaming && <OutputCards cards={splitCards(spOutput, 'social_posts')} copiedIdx={spCopied} onCopy={(t, i) => handleCopy(t, i, setSpCopied)} accent={accent} accentLight={accentLight} contentType="social_posts" onClear={() => { setSpOutputs({ instagram: null, linkedin: null, facebook: null }); setSpError(null); setSpCdPassStatus("idle"); }} />}
+            {!spLoading && !spStreaming && <OutputCards cards={splitCards(spOutput, 'social_posts')} copiedIdx={spCopied} onCopy={(t, i) => handleCopy(t, i, setSpCopied)} accent={accent} accentLight={accentLight} contentType="social_posts" onClear={() => { setSpOutputs({ instagram: null, linkedin: null, facebook: null }); setSpError(null); setSpCdPassStatus("idle"); }} showContextCta={isFirstGeneration} />}
             {!spLoading && !spStreaming && spOutput && currentPlanKey !== "pro" && (
               <a
                 href="/app/settings#upgrade"
@@ -1009,7 +1011,7 @@ export default function MarketingPage() {
             {!acLoading && !acStreaming && acOutput && (
               <CdPassIndicator status={acCdPassStatus} />
             )}
-            {!acLoading && !acStreaming && <OutputCards cards={splitCards(acOutput, 'ad_copy', { singleCard: acPlatform === "google_ads" })} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} accent={accent} accentLight={accentLight} contentType="ad_copy" onClear={() => { setAcOutput(null); setAcError(null); setAcCdPassStatus("idle"); }} />}
+            {!acLoading && !acStreaming && <OutputCards cards={splitCards(acOutput, 'ad_copy', { singleCard: acPlatform === "google_ads" })} copiedIdx={acCopied} onCopy={(t, i) => handleCopy(t, i, setAcCopied)} accent={accent} accentLight={accentLight} contentType="ad_copy" onClear={() => { setAcOutput(null); setAcError(null); setAcCdPassStatus("idle"); }} showContextCta={isFirstGeneration} />}
             {!acLoading && !acStreaming && acOutput && currentPlanKey !== "pro" && (
               <a
                 href="/app/settings#upgrade"
@@ -1047,7 +1049,7 @@ export default function MarketingPage() {
             </GlowCard>
             {lpLoading && !lpStreaming && <LoadingSkeleton message="Generating landing page copy..." />}
             <StreamingCard ref={lpStreamTextRef} visible={lpStreaming} accent={accent} accentLight={accentLight} />
-            {!lpLoading && !lpStreaming && <OutputCards cards={splitCards(lpOutput, 'landing_page')} copiedIdx={lpCopied} onCopy={(t, i) => handleCopy(t, i, setLpCopied)} accent={accent} accentLight={accentLight} contentType="landing_page" onClear={() => { setLpOutput(null); setLpError(null); }} />}
+            {!lpLoading && !lpStreaming && <OutputCards cards={splitCards(lpOutput, 'landing_page')} copiedIdx={lpCopied} onCopy={(t, i) => handleCopy(t, i, setLpCopied)} accent={accent} accentLight={accentLight} contentType="landing_page" onClear={() => { setLpOutput(null); setLpError(null); }} showContextCta={isFirstGeneration} />}
           </>
         )}
 
@@ -1074,7 +1076,7 @@ export default function MarketingPage() {
             </GlowCard>
             {ecLoading && !ecStreaming && <LoadingSkeleton message="Generating your email..." />}
             <StreamingCard ref={ecStreamTextRef} visible={ecStreaming} accent={accent} accentLight={accentLight} />
-            {!ecLoading && !ecStreaming && <OutputCards cards={splitCards(ecOutput, 'email_campaign')} copiedIdx={ecCopied} onCopy={(t, i) => handleCopy(t, i, setEcCopied)} accent={accent} accentLight={accentLight} contentType="email_campaign" onClear={() => { setEcOutput(null); setEcError(null); }} />}
+            {!ecLoading && !ecStreaming && <OutputCards cards={splitCards(ecOutput, 'email_campaign')} copiedIdx={ecCopied} onCopy={(t, i) => handleCopy(t, i, setEcCopied)} accent={accent} accentLight={accentLight} contentType="email_campaign" onClear={() => { setEcOutput(null); setEcError(null); }} showContextCta={isFirstGeneration} />}
           </>
         )}
 
@@ -1101,7 +1103,7 @@ export default function MarketingPage() {
             </GlowCard>
             {cbLoading && !cbStreaming && <LoadingSkeleton message="Generating your brief..." />}
             <StreamingCard ref={cbStreamTextRef} visible={cbStreaming} accent={accent} accentLight={accentLight} />
-            {!cbLoading && !cbStreaming && <OutputCards cards={splitCards(cbOutput, 'content_brief')} copiedIdx={cbCopied} onCopy={(t, i) => handleCopy(t, i, setCbCopied)} accent={accent} accentLight={accentLight} contentType="content_brief" onClear={() => { setCbOutput(null); setCbError(null); }} />}
+            {!cbLoading && !cbStreaming && <OutputCards cards={splitCards(cbOutput, 'content_brief')} copiedIdx={cbCopied} onCopy={(t, i) => handleCopy(t, i, setCbCopied)} accent={accent} accentLight={accentLight} contentType="content_brief" onClear={() => { setCbOutput(null); setCbError(null); }} showContextCta={isFirstGeneration} />}
           </>
         )}
 
@@ -1223,7 +1225,7 @@ export default function MarketingPage() {
             </GlowCard>
             {voLoading && !voStreaming && <LoadingSkeleton message="Generating VO scripts..." />}
             <StreamingCard ref={voStreamTextRef} visible={voStreaming} accent={accent} accentLight={accentLight} />
-            {!voLoading && !voStreaming && <OutputCards cards={splitCards(voOutput, 'vo_script')} copiedIdx={voCopied} onCopy={(t, i) => handleCopy(t, i, setVoCopied)} accent={accent} accentLight={accentLight} contentType="vo_script" onClear={() => { setVoOutput(null); setVoError(null); }} />}
+            {!voLoading && !voStreaming && <OutputCards cards={splitCards(voOutput, 'vo_script')} copiedIdx={voCopied} onCopy={(t, i) => handleCopy(t, i, setVoCopied)} accent={accent} accentLight={accentLight} contentType="vo_script" onClear={() => { setVoOutput(null); setVoError(null); }} showContextCta={isFirstGeneration} />}
           </>
         )}
       </div>

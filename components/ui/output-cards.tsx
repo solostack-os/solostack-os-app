@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ContextCta } from "@/components/ui/context-cta";
 
 /**
@@ -65,6 +65,12 @@ interface OutputCardsProps {
    * in the Recents panel.
    */
   onClear?: () => void;
+  /**
+   * When true, shows a one-time CTA prompting the user to add business
+   * context. Should be true only for genuinely new users (has_generated was
+   * false at page load).
+   */
+  showContextCta?: boolean;
 }
 
 export function OutputCards({
@@ -75,22 +81,10 @@ export function OutputCards({
   accentLight,
   contentType,
   onClear,
+  showContextCta = false,
 }: OutputCardsProps) {
   const [exportingIdx, setExportingIdx] = useState<number | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
-  const [showCta, setShowCta] = useState(false);
-
-  // Show context CTA once per session on the first output ever rendered.
-  // Uses sessionStorage so it only appears once even across tab navigations.
-  useEffect(() => {
-    if (cards.length === 0) return;
-    const key = "solostack:context_cta_shown";
-    const dismissed = sessionStorage.getItem(key);
-    if (!dismissed) {
-      setShowCta(true);
-      sessionStorage.setItem(key, "1");
-    }
-  }, [cards.length]);
 
   if (cards.length === 0) return null;
 
@@ -273,7 +267,7 @@ export function OutputCards({
           </div>
         );
       })}
-      {showCta && <ContextCta />}
+      {showContextCta && <ContextCta />}
     </div>
   );
 }
