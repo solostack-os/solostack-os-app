@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { ContextCta } from "@/components/ui/context-cta";
 
 /**
  * Strip markdown syntax from a string so it can be pasted as clean plain
@@ -77,6 +78,19 @@ export function OutputCards({
 }: OutputCardsProps) {
   const [exportingIdx, setExportingIdx] = useState<number | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [showCta, setShowCta] = useState(false);
+
+  // Show context CTA once per session on the first output ever rendered.
+  // Uses sessionStorage so it only appears once even across tab navigations.
+  useEffect(() => {
+    if (cards.length === 0) return;
+    const key = "solostack:context_cta_shown";
+    const dismissed = sessionStorage.getItem(key);
+    if (!dismissed) {
+      setShowCta(true);
+      sessionStorage.setItem(key, "1");
+    }
+  }, [cards.length]);
 
   if (cards.length === 0) return null;
 
@@ -259,6 +273,7 @@ export function OutputCards({
           </div>
         );
       })}
+      {showCta && <ContextCta />}
     </div>
   );
 }

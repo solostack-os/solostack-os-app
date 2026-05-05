@@ -439,6 +439,14 @@ export async function POST(request: Request) {
             )
             .then(() => {}, () => {});
 
+          // Flip has_generated for activation panel (idempotent, non-blocking)
+          void admin
+            .from("workspaces")
+            .update({ has_generated: true })
+            .eq("id", workspace!.id)
+            .eq("has_generated", false)
+            .then(() => {}, () => {});
+
           // Emit provider metadata as the final stream token so the client
           // can decide whether CD Pass is eligible (anthropic-only, Pro plan).
           // The client strips this token before rendering or saving output.

@@ -28,23 +28,19 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const { main_goal, business_type, offer, target_audience, tone } = body;
+
+  // Only include fields that are explicitly provided to avoid overwriting
+  // existing values with null when a partial update is sent.
+  const fields: Record<string, unknown> = { workspace_id: workspace.id, updated_at: new Date().toISOString() };
+  const allowed = ["main_goal", "business_type", "offer", "target_audience", "tone", "brand_notes"] as const;
+  for (const key of allowed) {
+    if (key in body) fields[key] = body[key];
+  }
 
   // Upsert workspace context (primary key = workspace_id)
   const { error: ctxError } = await supabase
     .from("workspace_context")
-    .upsert(
-      {
-        workspace_id: workspace.id,
-        main_goal,
-        business_type,
-        offer,
-        target_audience,
-        tone,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "workspace_id" }
-    );
+    .upsert(fields, { onConflict: "workspace_id" });
 
   if (ctxError) {
     return NextResponse.json(

@@ -12,6 +12,7 @@ import { getStoredTouch, getUtmDataForSignup, clearStoredTouch } from "@/lib/utm
 import { trackEvent } from "@/lib/track";
 import { stripMarkdown } from "@/components/ui/output-cards";
 import { HeroCard, type HeroCompletionState } from "@/components/hero-card";
+import { ActivationPanel } from "@/components/ui/activation-panel";
 
 interface RecentRun {
   id: string;
@@ -137,7 +138,8 @@ export default function DashboardPage() {
   const [selectedRun, setSelectedRun] = useState<RecentRun | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [exportingRunId, setExportingRunId] = useState<string | null>(null);
-  const [heroCompletion, setHeroCompletion] = useState<HeroCompletionState>({ socialPosts: false, coldEmail: false, weeklyPlan: false });
+  const [heroCompletion, setHeroCompletion] = useState<HeroCompletionState>({ socialPosts: false, coldEmail: false, sopGenerator: false });
+  const [hasGenerated, setHasGenerated] = useState(true); // default true to avoid flash
   const router = useRouter();
   const supabase = createClient();
 
@@ -197,7 +199,7 @@ export default function DashboardPage() {
       // Fetch workspace, subscription, recent runs list, and plans in parallel.
       // We don't fetch the runs count yet — it depends on the period start from
       // the subscription row, so we handle it in a second (cheap) query below.
-      const HERO_KEYS = ["social_posts", "cold_email", "weekly_plan"];
+      const HERO_KEYS = ["social_posts", "cold_email", "sop_generator"];
       const [
         { data: workspace },
         { data: subscription },
@@ -205,7 +207,7 @@ export default function DashboardPage() {
         { data: plans },
         { data: heroRuns },
       ] = await Promise.all([
-        supabase.from("workspaces").select("name").eq("id", workspace_id).single(),
+        supabase.from("workspaces").select("name, has_generated").eq("id", workspace_id).single(),
         supabase
           .from("subscriptions")
           .select("plan_key, trial_ends_at, current_period_start, extra_credits")
@@ -237,6 +239,7 @@ export default function DashboardPage() {
       }
 
       setWorkspaceName(workspace.name ?? "My Workspace");
+      setHasGenerated((workspace as { has_generated?: boolean }).has_generated ?? false);
       if (runs) setRecentRuns(runs as unknown as RecentRun[]);
 
       // Derive hero card completion from real (non-sample) runs
@@ -244,7 +247,7 @@ export default function DashboardPage() {
       setHeroCompletion({
         socialPosts: completedKeys.has("social_posts"),
         coldEmail: completedKeys.has("cold_email"),
-        weeklyPlan: completedKeys.has("weekly_plan"),
+        sopGenerator: completedKeys.has("sop_generator"),
       });
 
       if (subscription) {
@@ -451,7 +454,7 @@ export default function DashboardPage() {
     ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : null;
   const isTrial = planKey === "trial";
-  const heroComplete = heroCompletion.socialPosts && heroCompletion.coldEmail && heroCompletion.weeklyPlan;
+  const heroComplete = heroCompletion.socialPosts && heroCompletion.coldEmail && heroCompletion.sopGenerator;
 
   return (
     <div className="relative min-h-screen isolate" style={{ backgroundColor: bg }}>
@@ -501,15 +504,22 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        {/* ─── Hero Card (Free/Trial users who haven't completed all 3) ─── */}
-        {isTrial && !heroComplete && (
+        {/* ─── Activation Panel (brand-new users with zero generations) ─── */}
+        {!hasGenerated && (
+          <div style={fadeUp(1)} className="mb-10">
+            <ActivationPanel />
+          </div>
+        )}
+
+        {/* ─── Hero Card (Trial users who have generated but haven't completed all 3) ─── */}
+        {hasGenerated && isTrial && !heroComplete && (
           <div style={fadeUp(1)} className="mb-10">
             <HeroCard completion={heroCompletion} />
           </div>
         )}
 
-        {/* ─── Quick Generate CTA + Modules (visible for paid users, or Free users who completed all 3 hero outputs) ─── */}
-        {(!isTrial || heroComplete) && (
+        {/* ─── Quick Generate CTA + Modules (visible for paid users, or trial users who completed all 3 hero outputs) ─── */}
+        {hasGenerated && (!isTrial || heroComplete) && (
           <>
             {/* Graduation nudge for Free users who completed all 3 hero outputs */}
             {isTrial && heroComplete && (
