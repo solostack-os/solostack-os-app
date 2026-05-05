@@ -487,7 +487,7 @@ export function FirstRunComposer({ workspaceId, onDismiss }: FirstRunComposerPro
 
       {refinementSaved && (
         <div className="mt-4 px-4 py-3 rounded-lg text-xs" style={{ backgroundColor: "rgba(108,140,255,0.08)", color: accent }}>
-          <p className="font-medium">Saved to Business Context.</p>
+          <p className="font-medium">Saved to <Link href="/app/settings" style={{ textDecoration: "underline", textUnderlineOffset: "2px" }}>Business Context</Link>.</p>
           <p className="mt-0.5 opacity-80">Future outputs will start with more of what you actually know.</p>
         </div>
       )}
