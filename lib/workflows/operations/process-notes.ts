@@ -33,6 +33,7 @@ Rules:
 - Clean up grammar, remove duplicates, and fill in obvious gaps.
 - If the notes are ambiguous, make a reasonable assumption and note it with [Assumed: ...].
 - Separate major sections with a horizontal rule (---).
+- If Business Context was provided above, use the user's audience and offer language naturally when the notes reference clients, customers, or deliverables.
 - Output only the structured documentation. No preamble, no explanation.`;
 
   const userPrompt = `Current date: ${currentDate()}.

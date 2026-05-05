@@ -35,6 +35,7 @@ Rules:
 - End with a Friday Review Checklist (3-5 reflection questions).
 - Separate each day and the checklist with a horizontal rule (---).
 - Keep time blocks realistic — don't over-schedule.
+- If Business Context was provided above, the plan must reflect the user's specific business situation. Reference their audience, offer, and positioning naturally in day themes and activities. A plan for someone with Business Context should NOT read like a generic template — it should feel written for their specific business.
 - Output only the plan. No preamble, no explanation.`;
 
   const userPrompt = `Current date: ${currentDate()}.

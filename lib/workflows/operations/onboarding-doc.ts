@@ -32,6 +32,7 @@ Rules:
 - Communication: preferred channels, response times, meeting cadence.
 - Next Steps: 3-5 immediate action items for the client.
 - Tone should be warm but professional.
+- If Business Context was provided above, reflect the user's specific business in the Welcome and Project Overview — use their audience, offer, and positioning language naturally.
 - Output only the document. No preamble, no explanation.`;
 
   const userPrompt = `Current date: ${currentDate()}.

@@ -40,6 +40,7 @@ Rules:
 - No buzzwords (synergy, leverage, unlock, revolutionize, etc.).
 - One clear CTA only.
 - ${goalGuidance[input.goal]}
+- If Business Context was provided above, use the saved positioning words and phrases when describing the product or offer. Do not paraphrase into generic SaaS language (e.g., do not say "all-in-one operating system" or "less chaos, more clarity" unless that is what the saved context actually says). Use the audience and POV language from the saved context literally.
 - Output exactly two sections: "Subject:" and "Body:" — separated by a horizontal rule (---).
 - Output only the email. No preamble, no explanation.${extraInstructions}`;
 

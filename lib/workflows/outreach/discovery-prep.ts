@@ -42,6 +42,7 @@ Rules:
 - Key Questions to Ask: 5-6 open-ended questions, ordered from rapport-building to business-critical.
 - Objections to Prepare For: 3-4 likely objections with a one-line suggested response for each.
 - Your Talking Points: 3-4 points that connect the seller's strengths to the prospect's likely needs.
+- If Business Context was provided above, use the saved positioning and audience language in Talking Points and Objection responses. Do not paraphrase into generic terms.
 - Output only the prep notes. No preamble, no explanation.${extraInstructions}`;
 
   const userPrompt = `Current date: ${currentDate()}.\n\nPrepare discovery call notes for a meeting with ${input.prospect_company} (${input.industry} industry). Call goal: ${input.call_goal.replace("_", " ")}.`;

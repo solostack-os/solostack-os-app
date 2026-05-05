@@ -39,6 +39,7 @@ Rules:
 - Timeline should give realistic phase-based milestones.
 - Investment should present pricing clearly, with a brief justification of value.
 - Next Steps should make it dead simple to move forward (1-2 action items).
+- If Business Context was provided above, use the saved positioning and audience language when framing the offer and its value. Do not paraphrase into generic terms.
 - Output only the proposal. No preamble, no explanation.${extraInstructions}`;
 
   const userPrompt = `Current date: ${currentDate()}.\n\nWrite a project proposal for ${input.client_name}. Project type: ${input.project_type}.`;

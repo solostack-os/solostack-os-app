@@ -44,6 +44,7 @@ export function runLandingPage(
 Rules:
 - ${sectionGuidance[input.section]}
 - ${goalGuidance[input.goal]}
+- If Business Context was provided above, ground the copy in the user's actual offer, audience, and positioning. Do not write generic placeholder copy.
 - Output only the copy elements. No preamble, no explanation.`;
 
   const userPrompt = `Current date: ${currentDate()}.\n\nWrite ${input.section.replace("_", " ")} section copy about: ${input.topic}`;

@@ -35,6 +35,7 @@ Rules:
 - Label each section clearly (e.g. "Subject Line:", "Preview Text:", "Email Body:").
 - Separate each section with a horizontal rule (---).
 - The email body should use short paragraphs and be ready to paste into an email tool.
+- If Business Context was provided above, ground the email in the user's actual offer, audience, and positioning.
 - Output only the email. No preamble, no explanation.`;
 
   const userPrompt = `Current date: ${currentDate()}.\n\nWrite a ${input.email_type.replace("_", " ")} email about: ${input.topic}`;

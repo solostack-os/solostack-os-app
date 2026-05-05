@@ -40,6 +40,7 @@ Rules:
 - Label each section clearly.
 - Separate each section with a horizontal rule (---).
 - Use numbered steps in the Step-by-Step Process section.
+- If Business Context was provided above, tailor the SOP to the user's specific business — use their audience and offer language naturally in the Purpose, Scope, and process steps. The SOP should feel written for this specific business, not a generic template.
 - Output only the SOP. No preamble, no explanation.${extraInstructions}`;
 
   const userPrompt = `Current date: ${currentDate()}.

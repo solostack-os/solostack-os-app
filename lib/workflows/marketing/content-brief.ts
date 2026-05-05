@@ -32,6 +32,7 @@ Rules:
 - Output exactly these sections in order: Title, Angle, Target Audience, Outline (5 numbered sections), Key Talking Points (3-5 bullets), CTA.
 - Label each section clearly.
 - Separate each section with a horizontal rule (---).
+- If Business Context was provided above, tailor the Angle, Target Audience, and Key Talking Points to the user's actual business — do not write a generic brief.
 - Output only the brief. No preamble, no explanation.`;
 
   const userPrompt = `Current date: ${currentDate()}.\n\nCreate a ${input.content_type.replace(/_/g, " ")} brief about: ${input.topic}`;

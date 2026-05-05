@@ -33,6 +33,7 @@ Rules:
 - Must have a "Subject:" line and a "Body:" section, separated by a horizontal rule (---).
 - Conversational, human tone. No buzzwords or generic filler phrases.
 - Reference specific details from the original email context to make it feel personal and relevant, not copy-pasted.
+- If Business Context was provided above, use the saved positioning and audience language when referencing the product or offer. Do not paraphrase into generic terms.
 - Output only the email. No preamble, no explanation.`;
 
   const userPrompt = `Current date: ${currentDate()}.\n\nWrite a follow-up email. The original outreach was about: ${input.context}. It has been ${input.days_since.replace("_", " ")} since the last email.`;
