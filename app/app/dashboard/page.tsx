@@ -510,7 +510,7 @@ export default function DashboardPage() {
         {/* ─── First-Run Composer (brand-new users with zero generations) ─── */}
         {!hasGenerated && workspaceId && (
           <div style={fadeUp(1)}>
-            <FirstRunComposer workspaceId={workspaceId} />
+            <FirstRunComposer workspaceId={workspaceId} onDismiss={() => setHasGenerated(true)} />
           </div>
         )}
 

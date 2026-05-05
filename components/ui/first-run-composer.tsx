@@ -22,9 +22,11 @@ interface InferredContext {
 
 interface FirstRunComposerProps {
   workspaceId: string;
+  /** Called when the user is done with the composer and wants to see the normal dashboard. */
+  onDismiss?: () => void;
 }
 
-export function FirstRunComposer({ workspaceId }: FirstRunComposerProps) {
+export function FirstRunComposer({ workspaceId, onDismiss }: FirstRunComposerProps) {
   const [state, setState] = useState<ComposerState>("input");
 
   // Input state
@@ -501,6 +503,8 @@ export function FirstRunComposer({ workspaceId }: FirstRunComposerProps) {
           <p className="text-xs mb-4" style={{ color: textMuted }}>
             What would you like to do next?
           </p>
+
+          {/* Primary actions */}
           <div className="flex flex-wrap gap-3">
             <Link
               href="/app/marketing"
@@ -516,12 +520,29 @@ export function FirstRunComposer({ workspaceId }: FirstRunComposerProps) {
             >
               Write a cold email
             </Link>
+            <button
+              onClick={() => {
+                window.dispatchEvent(new Event("recents:refresh"));
+                onDismiss?.();
+              }}
+              className="text-xs font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer"
+              style={{ color: accent, backgroundColor: "rgba(108,140,255,0.1)" }}
+            >
+              Explore SoloStack OS
+            </button>
+          </div>
+
+          {/* Secondary — Business Context CTA */}
+          <div className="mt-4 pt-3" style={{ borderTop: `1px solid ${border}` }}>
+            <p className="text-xs mb-2" style={{ color: textMuted }}>
+              Want sharper outputs? Add more Business Context so SoloStack can use your audience, offer, tone, and examples in future workflows.
+            </p>
             <Link
-              href="/app/dashboard"
-              className="text-xs px-4 py-2 rounded-lg transition-opacity opacity-60 hover:opacity-100"
+              href="/app/settings"
+              className="text-xs px-3 py-1.5 rounded-md transition-opacity opacity-60 hover:opacity-100"
               style={{ color: textMuted }}
             >
-              Explore all workflows
+              Open Business Context
             </Link>
           </div>
         </div>
